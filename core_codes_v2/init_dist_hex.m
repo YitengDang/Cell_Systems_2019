@@ -4,7 +4,8 @@ function [dist, pos] = init_dist_hex(gridsizex, gridsizey)
 
 % Preiously saved matrices are saved in ./data/dist_matrix_hex with the
 % filename <gridsizex><gridsizey>.mat
-filename = fullfile(pwd, 'data', 'dist_matrix_hex', ...
+folder = fullfile('..', 'data', 'dist_matrix_hex');
+filename = fullfile(folder,...
     sprintf('%d%d.mat', gridsizex, gridsizey));
 
 if exist(filename, 'file') == 2

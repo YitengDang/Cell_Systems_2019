@@ -1,0 +1,2 @@
+6060 
+100100 (data for 100x100 lattice) is in group drive.
