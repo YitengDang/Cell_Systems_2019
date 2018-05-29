@@ -1,4 +1,4 @@
-function period = periodicity_test(cells_hist, save_consts_struct)
+function period_out = periodicity_test(cells_hist, save_consts_struct)
 
 N = save_consts_struct.N;
 gz = sqrt(N);
@@ -38,6 +38,13 @@ for t1=0:t_out-2
     end
 end
 disp('finished');
+%% return variables
+% return first found period
+idx = find(period~=0, 1);
+period_out = period(idx);
+if isempty(period_out)
+    period_out = 0;
+end
 %% Check found periods
 %{
 % check frame at t1, compare with frame at t2
