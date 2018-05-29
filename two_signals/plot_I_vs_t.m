@@ -1,4 +1,4 @@
-function msg = plot_I_vs_t(cells_hist, a0, dist, option, fig_pos)
+function msg = plot_I_vs_t(cells_hist, t0, a0, dist, option, fig_pos)
 % option: 1 = plot I, 2 = plot Theta
 
 str_options = {'I(t)', 'Theta(t)'};
@@ -45,7 +45,7 @@ for i=1:s
             y = Theta(:,i);
     end
     clr = plot_clrs(i,:);
-    plot(0:tmax, y, ps, 'LineWidth', lw, 'Color', clr);
+    plot(t0:t0+tmax, y, ps, 'LineWidth', lw, 'Color', clr);
 end
 
 %set(0, 'DefaultTextInterpreter', 'latex');
@@ -54,7 +54,7 @@ plot_labels = {'$$I(t)$$', '$$\Theta(t)/f_N$$'};
 ylabel(plot_labels{option}, 'Interpreter', 'latex');
 legend(num2cell(string(1:s)));
 set(gca, 'FontSize', 24);
-xlim([0 tmax])
+xlim([t0 t0+tmax])
 ylim([-1 1]);
 
 set(h2, 'Units', 'inches', 'Position', fig_pos);

@@ -116,7 +116,7 @@ end
 %}
 
 %% Loop over p_ini
-[p1, p2] = meshgrid(0:0.1:1, 0:0.1:0.5);
+[p1, p2] = meshgrid(0:0.1:1, 0.6:0.1:1);
 %p1 = 0.5; 
 %p2 = 0.5;
 for i1 = 1:size(p1, 1)

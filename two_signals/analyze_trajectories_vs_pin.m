@@ -23,10 +23,11 @@ p1 = 0:0.1:1;
 p2 = 0:0.1:1;
 nruns = 10;
 tmax = 10000;
+
 filecount = zeros(numel(p1), numel(p2));
 t_out_all = zeros(numel(p1), numel(p2), nruns); % final times
 period = zeros(numel(p1), numel(p2), nruns); % periodicity test
-t_onset = tmax*ones(numel(p1), numel(p2), nruns); % default set to tmax
+t_onset = zeros(numel(p1), numel(p2), nruns); 
 
 for i=1:numel(names)
     disp(names{i});
@@ -34,18 +35,30 @@ for i=1:numel(names)
     p_ini = save_consts_struct.p_ini;
     idx1 = find(p_ini(1) == p1, 1);
     idx2 = find(p_ini(2) == p2, 1);
-    filecount(idx1, idx2) = filecount(idx1, idx2) + 1;
-    idx3 = filecount(idx1, idx2);
-    t_out_all(idx1, idx2, idx3) = t_out;
-    [period(idx1, idx2, idx3), t_onset(idx1, idx2, idx3)] = ...
-        periodicity_test_short(cells_hist, save_consts_struct); % periodicity test
+    if ~isempty(idx1)&&~isempty(idx2)
+        filecount(idx1, idx2) = filecount(idx1, idx2) + 1;
+        idx3 = filecount(idx1, idx2);
+        t_out_all(idx1, idx2, idx3) = t_out;
+        if t_out < tmax
+            [period(idx1, idx2, idx3), t_onset(idx1, idx2, idx3)] = ...
+                periodicity_test_short(cells_hist); % periodicity test
+        end
+    end
 end
 
 %% Save the loaded data
-fname_str = 'III_chaotic_scan_p_ini_data';
+fname_str = sprintf('III_chaotic_scan_p_ini_data_nruns%d', nruns);
 save_path = 'H:\My Documents\Multicellular automaton\data\two_signals\time_evolution';
 %save_vars = {'p1', 'p2', 'filecount', 't_out_all', 'period'};
-save(fullfile(save_path, strcat(fname_str, '.mat') ), 'p1', 'p2', 'filecount', 't_out_all', 'period') %, save_vars);
+save(fullfile(save_path, strcat(fname_str, '.mat') ), 'p1', 'p2', 'filecount', 't_out_all', 'period', 't_onset') %, save_vars);
+
+% folder for saving figures
+save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\analyze_trajectories_vs_pin';
+
+%% Load data
+%fname_str = 'III_chaotic_scan_p_ini_data';
+%load_path = 'H:\My Documents\Multicellular automaton\data\two_signals\time_evolution';
+%load(fullfile(load_path, strcat(fname_str, '.mat')));
 %% Analyze t_out
 % (1) <t_out>
 %t_out_mean = mean(t_out_all, 3);
@@ -59,8 +72,16 @@ set(gca, 'YDir', 'Normal');
 c = colorbar;
 xlabel('$$p_1$$')
 ylabel('$$p_2$$')
+ylabel(c, 'fraction');
 set(gca, 'FontSize', 20);
 ylim(c, [0 1]);
+
+qsave = 1;
+if qsave
+    fname = fullfile(save_path_fig, strcat(fname_str, '_frac_reaching_tmax'));
+    save_figure(h2, 10, 8, fname, '.pdf');
+end
+
 %%
 % (3) <t_out> over trajectories that don't reach tmax
 t_out_mean_2 = zeros(numel(p1), numel(p2));
@@ -81,15 +102,37 @@ ylabel('$$p_2$$')
 ylabel(c, '$$\langle t_{out} |  t_{out} < t_{max} \rangle$$', ...
     'Interpreter', 'latex', 'FontSize', 20);
 set(gca, 'FontSize', 20);
-%ylim(c, [0 1]);
+ylim(c, [0 tmax]);
 
+qsave = 1;
+if qsave
+    fname = fullfile(save_path_fig, strcat(fname_str, '_mean_t_out_subset'));
+    save_figure(h3, 10, 8, fname, '.pdf');
+end
 %% Analyze periods
+% number of chaotic trajectories
+n_chaotic = sum((period(:)==0).*(t_out_all(:) == tmax));
+
+% data
+period_data = period(period~=0);
+uniq = unique(period_data);
+C = categorical(period_data, uniq);
+
 % distribution of periods
 h4 = figure(4);
-histogram(period(period~=0) );
+histogram(C);
 xlabel('Period');
 ylabel('Count');
+title(sprintf('%d trajectories, %d periodic, %d chaotic',...
+    numel(period), numel(period_data), n_chaotic));
 set(gca, 'FontSize', 20);
+
+qsave = 1;
+if qsave
+    fname = fullfile(save_path_fig, strcat(fname_str, '_periods_hist_chaotic'));
+    save_figure(h4, 10, 8, fname, '.pdf');
+end
+
 
 %% average period (count only found periods)
 period_mean = zeros(numel(p1), numel(p2));
@@ -109,6 +152,12 @@ set(gca, 'YDir', 'Normal');
 c = colorbar;
 xlabel('$$p_1$$')
 ylabel('$$p_2$$')
-ylabel(c, '$$\langle \tau \rangle$$', ...
+ylabel(c, 'Mean period (time steps)', ...
     'Interpreter', 'latex', 'FontSize', 20);
 set(gca, 'FontSize', 20);
+
+qsave = 1;
+if qsave
+    fname = fullfile(save_path_fig, strcat(fname_str, '_mean_period'));
+    save_figure(h5, 10, 8, fname, '.pdf');
+end

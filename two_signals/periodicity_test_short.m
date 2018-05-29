@@ -1,8 +1,8 @@
-function [period, t_onset] = periodicity_test_short(cells_hist, save_consts_struct)
+function [period, t_onset] = periodicity_test_short(cells_hist)
     % returns the first found period and the time of onset of the
     % periodicity
-    N = save_consts_struct.N;
-    gz = sqrt(N);
+    %N = save_consts_struct.N;
+    %gz = sqrt(N);
     t_out = numel(cells_hist)-1;
     % Scan over all initial frames
     %period = zeros(t_out+1, 1);
@@ -21,6 +21,7 @@ function [period, t_onset] = periodicity_test_short(cells_hist, save_consts_stru
             end
         end
     end
-    period = 0;
+    period = Inf;
+    t_onset = Inf;
     disp('no period found');
 end
