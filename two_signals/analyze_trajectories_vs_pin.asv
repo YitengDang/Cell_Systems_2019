@@ -129,7 +129,7 @@ period_data = period(period~=0);
 uniq = unique(period_data);
 C = categorical(period_data, uniq);
 
-n_periodic = sum(period_data(:)~=Inf);
+n_periodic = sum(period_data(~=Inf);
 
 % distribution of periods
 h4 = figure(4);
@@ -137,10 +137,10 @@ histogram(C);
 xlabel('Period');
 ylabel('Count');
 title(sprintf('%d trajectories, %d periodic, %d chaotic',...
-    sum(sum(filecount)), n_periodic, n_chaotic));
+    sum(sum(filecount)), numel(period_data), n_chaotic));
 set(gca, 'FontSize', 20);
 
-qsave = 1;
+qsave = 0;
 if qsave
     fname = fullfile(save_path_fig, strcat(fname_str, '_periods_hist_chaotic'));
     save_figure(h4, 10, 8, fname, '.pdf');
@@ -148,11 +148,10 @@ end
 
 
 %% average period (count only found periods)
-
 period_mean = zeros(numel(p1), numel(p2));
 period_count = zeros(numel(p1), numel(p2));
 for i=1:numel(t_out_all)
-    if period(i)>0 && period(i)<Inf
+    if period(i)>0
         [i1,i2,i3] = ind2sub(size(period), i); 
         period_count(i1, i2) = period_count(i1, i2) + 1;
         period_mean(i1, i2) = period_mean(i1, i2) + period(i1,i2,i3);
@@ -164,7 +163,6 @@ h5 = figure(5);
 imagesc(p1, p2, period_mean);
 set(gca, 'YDir', 'Normal');
 c = colorbar;
-caxis([0 max(uniq(uniq<Inf))])
 xlabel('$$p_1$$')
 ylabel('$$p_2$$')
 ylabel(c, 'Mean period (time steps)', ...
