@@ -50,7 +50,7 @@ for i=1:numel(names)
             idx3 = filecount(idx1, idx2);
             t_out_all(idx1, idx2, idx3) = t_out;
             [period(idx1, idx2, idx3), t_onset(idx1, idx2, idx3)] = ...
-                periodicity_test_short(cells_hist); % periodicity test
+                periodicity_test_v2(cells_hist); % periodicity test
         end
     end
 end
