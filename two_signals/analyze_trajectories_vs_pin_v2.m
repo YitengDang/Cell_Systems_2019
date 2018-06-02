@@ -1,10 +1,11 @@
 %% Analyze saved trajectories across a range of pin
+% v2: for trajectories that already have calculated periods (short style)
 clear all
 close all
 set(0, 'defaulttextinterpreter', 'latex');
 %%
-path = 'H:\My Documents\Multicellular automaton\data\two_signals\time_evolution\III_chaotic_scan_p_ini_batch2';
-
+%path = 'H:\My Documents\Multicellular automaton\data\two_signals\time_evolution\III_chaotic_scan_p_ini_batch2';
+path = 'D:\Multicellularity\data\two_signals\time_evolution\vs_pini_batch3';
 listing = dir(path);
 num_files = numel(listing)-2; %first two entries are not useful
 count = 0;
@@ -20,7 +21,7 @@ end
 
 %% Load data
 N = 225;
-nruns = 1;
+nruns = 80;
 tmax = 10000;
 
 p1 = 0:0.1:1;
@@ -30,10 +31,10 @@ N2 = round(p2*N);
 
 filecount = zeros(numel(p1), numel(p2));
 t_out_all = zeros(numel(p1), numel(p2), nruns); % final times
-period = zeros(numel(p1), numel(p2), nruns); % periodicity test
-t_onset = zeros(numel(p1), numel(p2), nruns); 
+period_all = zeros(numel(p1), numel(p2), nruns); % periodicity test
+t_onset_all = zeros(numel(p1), numel(p2), nruns); 
 
-pattern = 'v1'; %'p_ini\dp\d{2}_0p30';
+pattern = '.'; % '.' = anything 'p_ini\dp\d{2}_0p30';
 for i=1:numel(names)
     if isempty(regexp(names{i}, pattern, 'once')) % only load files matching a certain pattern
         continue
@@ -49,20 +50,24 @@ for i=1:numel(names)
             filecount(idx1, idx2) = filecount(idx1, idx2) + 1;
             idx3 = filecount(idx1, idx2);
             t_out_all(idx1, idx2, idx3) = t_out;
-            [period(idx1, idx2, idx3), t_onset(idx1, idx2, idx3)] = ...
-                periodicity_test_short(cells_hist); % periodicity test
+            period_all(idx1, idx2, idx3) = period;
+            t_onset_all(idx1, idx2, idx3) = t_onset;
         end
     end
 end
 
 %% Save the loaded data
-fname_str = sprintf('III_chaotic_scan_p_ini_batch2_data_nruns%d', nruns);
-save_path = 'H:\My Documents\Multicellular automaton\data\two_signals\time_evolution';
+%fname_str = sprintf('III_chaotic_scan_p_ini_batch2_data_nruns%d', nruns);
+fname_str = sprintf('vs_p_ini_batch3_data_nruns%d', nruns);
+%save_path = 'H:\My Documents\Multicellular automaton\data\two_signals\time_evolution';
+save_path = 'D:\Multicellularity\data\two_signals\time_evolution';
+
 %save_vars = {'p1', 'p2', 'filecount', 't_out_all', 'period'};
-save(fullfile(save_path, strcat(fname_str, '.mat') ), 'p1', 'p2', 'filecount', 't_out_all', 'period', 't_onset') %, save_vars);
+%save(fullfile(save_path, strcat(fname_str, '.mat') ), 'p1', 'p2', 'filecount', 't_out_all', 'period', 't_onset') %, save_vars);
+save(fullfile(save_path, strcat(fname_str, '.mat') ), 'p1', 'p2', 'filecount', 't_out_all', 'period_all', 't_onset_all') %, save_vars);
 
 % folder for saving figures
-save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\analyze_trajectories_vs_pin';
+%save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\analyze_trajectories_vs_pin';
 
 %% Load data
 %fname_str = 'III_chaotic_scan_p_ini_data';
@@ -122,14 +127,14 @@ if qsave
 end
 %% Analyze periods
 % number of chaotic trajectories
-n_chaotic = sum((period(:)==Inf).*(t_out_all(:) == tmax));
+n_chaotic = sum((period_all(:)==Inf).*(t_out_all(:) == tmax));
 
 % data
-period_data = period(period~=0);
+period_data = period_all(period_all~=0);
 uniq = unique(period_data);
 C = categorical(period_data, uniq);
 
-n_periodic = sum(period_data(~=Inf);
+n_periodic = sum(period_data(:)~=Inf);
 
 % distribution of periods
 h4 = figure(4);
@@ -137,10 +142,10 @@ histogram(C);
 xlabel('Period');
 ylabel('Count');
 title(sprintf('%d trajectories, %d periodic, %d chaotic',...
-    sum(sum(filecount)), numel(period_data), n_chaotic));
+    sum(sum(filecount)), n_periodic, n_chaotic));
 set(gca, 'FontSize', 20);
 
-qsave = 0;
+qsave = 1;
 if qsave
     fname = fullfile(save_path_fig, strcat(fname_str, '_periods_hist_chaotic'));
     save_figure(h4, 10, 8, fname, '.pdf');
@@ -148,13 +153,14 @@ end
 
 
 %% average period (count only found periods)
+
 period_mean = zeros(numel(p1), numel(p2));
 period_count = zeros(numel(p1), numel(p2));
 for i=1:numel(t_out_all)
-    if period(i)>0
-        [i1,i2,i3] = ind2sub(size(period), i); 
+    if period_all(i)>0 && period_all(i)<Inf
+        [i1,i2,i3] = ind2sub(size(period_all), i); 
         period_count(i1, i2) = period_count(i1, i2) + 1;
-        period_mean(i1, i2) = period_mean(i1, i2) + period(i1,i2,i3);
+        period_mean(i1, i2) = period_mean(i1, i2) + period_all(i1,i2,i3);
     end
 end
 period_mean = period_mean./period_count;
@@ -163,6 +169,7 @@ h5 = figure(5);
 imagesc(p1, p2, period_mean);
 set(gca, 'YDir', 'Normal');
 c = colorbar;
+caxis([0 max(uniq(uniq<Inf))])
 xlabel('$$p_1$$')
 ylabel('$$p_2$$')
 ylabel(c, 'Mean period (time steps)', ...

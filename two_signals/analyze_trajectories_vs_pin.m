@@ -3,8 +3,8 @@ clear all
 close all
 set(0, 'defaulttextinterpreter', 'latex');
 %%
-path = 'H:\My Documents\Multicellular automaton\data\two_signals\time_evolution\III_chaotic_scan_p_ini_batch2';
-
+%path = 'H:\My Documents\Multicellular automaton\data\two_signals\time_evolution\III_chaotic_scan_p_ini_batch2';
+path = 'D:\Multicellularity\data\two_signals\time_evolution\vs_pini_batch3';
 listing = dir(path);
 num_files = numel(listing)-2; %first two entries are not useful
 count = 0;
@@ -20,7 +20,7 @@ end
 
 %% Load data
 N = 225;
-nruns = 1;
+nruns = 80;
 tmax = 10000;
 
 p1 = 0:0.1:1;
@@ -33,7 +33,7 @@ t_out_all = zeros(numel(p1), numel(p2), nruns); % final times
 period = zeros(numel(p1), numel(p2), nruns); % periodicity test
 t_onset = zeros(numel(p1), numel(p2), nruns); 
 
-pattern = 'v1'; %'p_ini\dp\d{2}_0p30';
+pattern = '.'; % '.' = anything 'p_ini\dp\d{2}_0p30';
 for i=1:numel(names)
     if isempty(regexp(names{i}, pattern, 'once')) % only load files matching a certain pattern
         continue
