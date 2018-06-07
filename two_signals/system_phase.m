@@ -75,22 +75,57 @@ fprintf('inhibitor fij(a0) = %.4f \n', sinh(Rcell)*sum(exp((Rcell-a0)./lambda(2)
 %% Calculate phase
 num_mol = 2; % number of molecules
 cond = zeros(num_mol, 4); % test 4 conditions per molecule
-
 fN = [fN1 fN2];
 
-all_ON = zeros(num_mol,num_mol);
-all_OFF = zeros(num_mol,num_mol);
-ON_not_OFF = zeros(num_mol,num_mol);
-OFF_not_ON = zeros(num_mol,num_mol);
+all_ON_all = zeros(num_mol,num_mol);
+all_OFF_all = zeros(num_mol,num_mol);
+ON_remains_ON_all = zeros(num_mol,num_mol);
+OFF_remains_OFF_all = zeros(num_mol,num_mol);
 
+% determine gij for each interaction
 for i=1:num_mol
     for j=1:num_mol
-        all_ON(i,j) = gij_zero_strong(i, j, M_int, fN, K, Con, Coff, 0);
-        all_OFF(i,j) = gij_zero_strong(i, j, M_int, fN, K, Con, Coff, 1);
-        ON_not_OFF(i,j) = gij_zero_weak(i, j, M_int, fN, K, Con, Coff, 0);
-        OFF_not_ON(i,j) = gij_zero_weak(i, j, M_int, fN, K, Con, Coff, 1);
+        all_ON_all(i,j) = gij(1, i, j, M_int, fN, K, Coff, Con, 1);
+        all_OFF_all(i,j) = gij(0, i, j, M_int, fN, K, Coff, Con, 1);
+        ON_remains_ON_all(i,j) = gij(1, i, j, M_int, fN, K, Coff, Con, -1);
+        OFF_remains_OFF_all(i,j) = gij(0, i, j, M_int, fN, K, Coff, Con, -1);
     end
 end
+
+% final result for each gene
+all_ON = prod(all_ON_all, 2);
+all_OFF = prod(all_OFF_all, 2);
+ON_remains_ON = prod(ON_remains_ON_all, 2);
+OFF_remains_OFF = prod(OFF_remains_OFF_all, 2);
+%%
+condition = {'All ON', 'All OFF', 'ON -> ON or OFF -> ON', 'OFF remains OFF'};
+molecule_number = (1:num_mol)';
+t = table(molecule_number, all_ON, all_OFF, ON_remains_ON, OFF_remains_OFF)
+
+% gij(0, 2, 2, M_int, fN, K, Coff, Con, -1)
+function gij_out = gij(gij_target, i, j, M_int, fN, K, Coff, Con, cases)
+    % cases = 1 for all ON/OFF, cases = -1 for ON cannot turn OFF / reverse
+    if M_int(i,j)==0 % no interaction
+        gij_out = 1;
+        return
+    end
+    C_all = [Coff(j); Con(j)];
+    
+    Gamma = M_int(i,j)*(2*gij_target-1);
+    beta = -Gamma; 
+    idx = (beta==-1) + 2*(beta==1);
+    Cb = C_all(idx);
+    alpha = cases*beta;
+    idx2 = (alpha==-1) + 2*(alpha==1);
+    Ca = C_all(idx2);
+    %fprintf('Gamma = %.1f \n', Gamma);
+    %fprintf('Ca = %.1f \n', Ca);
+    %fprintf('Cb = %.1f \n', Cb);
+    %fprintf('beta = %d, idx = %d \n', beta, idx);
+    gij_out = (Gamma*(Ca + fN(j)*Cb - K(i,j)) > 0);
+end
+%{
+% Old version: does not work
 
 function out = gij_zero_strong(i, j, M_int, fN, K, Con, Coff, onoff)
     % onoff: (0) all ON (1) all OFF
@@ -119,5 +154,5 @@ function out = gij_zero_weak(i, j, M_int, fN, K, Con, Coff, onoff)
         out = Y_self + fN(j)*S_nei - K(i,j) < 0;
     end
 end
-
-%% Test phase
+%}
+%% Plot phase diagrams
