@@ -30,7 +30,7 @@ InitiateI = 0; % 0: no, 1: yes
 cell_type = zeros(N,1);
 
 % simulation parameters
-tmax = 10000;
+tmax = 100;
 nruns = 10;
 
 % pos, dist
@@ -121,6 +121,7 @@ end
 cells_hist = {};
 %t_out = 0;
 %changed = 1;
+disp_mol = 1;
 
 % generate initial lattice
 iniON = round(p0*N);
@@ -138,6 +139,7 @@ end
 % store initial config
 cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
 
+hin = figure();
 % dynamics
 t = 0;
 [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
@@ -147,12 +149,11 @@ while changed && t < tmax
     t = t+1;
     cells = cellsOut;
     cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
-    %update_cell_figure_continuum(app, pos, dist, a0, cells, app.Time, cell_type, disp_mol, 0);
+    %update_cell_figure_continuum(hin, pos, cells, cell_type, t, disp_mol);
     [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
         Rcell, Con, Coff, K, lambda, hill, noise);
 end
 t_out = t; % save final time
-
 %% Analyze time step
 probe_t = 0;
 cells = cells_hist{probe_t+1};

@@ -53,6 +53,10 @@ end
 
 %% output
 cells_out = [X1 X2];
+% if no connections to a gene, output = input (remains constant)
+idx2 = find(sum(abs(M_int), 2)==0); % find channel(s) that don't have any input
+cells_out(:, idx2) = cells(:, idx2); % revert to input
+
 changed = ~isequal(cells_out, cells);
 %%
 % hamiltonian

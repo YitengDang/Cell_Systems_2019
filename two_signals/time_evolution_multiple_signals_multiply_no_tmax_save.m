@@ -8,9 +8,11 @@ max_trials = 100;
 % lattice parameters
 %gz = 5;
 %N = gz^2;
-gz_all = [15];
+gz_all = [12 13 20];
+
+% loop over I0
+I0_all = {[0 0], [0.1 0.1], [0.2 0.2], [0.3 0.3], [0.4 0.4], [0.5 0.5], [0.6 0.6], [0.7 0.7]};
 %% (2) Load parameters from saved trajectory
-%
 % with parameters saved as structure array 
 % load data
 data_folder = 'H:\My Documents\Multicellular automaton\app\git_repository\release_2_1_full\data\time_evolution\sample_trajectories\typeIV';
@@ -18,9 +20,8 @@ data_folder = 'H:\My Documents\Multicellular automaton\app\git_repository\releas
 %file = 'two_signal_mult_M_int1_1_-1_-1_chaotic_state_tmax5000-v1.mat';
 %file = 'two_signal_mult_M_int0_1_-1_1_long_t_trans_wave_to_period10_trav_wave-v1';
 file = 'two_signal_mult_M_int0_1_-1_1_transient_wave_to_travelling_wave-v1';
-path = data_folder;
-%[file, path] = uigetfile(fullfile(data_folder, '\*.mat'), 'Load saved simulation');
-load(fullfile(path, file));
+%[file, data_folder] = uigetfile(fullfile(data_folder, '\*.mat'), 'Load saved simulation');
+load(fullfile(data_folder, file));
 
 s = save_consts_struct;
 %N = s.N;
@@ -35,7 +36,8 @@ rcell = s.rcell;
 cells = cells_hist{1};
 lambda12 = s.lambda12;
 lambda = [1 lambda12];
-p0 = s.p_ini;
+%p0 = s.p_ini;
+p0 = [0.5 0.5];
 %tmax =  s.tmax;
 %gz = sqrt(N);
 Rcell = rcell*a0;
@@ -43,9 +45,10 @@ Rcell = rcell*a0;
 % simulation parameters
 %tmax = 10^4;
 % Initial I
-InitiateI = 1;
 
-I0_all = {[0 0], [0.2 0.2], [0.5 0.5], [0.8 0.8]};
+InitiateI = 1;
+%{
+InitiateI = 0;
 I0 = [0 0];
 s_fields = fieldnames(s);
 for i=1:numel(s_fields)
@@ -56,7 +59,11 @@ for i=1:numel(s_fields)
         end
     end
 end
+%}
 %%
+for I0_idx=1:numel(I0_all)
+
+I0 = I0_all{I0_idx};
 for gz_idx=1:numel(gz_all)    
     
 gz = gz_all(gz_idx);
@@ -130,13 +137,44 @@ fN2 = sum(sinh(Rcell)*sum(exp((Rcell-r)./lambda(2)).*(lambda(2)./r)) ); % calcul
 fprintf('activator fij(a0) = %.4f \n', sinh(Rcell)*sum(exp((Rcell-a0)./lambda(1)).*(lambda(1)./a0)))
 fprintf('inhibitor fij(a0) = %.4f \n', sinh(Rcell)*sum(exp((Rcell-a0)./lambda(2)).*(lambda(2)./a0)))
 %}
+%% Check existing files
+% Count how many simulations have already been done
+folder = fullfile('L:\HY\Shared\Yiteng\two_signals\parameter set 2b', sprintf('N%d', N));
+if exist(folder, 'dir') ~= 7
+    warning('Folder does not exist! ');
+end
+sim_ID = 'two_signal_mult';
 
-%% Simulate
 % default file name
 I_ini_str = '';
 if InitiateI
-    I_ini_str = sprintf('_I1_I2_%.2f_%.2f', I0(1), I0(2));
+    I_ini_str = sprintf('I_ini_%.2f_%.2f', I0(1), I0(2));
 end
+
+filecount = 0;
+pattern = strrep(sprintf('%s_N%d_initiateI%d_%s_t_out_%s_period_%s',...
+        sim_ID, N, InitiateI, I_ini_str, '(\d+)', '(\d+|Inf)'), '.', 'p');
+
+listing = dir(folder);
+num_files = numel(listing)-2;
+names = {};
+for i = 1:num_files
+    filename = listing(i+2).name;
+    % remove extension and do not include txt files
+    [~,name,ext] = fileparts(filename);
+    if strcmp(ext, '.mat')
+        match = regexp(name, pattern, 'match');
+        %disp(match);
+        if ~isempty(match)
+            filecount = filecount + 1;
+            names{end+1} = name;
+        end
+    end
+end
+
+fprintf('N=%d, I_ini = (%.2f, %.2f), sim to do: %d \n', N, I0(1), I0(2), max_trials-filecount);
+%% Simulate
+
 %{
 folder = fullfile('L:\HY\Shared\Yiteng\two_signals');
 
@@ -153,7 +191,8 @@ fname_str = strrep(sprintf('%s_%s_hill%.2f_N%d_a0_%.2f_%s_%s_%s_noise%.1f_%s%s_l
     p_ini_str, I_ini_str, lambda12, rcell, tmax), '.', 'p');
 %}
 
-for trial=1:max_trials
+for trial=1:max_trials-filecount
+    fprintf('trial %d \n', trial);
     cells_hist = {};
     %t_out = 0;
     %changed = 1;
@@ -164,11 +203,11 @@ for trial=1:max_trials
     for i=1:numel(iniON)
         cells(randperm(N,iniON(i)), i) = 1;
         if InitiateI && hill==Inf
-            fprintf('Generating lattice with I%d(t=0)... \n', i);
+            %fprintf('Generating lattice with I%d(t=0)... \n', i);
             dI = 0.1;
             [cells_temp, test, I_ini] = generate_I_new(cells(:, i), I0(i), I0(i)+dI, dist, a0);
             cells(:,i) = cells_temp;
-            fprintf('Generated initial I%d: %.2f; in range (Y=1/N=0)? %d; \n', i, I_ini, test);
+            %fprintf('Generated initial I%d: %.2f; in range (Y=1/N=0)? %d; \n', i, I_ini, test);
         end
     end
 
@@ -202,7 +241,7 @@ for trial=1:max_trials
     %    periodic = 'periodic';
     %    fprintf('t_out = %d, period %d \n', t_out, period);
     %end
-    fprintf('trial %d, t_out = %d, period %d \n', trial, t_out, period);
+    fprintf('t_out = %d, period %d \n', t_out, period);
     
     % temp
     %cells_hist = zeros(N,1);
@@ -212,17 +251,10 @@ for trial=1:max_trials
     %periodic = 'periodic';
     %--------------------------------------------------------------
     % Save result
-    folder = fullfile('L:\HY\Shared\Yiteng\two_signals\parameter set 2', sprintf('N%d', N));
-    sim_ID = 'two_signal_mult';
-    fname_str = sprintf('%s_N%d_chaotic_state_search_t_out_%d_period_%s',...
-        sim_ID, N, t_out, num2str(period));
-
+    fname_str = strrep(sprintf('%s_N%d_initiateI%d_%s_t_out_%d_period_%s',...
+        sim_ID, N, InitiateI, I_ini_str, t_out, num2str(period)), '.', 'p');
     ext = '.mat';
     label = '';
-
-    if exist(folder, 'dir') ~= 7
-        warning('Folder does not exist! ');
-    end
 
     % filename 
     %filename = strrep(sprintf('%s_%s_hill%.2f_N%d_a0_%.2f_%s_%s_%s_noise%.1f_%s%s_l12_%.1f_rcell%.1f_tmax%d',...
@@ -248,4 +280,5 @@ for trial=1:max_trials
     %--------------------------------------------------------------------------
 end
 %}
+end
 end

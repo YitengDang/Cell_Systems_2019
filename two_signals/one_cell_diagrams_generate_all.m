@@ -1,18 +1,17 @@
 %% Loop over conditions to generate and save all diagrams
-clear all 
+clear all
 close all
 clc
 %%
 % Input parameters
 Con = [30 30];
 Coff = [1 1];
-K = 20*[1 1; 1 1];
-
+K = 15*[1 1; 1 1];
+%%
 for m1=-1:1
     for m2=-1:1
         for m3=-1:1
             for m4=-1:1
-                
                 M_int = [m1 m2; m3 m4];
                 disp('M_int = ');
                 disp(M_int);
@@ -33,9 +32,10 @@ for m1=-1:1
                     interactions(2,1), interactions(2,2));
 
                 % state transitions
+                %{
                 X_out_sub = cell(2);
                 X_out_ind = zeros(4, 1);
-                vec_dir_ind = zeros(4, 2);
+                %vec_dir_ind = zeros(4, 2);
                 A = zeros(4); % graph adjacency matrix
                 for X1=0:1
                     for X2=0:1 
@@ -45,19 +45,23 @@ for m1=-1:1
                         C = (Con-Coff).*X+Coff;
                         out = (([C; C] - K).*M_int > 0) + (1 - abs(M_int));
                         X_out = prod(out, 2);
+                        % if no connections to a gene, output = input (remains constant)
+                        X_out(sum(abs(M_int), 2)==0) = X(sum(abs(M_int), 2)==0);
+                        
                         X_out_2 = sub2ind([2 2], X_out(1)+1, X_out(2)+1);
-
+                    
                         X_out_sub{X1+1,X2+1} = X_out;
                         %X_out_ind(X1+1,X2+1) = sub2ind([2 2], X_out(1)+1, X_out(2)+1);
                         X_out_ind(ind) = X_out_2;
-
-                        % store as MC graph
+                        
+                        % store as MC adjacency graph
                         A(ind, X_out_2) = 1;
 
                         % find vector directions
-                        vec_dir_ind(ind, :) = (X_out - X');
+                        %vec_dir_ind(ind, :) = (X_out - X');
                     end
                 end
+                %}
                 % Statistics
                 %X_out_uniq = unique(X_out_ind); % unique out states
                 %n_uniq = numel(X_out_uniq); % # unique states
@@ -133,10 +137,10 @@ for m1=-1:1
                 set(ax, 'Units', 'Inches', 'Position', [0 0 9 4]);
                 set(h1, 'Units', 'Inches', 'Position', [1 1 8 4]);
                 %}
-                fname = fullfile(save_path, strcat(fname_str, '_circuit'));
-                if exist(strcat(fname, '.pdf'), 'file')~=2
-                    save_figure_pdf(gcf, 9, 4, fname);
-                end
+                %fname = fullfile(save_path, strcat(fname_str, '_circuit'));
+                %if exist(strcat(fname, '.pdf'), 'file')~=2
+                %    save_figure_pdf(gcf, 9, 4, fname);
+                %end
                 %% Draw state diagram as directed graph
                 plot_state_diagram(M_int, Con, Coff, K);
 
@@ -160,9 +164,9 @@ for m1=-1:1
                 set(h2, 'Units', 'Inches', 'Position', [1 1 9 8]);
                 %}
                 fname = fullfile(save_path, strcat(fname_str, '_state_diagram'));
-                if exist(strcat(fname, '.pdf'), 'file')~=2
+                %if exist(strcat(fname, '.pdf'), 'file')~=2
                     save_figure_pdf(gcf, 9, 8, fname);
-                end
+                %end
                 
                 %}
                 %%
