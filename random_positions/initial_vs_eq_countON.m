@@ -30,7 +30,7 @@ rcell = 0.2;
 
 % initial lattice options
 choice = 2; %1: random, 2: Markov MC
-mcsteps_all = [0 10.^(0:2)]; %10^3;
+mcsteps_all = [0 10.^[1 3] ]; %10^3;
 
 K=K_all;
 Con=Con_all;
@@ -54,7 +54,7 @@ for idx_param = 1:numel(mcsteps_all)
     
     % try to load the map
     if exist(fname_out, 'file')==2
-        load(fname_out, 'count', 't_av', 'I_av');
+        load(fname_out, 'count', 't_av');
     else
         % calculate the map
         disp('Does not exist!');
@@ -102,13 +102,13 @@ for idx_param = 1:numel(mcsteps_all)
     %}
     
     % Organize and save
-    save_fig = 0; % save figure? 0:no, 1: yes
+    save_fig = 1; % save figure? 0:no, 1: yes
     if save_fig > 0
         out_file = fullfile(path_out_fig, strcat(fname_str,'_map'));
         save_figure(h1, 10, 8, out_file, '.pdf');
     end
     %%
-    %{
+    %
     % Plot the average number of steps it takes to reach equilibrium
     h2 = figure();
     plot(p, t_av, 'r-o')
@@ -118,12 +118,12 @@ for idx_param = 1:numel(mcsteps_all)
     xlabel('$$p_{in}$$', 'FontSize', 24)
     ylabel('$$\langle t_{eq} \rangle $$', 'FontSize', 24)
 
-    save_fig = 0; % save figure? 0:no, 1: yes
+    save_fig = 1; % save figure? 0:no, 1: yes
     if save_fig > 0
         out_file = fullfile(path_out_fig, strcat(fname_str,'_teq_av'));
         save_figure(h2, 10, 8, out_file, '.pdf');
     end
     %}
     %% 
-    %close all
+    close all
 end

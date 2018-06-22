@@ -3,7 +3,8 @@ function save_figure(h_fig, width, height, path_out, ext)
     set(h_fig,'Units','Inches');
     set(h_fig, 'Position', [0 0 width height])
     pos = get(h_fig, 'Position');
-    set(h_fig,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize', [pos(3) pos(4)])
+    set(h_fig,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize', [pos(3) pos(4)]);
+    
     if strcmp(ext, '.pdf')
         print(h_fig, path_out,'-dpdf','-r0');
     elseif strcmp(ext, '.eps')

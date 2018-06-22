@@ -30,7 +30,7 @@ rcell = 0.2;
 
 % initial lattice options
 choice = 2; %1: random, 2: Markov MC
-mcsteps_all = [0 10.^[1 3 5] ]; %10^3;
+mcsteps_all = [0 10.^[1 3] ]; %10^3;
 
 K=K_all;
 Con=Con_all;
@@ -42,6 +42,7 @@ for idx_param = 1:numel(mcsteps_all)
     mcsteps = mcsteps_all(idx_param);
     
     % calculate the map
+    
     switch choice
         case 1
             [count, t_av] = count_eq_parallel_rand(n, Con, K, a0, rcell, noise);
@@ -80,14 +81,14 @@ for idx_param = 1:numel(mcsteps_all)
     c.Label.String = 'Probability';
     xlabel('$$p_{in}$$', 'FontSize', 24)
     ylabel('$$p_{out}$$', 'FontSize', 24)
-
+    xlim([0 1]);
+    ylim([0 1]);
     % Plot line p = 1/2 - 4B/fN
     %{
     B = (Con+1)/2*(1+fN) - K;
     line = 1/2 - B/(4*fN);
     plot([line line], [0 1], 'r--');
-    xlim([0 1]);
-    ylim([0 1]);
+    
     %}
     % Organize and save
     save_fig = 1; % save figure? 0:no, 1: yes
@@ -104,8 +105,8 @@ for idx_param = 1:numel(mcsteps_all)
     %title(sprintf('N = %d, K = %.1f, S_{ON} = %.1f, a0 = %.1f, R = %.1f', ...
     %    N, K, Con, a0, Rcell),'FontSize', 18)
     xlabel('$$p_{in}$$', 'FontSize', 24)
-    ylabel('$$\\langle t_{eq} \\rangle $$', 'FontSize', 24)
-
+    ylabel('$$\langle t_{eq} \rangle $$', 'FontSize', 24)
+    
     save_fig = 1; % save figure? 0:no, 1: yes
     if save_fig > 0
         out_file = fullfile(path_out_fig, strcat(fname_str,'_teq_av'));

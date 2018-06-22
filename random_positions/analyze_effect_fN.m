@@ -23,24 +23,38 @@ end
 [pos_rand, dist_rand] = initial_cells_random_periodic_alt(n, Lx, Ly, R); % random config
     
 % loop over mcsteps
-mcsteps_all = 10.^(0:6);
+mcsteps_all = [0 10.^[5]];
 fN_all = zeros( numel(mcsteps_all), N );
 for idx_mc = 1:numel(mcsteps_all)
     mcsteps = mcsteps_all(idx_mc);
     
-    % Initial configuration
-    cells = ones(N, 1);
-
     [pos, dist, fN0] = initial_cells_random_markov_periodic(n, Lx, R, mcsteps);
 
     %% draw figure
-    %{
+    %
+    p = 0.5;
+    iniON = round(p*N);
+    cells = zeros(N, 1);
+    cells(randperm(N, iniON)) = 1;
+    
     t=0;
     hin = figure(1);
     update_figure_periodic_long(pos+R, N, Lx, Ly, R, cells, t)
-
-    h2 = figure(2);
-    update_figure_periodic_long(pos_rand+R, N, Lx, Ly, R, cells, t)
+    
+    %set(gca, 'Color', [0.8 0.8 0.8]);
+    %set(gcf, 'Color', [0.8 0.8 0.8]);
+    % Save lattice snapshot
+    fname_str = strrep(sprintf('lattice_example_N%d_rcell%.2f_mcsteps%d',...
+        N, rcell, mcsteps), '.', 'p');
+    folder = 'H:\My Documents\Multicellular automaton\figures\random_positions';
+    fname = fullfile(folder, fname_str);
+    qsave = 1;
+    if qsave
+        save_figure(hin, 10, 8, fname, '.pdf');
+    end
+    
+    %h2 = figure(2);
+    %update_figure_periodic_long(pos_rand+R, N, Lx, Ly, R, cells, t)
     %}
     %% Check that distances are the same
     % plot distance distribution
@@ -88,6 +102,7 @@ for idx_mc = 1:numel(mcsteps_all)
     %}
     %}
     %% Plot fN distribution
+    %{
     fN = zeros(N, 1);
     fN_rand = zeros(N, 1);
 
@@ -127,21 +142,22 @@ for idx_mc = 1:numel(mcsteps_all)
     ylabel('Probability');
     set(gca,'FontSize', 24);
     %ylim([0 7]);
+    %}
     %% Save figure
     fname_str = strrep(sprintf('fN_distribution_compare_N%d_rcell%.2f_hist_mcsteps%d',...
         N, rcell, mcsteps), '.', 'p');
     folder = 'H:\My Documents\Multicellular automaton\figures\random_positions';
     fname = fullfile(folder, fname_str);
-    qsave = 1;
+    qsave = 0;
     if qsave
         save_figure(h, 10, 8, fname, '.pdf');
     end
     %%
-    fN_all(idx_mc, :) = fN;
+    %fN_all(idx_mc, :) = fN;
     close all
 end
 %% Save data
-
+%{
 folder = 'H:\My Documents\Multicellular automaton\data\random_positions\fN_effect';
 fname_str = strrep(sprintf('fN_vs_mcsteps_N%d_rcell%.2f',...
     N, rcell, mcsteps), '.', 'p');
@@ -163,3 +179,4 @@ qsave = 1;
 if qsave
     save_figure(h4, 10, 8, fname, '.pdf');
 end
+%}
