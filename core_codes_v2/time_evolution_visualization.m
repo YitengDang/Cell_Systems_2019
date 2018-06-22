@@ -3,9 +3,9 @@
 close all
 clear all
 warning off
-
+%%
 % lattice parameters
-gridsize = 15;
+gridsize = 12;
 N = gridsize^2;
 a0 = 0.5;
 Rcell = 0.2*a0;
