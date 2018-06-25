@@ -3,6 +3,7 @@ clear all
 % maxNumCompThreads(4);
 % warning off
 %% (1) input parameters
+%{
 % lattice parameters
 gz = 15;
 N = gz^2;
@@ -30,14 +31,22 @@ InitiateI = 0; % 0: no, 1: yes
 cell_type = zeros(N,1);
 
 % simulation parameters
-tmax = 100;
-nruns = 10;
+tmax = 200;
+mcsteps = 10^3;
+
+% pos, dist
+Lx = 1;
+R = rcell*Lx/(gz+1); % disc radius
+[pos, dist] = initial_cells_random_markov_periodic(...
+    gz, Lx, R, mcsteps);
+
 %{
 fname_str = strrep(sprintf('N%d_iniON_%d_%d_M_int_%d_%d_%d_%d_a0_%.1f_Con_%d_%d_K_%d_%d_%d_%d_lambda_%.1f_%.1f', ...
     N, iniON(1), iniON(2), M_int(1,1), M_int(1,2), M_int(2,1), M_int(2,2), ...
     a0, Con(1), Con(2), K(1,1), K(1,2), K(2,1), K(2,2),...
     lambda(1), lambda(2)), '.', 'p');
 %}
+
 % check parameters
 idx = (M_int == 0);
 if ~all(K(idx)==0)
@@ -58,13 +67,12 @@ fprintf('activator fij(a0) = %.4f \n', sinh(Rcell)*sum(exp((Rcell-a0)./lambda(1)
 fprintf('inhibitor fij(a0) = %.4f \n', sinh(Rcell)*sum(exp((Rcell-a0)./lambda(2)).*(lambda(2)./a0)))
 %}
 
-
-
 %% (2) Load parameters from saved trajectory
-%{
+%
 % with parameters saved as structure array 
 % load data
-data_folder = 'H:\My Documents\Multicellular automaton\app\Multicellularity-2.1\data\time_evolution';
+%data_folder = 'H:\My Documents\Multicellular automaton\app\Multicellularity-2.1\data\time_evolution';
+data_folder = 'D:\Multicellularity\app\git_repository\raw_current\data\time_evolution';
 [file, path] = uigetfile(fullfile(data_folder, '\*.mat'), 'Load saved simulation');
 load(fullfile(path, file));
 
@@ -80,16 +88,13 @@ noise = s.noise;
 rcell = s.rcell;
 cells = cells_hist{1};
 lambda = [1 s.lambda12];
-%p0 = s.p_ini;
+%p0 = s.p_ini
 tmax =  s.tmax;
 gz = sqrt(N);
 Rcell = rcell*a0;
-[dist, pos] = init_dist_hex(gz, gz);
 
 % simulation parameters
-%tmax = 100;
-tmax = 10^4;
-nruns = 10;
+%tmax = 10^4;
 cell_type = zeros(N,1);
  
 % Initial I
@@ -105,6 +110,13 @@ for i=1:numel(s_fields)
     end
 end
 
+% randomized pos, dist
+%[dist, pos] = init_dist_hex(gz, gz);
+Lx = 1;
+R = rcell*Lx/(gz+1); % disc radius
+mcsteps = 10^4;
+[pos, dist] = initial_cells_random_markov_periodic(...
+    gz, Lx, R, mcsteps);
 %}
 % Check whether loaded trajectory is same as simulation
 %{
@@ -113,17 +125,14 @@ for i=1:numel(cells_hist_2)
     eq(i) = all(all(cells_hist{i} == cells_hist_2{i}));
 end
 %}
-%% Initial lattice
-% generate lattice
-mcsteps = 10;
-[pos, dist, fN0] = initial_cells_random_markov_periodic(n, mcsteps);
-
-% initial config
-p = [0.4 0.5];
-iniON = round(N*p);
-t=0;
+%% Simulate
+% settings
+disp_mol = 12;
+showI = 0;
 
 % generate initial lattice
+%{
+iniON = round(p0*N);
 cells = zeros(N, 2);
 for i=1:numel(iniON)
     cells(randperm(N,iniON(i)), i) = 1;
@@ -134,36 +143,36 @@ for i=1:numel(iniON)
         fprintf('Generated initial I%d: %.2f; in range (Y=1/N=0)? %d; \n', i, I_ini, test);
     end
 end
+%}
 
 % store initial config
 cells_hist = {};
 cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
 
-% display lattice
-hin = figure(1);
-update_figure_periodic_long(pos+R, N, Lx, Ly, R, cells, t)
-
-%% Simulate
-%t_out = 0;
-%changed = 1;
-disp_mol = 1;
-
-hin = figure();
 % dynamics
+hin = figure();
 t = 0;
+plot_handle = reset_cell_figure(hin, pos, rcell);
+update_figure_periodic_scatter(plot_handle, cells, t, disp_mol, showI, a0, dist);
 [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
         Rcell, Con, Coff, K, lambda, hill, noise);
 while changed && t < tmax
-    %pause(0.2);
+    pause(0.2);
     t = t+1;
     cells = cellsOut;
     cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
-    %update_cell_figure_continuum(hin, pos, cells, cell_type, t, disp_mol);
-    [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
-        Rcell, Con, Coff, K, lambda, hill, noise);
+    update_figure_periodic_scatter(plot_handle, cells, t, disp_mol, showI,...
+        a0, dist);
+    [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(...
+        cells, dist, M_int, a0, Rcell, Con, Coff, K, lambda, hill, noise);
 end
 t_out = t; % save final time
-%% Analyze time step
-probe_t = 0;
-cells = cells_hist{probe_t+1};
-cells2 = cells_hist{probe_t+2};
+
+%% Plot p(t)
+t0 = 0;
+fig_pos = [1 1 10 8];
+plot_p_vs_t(cells_hist, t0, fig_pos)
+
+%% Plot I(t)
+option = 1;
+plot_I_vs_t(cells_hist, t0, a0, dist, option, fig_pos)

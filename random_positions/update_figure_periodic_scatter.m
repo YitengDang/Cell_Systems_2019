@@ -1,78 +1,55 @@
-function update_figure_periodic_scatter(pos, N, Lx, Ly, R, cells, t)
-% Short version: plot using scatter
-% Not guaranteed to work yet
-
-% Convert to x, y variables
-%x = pos(:, 1);
-%y = pos(:, 2);
-%eta = N*pi*R^2/L^2;
-
-% Draw configuration
-%clf(hin,'reset');
-title(sprintf('N = %d, R = %.2f, time = %d', N, R, t), ...
-    'FontSize', 24);
-%set(gca,'YTick',[],'XTick',[]);
-set(gca,'DataAspectRatio', [1 1 1]);
-axis([0 Lx 0 Ly]);
-box on
-hold on
-
-map = [0,0,0
-    1,1,1];
-colormap(map);
-scatter(pos(:,1), pos(:,2), 50, 'MarkerEdgeColor', 'k');
-scatter(pos(:,1), pos(:,2), 50, 1-cells, 'filled');
-%{
-for i=1:N
-    position = [x(i)-R y(i)-R 2*R 2*R];
-    clr = (1 - cells(i));
-    face_clr = [clr clr clr];
-    %face_clr = 'k';
-    curv = [1 1];
-    rectangle('Position', position, 'FaceColor', face_clr, ...
-        'EdgeColor', 'k', 'Curvature', curv);
-    % draw another circle for pbc
-    cond = [x(i)<R Lx-x(i)<R y(i)<R Ly-y(i)<R];
-    % sides
-    if cond(1)
-        rectangle('Position', [Lx+x(i)-R y(i)-R 2*R 2*R], 'FaceColor', face_clr, ...
-        'EdgeColor', face_clr, 'Curvature', curv);
-    elseif cond(2)
-        rectangle('Position', [-Lx+(x(i)-R) y(i)-R 2*R 2*R], 'FaceColor', face_clr, ...
-        'EdgeColor', face_clr, 'Curvature', curv);
+function update_figure_periodic_scatter(plot_handle, cells, t, disp_mol, showI, a0, dist)
+    if nargin < 4
+        disp_mol = 1;
+    elseif nargin<5
+        showI=0;
     end
-    if cond(3)
-        rectangle('Position', [x(i)-R Ly+y(i)-R 2*R 2*R], 'FaceColor', face_clr, ...
-        'EdgeColor', face_clr, 'Curvature', curv);
-    elseif cond(4)
-        rectangle('Position', [x(i)-R -Ly+(y(i)-R) 2*R 2*R], 'FaceColor', face_clr, ...
-        'EdgeColor', face_clr, 'Curvature', curv);
-    end
-    % corners
-    if cond(1) && cond(3)
-        rectangle('Position', [Lx+x(i)-R Ly+(y(i)-R) 2*R 2*R], 'FaceColor', face_clr, ...
-        'EdgeColor', face_clr, 'Curvature', curv);
-    elseif cond(2) && cond(4)
-        rectangle('Position', [-Lx+(x(i)-R) -Ly+(y(i)-R) 2*R 2*R], 'FaceColor', face_clr, ...
-        'EdgeColor', face_clr, 'Curvature', curv);
-    elseif cond(1) && cond(4)
-        rectangle('Position', [Lx+(x(i)-R) -Ly+(y(i)-R) 2*R 2*R], 'FaceColor', face_clr, ...
-        'EdgeColor', face_clr, 'Curvature', curv);
-    elseif cond(2) && cond(3)
-        rectangle('Position', [-Lx+(x(i)-R) Ly+(y(i)-R) 2*R 2*R], 'FaceColor', face_clr, ...
-        'EdgeColor', face_clr, 'Curvature', curv);    
-    end
-    %
-end
-drawnow;
-%}
-hold off
+    %% 
+    if disp_mol==12
+        % no signal -> white
+        % signal 1 -> yellow
+        % signal 2 -> blue 
+        % signals 1&2 -> black
 
-set(gca, 'XTick', [], 'YTick', []);
-set(gcf, 'Position', [500 300 600 600]);
-% set image properties
-%h = gcf;
-%set(h,'Units','px');
-%set(h, 'Position', [500 300 600 600]);
+        % plot title
+        if showI %whether or not to display I (slow down simulation)
+            this_p = mean(cells, 1);
+            this_I = [moranI(cells(:, 1), a0*dist) moranI(cells(:, 2), a0*dist)];
+            title(sprintf('t=%d, p1 = %.2f, p2 = %.2f, I1 = %.2f, I2 = %.2f', t,...
+                this_p(1), this_p(2), this_I(1), this_I(2)), ...
+                'FontSize', 20);
+        else
+            this_p = mean(cells, 1);
+            title(sprintf('t=%d, p1 = %.2f, p2 = %.2f', t, this_p(1), this_p(2)), ...
+                'FontSize', 20);
+        end
 
+        % --update cells--
+        clrs = 1-cells;
+        c_all = zeros(size(cells, 1), 3); 
+        c_all(:, 3) = clrs(:, 1); % signal 1 present -> Turn on blue channel
+        c_all(:, 2) = clrs(:, 2); % signal 2 present -> Turn on green channel
+        c_all(:, 1) = clrs(:, 2); % signal 2 present -> Turn on red channel
+        set(plot_handle, 'cdata', c_all);
+    else
+        cells = cells(disp_mol, :);
+        
+        % Update title
+        i_str = '';
+        if showI 
+            this_p = mean(cells);
+            this_I = moranI(cells, a0*dist);
+            title(sprintf('t=%d, p%s = %.2f, I%s = %.2f', t, i_str, this_p, i_str, this_I), ...
+                'FontSize', 20);
+        else
+            this_p = mean(cells);
+            title(sprintf('t=%d, p%s = %.2f', t, i_str, this_p), ...
+                'FontSize', 20);
+        end
+
+        % Update cell colors
+        %cells = ones(N,1);
+        c_all = repmat(1-cells, 1, 3);
+        set(plot_handle, 'cdata', c_all);
+    end
 end

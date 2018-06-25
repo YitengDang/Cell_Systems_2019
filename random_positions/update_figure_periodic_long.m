@@ -62,7 +62,7 @@ hold off
 drawnow;
 
 set(gca, 'XTick', [], 'YTick', []);
-set(gcf, 'Position', [500 300 600 600]);
+set(gcf, 'Position', [100 100 600 600]);
 % set image properties
 %h = gcf;
 %set(h,'Units','px');

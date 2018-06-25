@@ -149,7 +149,7 @@ while changed && t < tmax
     t = t+1;
     cells = cellsOut;
     cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
-    %update_cell_figure_continuum(hin, pos, cells, cell_type, t, disp_mol);
+    update_cell_figure_continuum(hin, pos, cells, cell_type, t, disp_mol);
     [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
         Rcell, Con, Coff, K, lambda, hill, noise);
 end

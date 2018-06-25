@@ -5,12 +5,13 @@ set(0,'defaulttextinterpreter', 'latex');
 %%
 % geometric parameters
 Lx = 1;
-n = 12; % nmax = L/R (square packing)
+n = 10; % nmax = L/R (square packing)
 N = n^2; % total number of particles
 %N = round(eta*L^2/(pi*R^2));
 Ly = sqrt(3)/2*Lx;
 r_av = sqrt(Lx*Ly/N)/2; % estimate for NND of random distribution (Clark & Evans, 1954)
-R = 0.2*Lx/n; % disc radius
+rcell = 0.2;
+R = rcell*Lx/(n+1); % disc radius
 eta = N*pi*R^2/(Lx*Ly); %packing fraction 
 if eta > pi/(2*sqrt(3)) % max. packing fraction
     disp('packing fraction too high! Abort evaluation');
@@ -25,7 +26,7 @@ a0 = 0.5;
 rcell = 0.2;
 
 % (1) Markov MC
-mcsteps = 10^3;
+mcsteps = 10^4; %10^3;
 [pos, dist, fN0] = initial_cells_random_markov_periodic(n, Lx, R, mcsteps);
 % (2) random placement
 %
@@ -34,18 +35,34 @@ mcsteps = 10^3;
 
 %% Initial configuration
 % initial config
-p = 0.4;
+p = 0.7;
 iniON = round(N*p);
-t=0;
+t = 0;
 
 hin = figure(1);
+plot_handle = reset_cell_figure(hin, pos, rcell);
 cells = zeros(N, 1);
 cells(randperm(N, iniON)) = 1;
-update_figure_periodic_long(pos+R, N, Lx, Ly, R, cells, t)
+update_figure_periodic_scatter(plot_handle, cells, t);
 
 %set(gca, 'XTick', [], 'YTick', []);
 cells_hist = {};
 cells_hist{end+1} = cells;
+
+% Time evolution
+changed = 1;
+while changed
+    % calculate new state
+    pause(0.8);
+    [cells_out, changed] = ...
+        update_cells_noise(cells, dist, Con, K, a0, rcell*a0, noise);
+    
+    % update cells & figure
+    t = t+1;
+    cells = cells_out;
+    cells_hist{end+1} = cells;
+    update_figure_periodic_scatter(plot_handle, cells, t);
+end
 
 %% Nearest neighbour distances
 %{
@@ -75,22 +92,6 @@ plot(rvals, rho(rvals), 'LineWidth', 2);
 %xlim([0 1]);
 %}
 %}
-%% Time evolution
-changed = 1;
-while changed
-    % calculate new state
-    pause(0.2);
-    [cells_out, changed] = ...
-        update_cells_noise(cells, dist, Con, K, a0, rcell*a0, noise);
-
-    %pause(1);
-    % update cells & figure
-    t = t+1;
-    cells = cells_out;
-    cells_hist{end+1} = cells;
-    update_figure_periodic_long(pos+R, N, Lx, Ly, R, cells, t);
-end
-
 %% Problem: distances do not match with those of original calculation
 %[pos2,ex,ey] = init_cellpos_hex(n,n);
 %dist2 = dist_mat(pos2,n,n,ex,ey);

@@ -16,7 +16,7 @@ r = dist_vec(dist_vec>0); % exclude self influence
 fN = sum(sinh(Rcell)*sum(exp(Rcell-r)./r)); % calculate signaling strength
 
 % fixed circuit parameters
-Son = 18;
+Con = 18;
 K = 14;
 hill = 2;
 
@@ -68,7 +68,7 @@ for i=1:numel(names)
     if numel(tokens)>0
         disp(names{i});
         h=openfig(fullfile(path, strcat(names{i}, '.fig'))) ;
-        %disp(str2double(tokens{1}{1}));
+        disp(str2double(tokens{1}{1}));
         frames(str2double(tokens{1}{1})) = getframe(gcf);
         close(h);
     end
@@ -81,7 +81,8 @@ movie(frames, 1, 2)
 out_file = strrep(sprintf('N%d_n%d_a0_%.1f_Son_%.fto%.f_B_%.2fto%.2f_tsteps%d', ...
             N, iniON, a0, Son_all(1), Son_all(end), B_all(1),...
             round(B_all(end),2), tsteps), '.', 'p');   
-myVideo = VideoWriter(fullfile(pwd, 'figures', 'time_evolution', strcat(out_file, '.avi')), 'Uncompressed AVI');
+fname_out = fullfile(pwd, 'figures', 'time_evolution', strcat(out_file, '.avi'));
+myVideo = VideoWriter(fname_out, 'Uncompressed AVI');
 myVideo.FrameRate = 1;  % Default 30
 open(myVideo);
 writeVideo(myVideo, frames);
