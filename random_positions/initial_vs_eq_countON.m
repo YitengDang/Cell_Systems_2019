@@ -102,13 +102,13 @@ for idx_param = 1:numel(mcsteps_all)
     %}
     
     % Organize and save
-    save_fig = 1; % save figure? 0:no, 1: yes
+    save_fig = 0; % save figure? 0:no, 1: yes
     if save_fig > 0
         out_file = fullfile(path_out_fig, strcat(fname_str,'_map'));
         save_figure(h1, 10, 8, out_file, '.pdf');
     end
     %%
-    %
+    %{
     % Plot the average number of steps it takes to reach equilibrium
     h2 = figure();
     plot(p, t_av, 'r-o')
@@ -125,5 +125,5 @@ for idx_param = 1:numel(mcsteps_all)
     end
     %}
     %% 
-    close all
+    %close all
 end

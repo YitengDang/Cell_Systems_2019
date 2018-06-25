@@ -32,12 +32,6 @@ cell_type = zeros(N,1);
 % simulation parameters
 tmax = 100;
 nruns = 10;
-
-% pos, dist
-[dist, pos] = init_dist_hex(gz, gz);
-%[pos,ex,ey] = init_cellpos_hex(gridsize,gridsize);
-%dist = dist_mat(pos,gridsize,gridsize,ex,ey);
-
 %{
 fname_str = strrep(sprintf('N%d_iniON_%d_%d_M_int_%d_%d_%d_%d_a0_%.1f_Con_%d_%d_K_%d_%d_%d_%d_lambda_%.1f_%.1f', ...
     N, iniON(1), iniON(2), M_int(1,1), M_int(1,2), M_int(2,1), M_int(2,2), ...
@@ -63,6 +57,8 @@ fN2 = sum(sinh(Rcell)*sum(exp((Rcell-r)./lambda(2)).*(lambda(2)./r)) ); % calcul
 fprintf('activator fij(a0) = %.4f \n', sinh(Rcell)*sum(exp((Rcell-a0)./lambda(1)).*(lambda(1)./a0)))
 fprintf('inhibitor fij(a0) = %.4f \n', sinh(Rcell)*sum(exp((Rcell-a0)./lambda(2)).*(lambda(2)./a0)))
 %}
+
+
 
 %% (2) Load parameters from saved trajectory
 %{
@@ -117,14 +113,17 @@ for i=1:numel(cells_hist_2)
     eq(i) = all(all(cells_hist{i} == cells_hist_2{i}));
 end
 %}
-%% Simulate
-cells_hist = {};
-%t_out = 0;
-%changed = 1;
-disp_mol = 1;
+%% Initial lattice
+% generate lattice
+mcsteps = 10;
+[pos, dist, fN0] = initial_cells_random_markov_periodic(n, mcsteps);
+
+% initial config
+p = [0.4 0.5];
+iniON = round(N*p);
+t=0;
 
 % generate initial lattice
-iniON = round(p0*N);
 cells = zeros(N, 2);
 for i=1:numel(iniON)
     cells(randperm(N,iniON(i)), i) = 1;
@@ -137,7 +136,17 @@ for i=1:numel(iniON)
 end
 
 % store initial config
+cells_hist = {};
 cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
+
+% display lattice
+hin = figure(1);
+update_figure_periodic_long(pos+R, N, Lx, Ly, R, cells, t)
+
+%% Simulate
+%t_out = 0;
+%changed = 1;
+disp_mol = 1;
 
 hin = figure();
 % dynamics
@@ -158,53 +167,3 @@ t_out = t; % save final time
 probe_t = 0;
 cells = cells_hist{probe_t+1};
 cells2 = cells_hist{probe_t+2};
-
-%%
-% Account for self-influence
-idx = dist>0;
-% TO DO: vectorize / combine
-M1 = ones(size(dist)); 
-M1(idx) = sinh(Rcell)./(a0*dist(idx)/lambda(1))...
-    .*exp((Rcell-a0*dist(idx))/lambda(1));
-M2 = ones(size(dist)); 
-M2(idx) = sinh(Rcell)./(a0*dist(idx)/lambda(2))...
-    .*exp((Rcell-a0*dist(idx))/lambda(2));
-
-% Concentration in each cell
-C0 = Coff + (Con-Coff).*cells; 
-
-% Reading of each cell
-Y1 = M1*C0(:, 1); 
-Y2 = M2*C0(:, 2);
-Y = [Y1 Y2];
-
-% Add noise to K
-K_cells = K.*ones(2, 2, N); % NB inefficient code
-dK = normrnd(0, noise, 2, 2, N);
-K_cells = max(K_cells + dK, 1); % do not allow K < 1 = Coff
-
-% Multiplicative interaction
-if hill==Inf
-    out11 = ((Y1-squeeze(K_cells(1,1,:)))*M_int(1,1) > 0) + (1 - abs(M_int(1,1)));
-    out12 = ((Y2-squeeze(K_cells(1,2,:)))*M_int(1,2) > 0) + (1 - abs(M_int(1,2)));
-    out21 = ((Y1-squeeze(K_cells(2,1,:)))*M_int(2,1) > 0) + (1 - abs(M_int(2,1)));
-    out22 = ((Y2-squeeze(K_cells(2,2,:)))*M_int(2,2) > 0) + (1 - abs(M_int(2,2)));
-    X1 = out11.*out12;
-    X2 = out21.*out22;
-elseif hill > 0
-    %fX1 = (Y.^hill.*(1+M_int(1,:))/2 + (K(1,:).^hill.*(1-M_int(1,:))/2))...
-    %    ./(K(1,:).^hill+Y.^hill).*abs(M_int(1,:)) + (1-abs(M_int(1,:))).*ones(N,2);
-    %fX2 = (Y.^hill.*(1+M_int(2,:))/2 + (K(2,:).^hill.*(1-M_int(2,:))/2))...
-    %    ./(K(2,:).^hill+Y.^hill).*abs(M_int(2,:)) + (1-abs(M_int(2,:))).*ones(N,2);
-    fX1 = (Y.^hill.*(1+M_int(1,:))/2 + (squeeze(K_cells(1,:,:))'.^hill.*(1-M_int(1,:))/2))...
-        ./(squeeze(K_cells(1,:,:))'.^hill+Y.^hill).*abs(M_int(1,:)) + (1-abs(M_int(1,:))).*ones(N,2);
-    fX2 = (Y.^hill.*(1+M_int(2,:))/2 + (squeeze(K_cells(2,:,:))'.^hill.*(1-M_int(2,:))/2))...
-        ./(squeeze(K_cells(2,:,:))'.^hill+Y.^hill).*abs(M_int(2,:)) + (1-abs(M_int(2,:))).*ones(N,2);
-    X1 = prod(fX1, 2);
-    X2 = prod(fX2, 2);
-end
-
-cells_out = [X1 X2];
-changed = ~isequal(cells_out, cells);
-
-disp( all(cells_out == cells2) )

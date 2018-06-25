@@ -20,15 +20,16 @@ if eta > pi/(2*sqrt(3)) % max. packing fraction
 end
 
 % random lattice (reference)
-[pos_rand, dist_rand] = initial_cells_random_periodic_alt(n, Lx, Ly, R); % random config
-    
+[pos, dist] = initial_cells_random_periodic_alt(n, Lx, Ly, R); % random config
+
 % loop over mcsteps
-mcsteps_all = [0 10.^[5]];
+mcsteps_all =  0; %[0 10.^[4]];
 fN_all = zeros( numel(mcsteps_all), N );
 for idx_mc = 1:numel(mcsteps_all)
     mcsteps = mcsteps_all(idx_mc);
     
-    [pos, dist, fN0] = initial_cells_random_markov_periodic(n, Lx, R, mcsteps);
+    %[pos, dist, fN0] = initial_cells_random_markov_periodic(n, Lx, R, mcsteps);
+    %[pos, dist] = initial_cells_random_periodic_alt(n, Lx, Ly, R); % random config
 
     %% draw figure
     %
@@ -44,8 +45,10 @@ for idx_mc = 1:numel(mcsteps_all)
     %set(gca, 'Color', [0.8 0.8 0.8]);
     %set(gcf, 'Color', [0.8 0.8 0.8]);
     % Save lattice snapshot
-    fname_str = strrep(sprintf('lattice_example_N%d_rcell%.2f_mcsteps%d',...
-        N, rcell, mcsteps), '.', 'p');
+    %fname_str = strrep(sprintf('lattice_example_N%d_rcell%.2f_mcsteps%d',...
+    %    N, rcell, mcsteps), '.', 'p');
+    fname_str = strrep(sprintf('lattice_example_N%d_rcell%.2f_random_placement',...
+        N, rcell), '.', 'p');
     folder = 'H:\My Documents\Multicellular automaton\figures\random_positions';
     fname = fullfile(folder, fname_str);
     qsave = 1;
