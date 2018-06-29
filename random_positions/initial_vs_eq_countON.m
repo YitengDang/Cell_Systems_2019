@@ -6,11 +6,10 @@ set(0, 'defaulttextinterpreter', 'latex');
 %%
 % geometric parameters
 Lx = 1; % default
-n = 12; % nmax = L/R (square packing)
+n = 11; % nmax = L/R (square packing)
 rcell = 0.2;
 ini_alg = 0; % 1: Markov MC, 0: random placement
 %--------------------
-
 N = n^2; % total number of particles
 %N = round(eta*L^2/(pi*R^2));
 Ly = sqrt(3)/2*Lx;
@@ -30,7 +29,7 @@ rcell = 0.2;
 
 % initial lattice options
 choice = 2; %1: random, 2: Markov MC
-mcsteps_all = [0 10.^[1 3] ]; %10^3;
+mcsteps_all = 0; %[0 10.^[1 3] ]; %10^3;
 
 K=K_all;
 Con=Con_all;
@@ -58,12 +57,15 @@ for idx_param = 1:numel(mcsteps_all)
     else
         % calculate the map
         disp('Does not exist!');
-        %{
+        %
+        n_smpl = 1000;
         switch choice
             case 1
-                [count, t_av, I_av] = count_eq_parallel_rand(n, Con, K, a0, rcell, noise);
+                [count, t_av] = count_eq_parallel_rand(n,...
+                    Con, K, a0, rcell, noise);
             case 2
-                [count, t_av, I_av] = count_eq_parallel_markovMC(n, Con, K, a0, rcell, mcsteps);
+                [count, t_av] = count_eq_parallel_markovMC_temp(n,...
+                    Con, K, a0, rcell, noise, mcsteps, n_smpl);
         end
         %}
     end
@@ -72,7 +74,7 @@ for idx_param = 1:numel(mcsteps_all)
     prob = transpose(count./repmat(sum(count,2),1,N+1));
     
     % save .mat file
-    save(fname_out);
+    %save(fname_out);
 
     %%
     % plot the map

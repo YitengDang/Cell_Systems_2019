@@ -15,7 +15,7 @@ function [period, t_onset] = periodicity_test_short(cells_hist)
         if all(all(cells==cells_current))
             period = t_out-t;
             t_onset = t;
-            fprintf('t=%d, period %d \n', t_onset, period);
+            %fprintf('t=%d, period %d \n', t_onset, period);
             return
         end
     end

@@ -9,10 +9,13 @@ gridsize = 11;
 N = gridsize^2;
 a0 = 0.5;
 Rcell = 0.2*a0;
-K = 16;
-Con = 8;
+K = 20;
+Con = 15;
 %Klist =  [3 6 10 15 17 20]; %(a0=1.5) [3 6 10 15 17 20]; % (a0=0.5) [10 10 14 19 16 18]; %[3]; 
 %Conlist = [24 21 21 20 14 14]; %(a0=1.5) [24 21 21 20 14 14]; % (a0=0.5) [5 21 16 14 8 6]; %[24];
+
+% also consider repression
+M_int = -1; %1: activation, -1: repression
 
 % load fN, gN
 [dist, pos] = init_dist_hex(gridsize, gridsize);
@@ -27,7 +30,9 @@ gN = sum(sum((sinh(Rcell)*exp(Rcell-r)./r).^2)); % calculate signaling strength
 %    Con = Conlist(i);
 %% Calculate P_eq
 p = (0:N)/N;
-I = linspace(-0.15, 1, 2*116);
+I_min = -0.3;
+I_max = 1;
+I = linspace(I_min, I_max, 250);
 [pm, Im] = meshgrid(p,I);
 
 muon = fN*(Con.*pm + 1 - pm + (Con-1).*(1-pm).*Im);
@@ -39,22 +44,47 @@ sigmaoff = kappa;
 zon = (K - Con - muon)./sigmaon;
 zoff = (K - 1 - muoff)./sigmaoff;
 
-Poffoff = normcdf(zoff);
-Ponon = 1-normcdf(zon);
+if M_int==1
+    Poffoff = normcdf(zoff);
+    Ponon = 1-normcdf(zon);
+    
+    pe = (Ponon.^pm .* Poffoff.^(1-pm)).^N;
+    
+elseif M_int==-1
+    Poffoff = 1-normcdf(zoff);
+    Ponon = normcdf(zon);
+    
+    pe = (Ponon.^pm .* Poffoff.^(1-pm)).^N;
+    posc = ((1-Ponon).^pm .*(1-Poffoff).^(1-pm)).^N;
+    p2 = posc.*fliplr(posc);
+end
 
-pe = (Ponon.^pm .* Poffoff.^(1-pm)).^N;
 %% Plot result
 h=figure(1);
+hold on
 imagesc(p, I, pe);
+%imagesc(p, I, p2);
 set(gca, 'YDir', 'Normal');
+
+% set figure properties
 c = colorbar;
 xlabel('p');
 ylabel('I');
 ylabel(c, 'P_{eq}');
+%ylabel(c, 'P_{\tau=2}');
 caxis([0 1]);
 set(gca, 'FontSize', 24);
 set(gcf, 'Units','Inches', 'Position', [0 0 10 8]);
+xlim([0 1]);
+ylim([I_min I_max]);
+xticks(0:0.1:1);
+yticks(I_min:0.1:I_max);
+%xticks([0 1]);
+%yticks([0 1]);
+%set(c, 'XTick', [0 1]);
+%set(gcf, 'CLim', [0 1])
 %% Load simulated trajectories
+%{
 % p values to take
 %p_ini = (0:5:N)/N;
 p_ini = [0.5 0.65 0.8];
@@ -101,25 +131,37 @@ for i = 1:num_files
         end
     end
 end
-
+%}
 %% Plot gradient vector field
-% define gradient
-delh_delp = @(p,I) (Con-1)*2*fN*(I-1).*(2*p - 1) -(Con+1)*(fN+1)+2*K;
-delh_delI = @(p,I) 2*fN*(Con - 1)*p.*(p - 1);
+% define gradient (depends on activation/repression)
+delh_delp = @(p,I) M_int*(Con-1)*2*fN*(I-1).*(2*p - 1) -(Con+1)*(fN+1)+2*K;
+delh_delI = @(p,I) M_int*2*fN*(Con - 1)*p.*(p - 1);
 
-h;
+figure(h);
 pv = (0:gridsize:N)/N;
-Iv = -0.15:0.08:1;
+Iv = linspace(I_min, I_max, 15);
 [pm2, Im2] = meshgrid(pv, Iv);
 vf_x = -delh_delp(pm2, Im2);
 vf_y = -delh_delI(pm2, Im2);
 quiver(pm2, Im2, vf_x, vf_y, 'LineWidth', 1, 'AutoScaleFactor', 1.2,...
     'Color', [0.5 0.5 0.5]);
 
+%% Plot maximum I
+%p = (0:N)/N;
+[~, Imax_v] = max_moranI(a0, Rcell, N, p);
+
+figure(h);
+plot(p, Imax_v, 'k--');
+
 %% New Langevin equation 
-%
-test = reshape(repmat(round(N*p_ini)/N, [10 1]), [30 1]);
+% Without loading files
+p_ini = 0.4;
 I_ini = 0;
+nruns = 1;
+%----
+
+%test = reshape(repmat(round(N*p_ini)/N, [10 1]), [30 1]);
+%I_ini = 0;
 
 % define gradient
 delh_delp = @(p,I) (Con-1)*2*fN*(I-1).*(2*p - 1) -(Con+1)*(fN+1)+2*K;
@@ -135,8 +177,8 @@ eq_times2 = zeros(nruns, 1);
 
 pnoise(:,1) = 0;
 Inoise(:,1) = normrnd(0, 0.02, [nruns, 1]); %normrnd(0, 0.02, [nruns, 1]); % take larger noise for initial spread
-%p_stoch(:,1) = p_ini' + pnoise(:,1);
-p_stoch(:,1) = test;
+p_stoch(:,1) = p_ini' + pnoise(:,1);
+%p_stoch(:,1) = test;
 I_stoch(:,1) = I_ini + Inoise(:,1);
 
 Peq_all = zeros(nruns, maxsteps);
@@ -144,9 +186,11 @@ for i=1:nruns
     for j=1:maxsteps 
         pt = p_stoch(i, j);
         It = I_stoch(i, j);
-        [p_new, I_new, Peq, p_lim] = revision_update_Langevin_no_noise_params(pt, It, N, Con, K, fN, gN, 0);
+        [p_new, I_new, Peq, p_lim] = revision_update_Langevin_no_noise_params(...
+            pt, It, N, Con, K, fN, gN, 0, M_int);
         Peq_all(i,j) = Peq;
         
+        disp(Peq);
         % system out of range?
         if p_lim == 1 || p_lim == -1
             p_stoch(i, j+1:end) = (p_lim+1)/2;
@@ -167,7 +211,7 @@ for i=1:nruns
 end
 
 % Plot Langevin trajectories
-h;
+figure(h);
 %h1a = plot(p_stoch', I_stoch', 'g-', 'LineWidth', 1.5);
 handles = cell(numel(p_ini), 1);
 for pl=1:nruns
@@ -179,6 +223,7 @@ end
 plot(p_stoch(:,1), I_stoch(:,1), 'go', 'LineWidth', 1.5);
 plot(p_stoch(:,end), I_stoch(:,end), 'gx', 'LineWidth', 1.5);
 %}
+
 %% Save figure
 qsave = 0;
 if qsave

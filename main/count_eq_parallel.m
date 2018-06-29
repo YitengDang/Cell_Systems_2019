@@ -1,4 +1,4 @@
-function [count, t_av, I_av] = count_eq_parallel(dist, Son, K, a0, Rcell)
+function [count, t_av, I_av] = count_eq_parallel(dist, Son, K, a0, Rcell, n_smpl)
 % Count the number of equilibrium states found in n_smpl random
 % configurations trials, using parallel processing, making the simulation
 % faster for large systems.
@@ -10,7 +10,9 @@ function [count, t_av, I_av] = count_eq_parallel(dist, Son, K, a0, Rcell)
 % equilibrium.
 
 N = size(dist,1); % number of cells
-n_smpl = 1000;
+if nargin<6
+    n_smpl = 1000;
+end
 count = zeros(N+1,N+1);
 t_av = zeros(N+1,1);
 I_av = zeros(N+1,3);

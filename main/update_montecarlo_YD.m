@@ -1,4 +1,4 @@
-function [theta_new, theta_new_3, p_new, pe] = update_montecarlo_YD(theta, p, N, Con, K, fN, gN, alpha)
+function [theta_new, theta_new_2, p_new, pe] = update_montecarlo_YD(theta, p, N, Con, K, fN, gN, alpha)
 % YD: test an an alternative formula for Theta
     %phi = @(x) exp(-0.5*x^2)/sqrt(2*pi);
     if p <= 0 || p >= 1

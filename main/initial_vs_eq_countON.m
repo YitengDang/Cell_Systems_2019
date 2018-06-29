@@ -5,12 +5,12 @@ clear all
 set(0, 'defaulttextinterpreter', 'latex');
 
 % Parameters of the system
-gridsize = 15;
+gridsize = 12;
 N = gridsize^2;
 a0 = 0.5;
 Rcell = 0.2*a0;
-Con = 11;
-K = 18;
+Con = 8;
+K = 16;
 
 % use hexagonal lattice
 [dist, pos] = init_dist_hex(gridsize, gridsize);
@@ -27,12 +27,14 @@ kon = N*(K-fN-Con)/(Con-1)/fN;
 koff = N*(K-fN-1)/(Con-1)/fN;
 
 % calculate the map
-[count, t_av] = count_eq_parallel(dist, Con, K, a0, Rcell);
+n_smpl = 100;
+[count, t_av] = count_eq_parallel(dist, Con, K, a0, Rcell, n_smpl);
 p = (0:N)./N;
 prob = transpose(count./repmat(sum(count,2),1,N+1));
 
 % save mat file
-save(fullfile(pwd, 'temp', strcat(fname_str,'.mat')))
+path_out = 'H:\My Documents\Multicellular automaton\temp';
+save(fullfile('H:\My Documents\Multicellular automaton\temp', strcat(fname_str,'.mat')))
 %save(fullfile(pwd, 'data', 'pin_pout', 'analytical', strcat(fname_str,'.mat')))
 %save(fullfile(pwd, 'rebuttal', 'Langevin_pin_pout', strcat('exact_sim_', fname,'.mat')))
 %%
@@ -41,16 +43,16 @@ h1 = figure(1);
 hold on
 im_fig = imagesc(p,p,prob);
 % set title and font
-title(sprintf('N = %d, K = %.1f, S_{ON} = %.1f, a0 = %.1f, R = %.1f', ...
-    N, K, Con, a0, Rcell),'FontSize', 18)
+%title(sprintf('N = %d, K = %.1f, S_{ON} = %.1f, a0 = %.1f, R = %.1f', ...
+%    N, K, Con, a0, Rcell),'FontSize', 18)
 set(gca,'Ydir','normal','FontSize', 20)
 % set invisible parts where count is zero
 set(im_fig, 'AlphaData', count' > 0);
 % set colorbar and labels
 c = colorbar;
 c.Label.String = 'Probability';
-xlabel('p_{in}', 'FontSize', 24)
-ylabel('p_{out}', 'FontSize', 24)
+xlabel('$$p_{in}$$', 'FontSize', 24)
+ylabel('$$p_{out}$$', 'FontSize', 24)
 
 % Plot line p = 1/2 - 4B/fN
 B = (Con+1)/2*(1+fN) - K;
@@ -62,8 +64,7 @@ ylim([0 1]);
 % Organize and save
 save_fig = 1; % save figure? 0:no, 1: yes
 if save_fig > 0
-
-    out_file = fullfile(pwd, 'temp', strcat(fname_str,'_map'));
+    out_file = fullfile(path_out, strcat(fname_str,'_map'));
     save_figure_pdf(h1, 10, 8, out_file);
 end
 %%
@@ -79,7 +80,7 @@ ylabel('Average # steps for eq.', 'FontSize', 24)
 % Organize and save
 save_fig = 1; % save figure? 0:no, 1: yes
 if save_fig > 0
-    out_file = fullfile(pwd, 'temp', strcat(fname_str,'_teq'));
+    out_file = fullfile(path_out, strcat(fname_str,'_teq'));
     save_figure_pdf(h2, 10, 8, out_file);
 end
 
