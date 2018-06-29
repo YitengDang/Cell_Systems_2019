@@ -1,4 +1,4 @@
-function [ptsum, pt, pEn] = transition_prob(dist, a0, Rcell, K, Son, n)
+function [ptsum, pt, pEn] = transition_prob(dist, a0, Rcell, K, Son, n, M_int)
 % Calculate the estimated transition probability of a certain number of 
 % cells activating or deactivating for a specified initial number of ON cells
 
@@ -18,8 +18,8 @@ R_s = sprintf('%.4d', mult_dig*round(Rcell, n_dig));
 K_s = sprintf('%.4d', mult_dig*round(K, n_dig));
 Son_s = sprintf('%.4d', mult_dig*round(Son, n_dig));
 %I_s = sprintf('%.4d', mult_dig*round(I, n_dig));
-fname_str = sprintf('tmat_N%d_n%d_a0_%s_R_%s_K_%s_Son_%s.mat', ...
-    N, n, a0_s, R_s, K_s, Son_s);
+fname_str = sprintf('tmat_N%d_n%d_a0_%s_R_%s_K_%s_Son_%s_M_int_%d.mat', ...
+    N, n, a0_s, R_s, K_s, Son_s, M_int);
 
 %folder = fullfile('..', '..', 'data', 'transition_matrix', 'tmat_n');
 folder = 'H:\My Documents\Multicellular automaton\data\main\transition_matrix\tmat_n';
@@ -37,9 +37,16 @@ else
     muON = Son + fN*(p*Son+(1-p));
     muOFF = 1 + fN*(p*Son+(1-p));
     sigmap = sqrt(p.*(1-p)*gN)*(Son-1);
-
-    ponon = normcdf((-K+muON)./sigmap);
-    poffoff = normcdf((K-muOFF)./sigmap);
+    
+    zon = (K-muON)./sigmap;
+    zoff = (K-muOFF)./sigmap;
+    if M_int==1
+        ponon = 1-normcdf(zon);
+        poffoff = normcdf(zoff);
+    elseif M_int ==-1
+        ponon = normcdf(zon);
+        poffoff = 1-normcdf(zoff);
+    end
 
     %pEn = ponon.^(n).*poffoff.^(N-n); %already follows from calculation
     %below

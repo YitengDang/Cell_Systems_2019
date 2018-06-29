@@ -16,7 +16,7 @@ rcell = 0.2;
 Rcell = rcell*a0;
 
 % Spatial order
-I = 0;
+I = 0.5;
 
 fname_str = strrep(sprintf('t_mat_gz_%d_Con_%.2f_K_%.2f_a0_%.2f_rcell_%.2f_I_%.2f', ...
     gridsize, Con, K, a0, rcell, I), '.','p');
