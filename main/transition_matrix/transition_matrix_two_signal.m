@@ -54,11 +54,11 @@ else
     if max(t_mat(:))>1
        warning('Error, there is a probability > 1!');
     end
-    save(fname)
+    %save(fname)
 end
 
 %%
-n = [5 8];
+n = [0 9];
 t_mat(t_mat<10^(-50)) = 0; % getting rid of small values
 
 h=figure(1);
@@ -66,8 +66,8 @@ p = (0:N)/N;
 imagesc(p, p, squeeze(t_mat(n(1)+1, n(2)+1, :,:)) )
 c = colorbar;
 set(gca, 'Ydir', 'normal', 'FontSize', 20)
-xlabel('$$p_{t}$$', 'FontSize', 24)
-ylabel('$$p_{t+1}$$', 'FontSize', 24)
+xlabel('$$p^{(1)}_{t+1}$$', 'FontSize', 24)
+ylabel('$$p^{(2)}_{t+1}$$', 'FontSize', 24)
 c.Label.String = 'Probability';
 
 qsave=0;

@@ -8,6 +8,7 @@ r = a0*dist_vec(dist_vec>0); % exclude self influence
 fN = sum(sinh(Rcell)*sum(exp(Rcell-r)./r)); % calculate signaling strength
 gN = sum(sum((sinh(Rcell)^2)*exp(2*(Rcell-r))./(r.^2))); % calculate noise variance strength
 %}
+%%
 % Details of the filename
 n_dig = 4; % number of decimal digits used in the filename
 mult_dig = 10^n_dig;

@@ -4,23 +4,23 @@ clear all
 % warning off
 %% (1) input parameters
 % lattice parameters
-gz = 15;
+gz = 3;
 N = gz^2;
-a0 = 1.5;
 rcell = 0.2;
-Rcell = rcell*a0;
+a0 = 0.5;
+Rcell = 0.2*a0;
 
-% circuit parameters
-Con = [18 16];
-Coff = [1 1];
+% circuit parameters 
 M_int = [1 1; -1 -1];
-K = [3 12; 13 20]; % K(i,j): sensitivity of type i to type j molecules
+Con = [8 8];
+Coff = [1 1];
+K = [16 15; 10 8];% K(i,j): sensitivity of type i to type j molecules
 lambda = [1 1.2]; % diffusion length (normalize first to 1)
 hill = Inf;
 noise = 0;
 
 % initial conditions
-p0 = [0.2 0.6];
+p0 = [1 0];
 iniON = round(p0*N);
 I0 = [0 0];
 dI = 0.01;
@@ -121,7 +121,7 @@ end
 cells_hist = {};
 %t_out = 0;
 %changed = 1;
-disp_mol = 1;
+disp_mol = 2;
 
 % generate initial lattice
 iniON = round(p0*N);

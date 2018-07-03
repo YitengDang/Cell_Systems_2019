@@ -3,7 +3,9 @@ function [cells_out, changed] = ...
     Rcell, Con, Coff, K, lambda, hill, noise)
 % Update cells without noise in a positive feedback loop with infinite hill
 % coefficient
-
+cells = zeros(N,2);
+cells(:, 1) = 1;
+%%
 N = size(cells, 1);
 
 % Account for self-influence
@@ -15,6 +17,16 @@ M1(idx) = sinh(Rcell)./(a0*dist(idx)/lambda(1))...
 M2 = ones(size(dist)); 
 M2(idx) = sinh(Rcell)./(a0*dist(idx)/lambda(2))...
     .*exp((Rcell-a0*dist(idx))/lambda(2));
+
+% Calculate interaction strength
+dist_vec = a0*dist(1,:);
+r = dist_vec(dist_vec>0); % exclude self influence
+fN = zeros(1, 2);
+%gN = zeros(1, 2);
+for i=1:2
+    fN(i) = sum(sinh(Rcell) * sum(exp((Rcell-r)./lambda(i)).*(lambda(i)./r)) ); % calculate signaling strength
+    %gN(i) = sum(sinh(Rcell)^2 * sum(exp(2*(Rcell-r)./lambda(i)).*(lambda(i)./r).^2 ) ); % calculate noise variance strength
+end
 
 % Concentration in each cell
 C0 = Coff + (Con-Coff).*cells; 
