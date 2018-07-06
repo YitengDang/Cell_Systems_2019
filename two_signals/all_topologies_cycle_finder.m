@@ -1,137 +1,70 @@
-clear variables 
-close all
-%% Testing code: update_cycle
-clc
-%A = [1 1 0 0; 0 0 0 1; 1 1 0 0; 0 0 1 1];
-A = [0 0 0 1; 0 0 1 0; 0 1 0 0; 1 0 0 0];
-%A = zeros(3);
-%A(2,3)=1; A(3,2)=1;
-%A = randi(2, 4)-1;
-Gs = digraph(A);
-g=plot(Gs);
+function all_cycles_net = all_topologies_cycle_finder(A)
+    % input: 
+    % A = graph adjacency matrix (transition matrix)
+    
+    % output: 
+    % cycles = cell array with all found cycles
+    
+    % --Test code--
+    %clear variables 
+    %close all
+    %A = [1 1 0 0; 0 0 0 1; 1 1 0 0; 0 0 1 1];
+    %Gs = digraph(A);
+    %g=plot(Gs);
 
-all_cycles_func = all_topologies_cycle_finder(A);
-disp('Found net cycles (function):');
-for i=1:numel(all_cycles_func)
-    disp(all_cycles_func{i});
-end
-%% Testing code: update_cycle
-% Find all cycles of a given graph
-
-n_nodes = size(A, 1);
-cycles = num2cell(1:n_nodes);
-all_cycles = {}; % "net" cycles
-max_trials = n_nodes+1; % sequences length <= #nodes + 1
-
-for trial=1:max_trials
-    [updated_cycles] = update_sequence(A, cycles);
-    [found_cycles, remaining_cycles] = trim_sequences(updated_cycles);
-    for i=1:numel(found_cycles)
-        all_cycles{end+1} = found_cycles{i};
+    %% Find all cycles of a given graph
+    n_nodes = size(A, 1);
+    cycles = num2cell(1:n_nodes);
+    all_cycles = {}; % "net" cycles
+    max_trials = n_nodes+1; % sequences length <= #nodes + 1
+    
+    for trial=1:max_trials
+        [updated_cycles] = update_sequence(A, cycles);
+        [found_cycles, remaining_cycles] = trim_sequences(updated_cycles);
+        for i=1:numel(found_cycles)
+            all_cycles{end+1} = found_cycles{i};
+        end
+        cycles = remaining_cycles;
     end
-    cycles = remaining_cycles;
-end
-
-disp('Found cycles:');
-for i=1:numel(all_cycles)
-    disp(all_cycles{i});
-end
-%% remove equivalent cycles
-all_cycles_net = {};
-for i1=1:numel(all_cycles)
-    same = 0;
-    for i2=1:numel(all_cycles_net)
-        %cycle1_trimmed = trim_sequences({all_cycles{i1}}); cycle1_trimmed = cycle1_trimmed{1};
-        %cycle2_trimmed = trim_sequences({all_cycles{i2}}); cycle2_trimmed = cycle2_trimmed{1};
-
-        % periodicity_test_seq here just trims a found cycle
-        [~, cycle1_trimmed] = periodicity_test_seq(all_cycles{i1});
-        [~, cycle2_trimmed] = periodicity_test_seq(all_cycles_net{i2});
-
-        % test whether cycles are the same
-        same = equivalence_test_cycles(cycle1_trimmed, cycle2_trimmed);
-        if same
-            % cycle has already appeared, go to next cycle
-            break 
+    %{
+    disp('Found cycles:');
+    for i=1:numel(all_cycles)
+        disp(all_cycles{i});
+    end
+    %}
+    %% remove equivalent cycles
+    all_cycles_net = {};
+    for i1=1:numel(all_cycles)
+        same = 0;
+        for i2=1:numel(all_cycles_net)
+            %cycle1_trimmed = trim_sequences({all_cycles{i1}}); cycle1_trimmed = cycle1_trimmed{1};
+            %cycle2_trimmed = trim_sequences({all_cycles{i2}}); cycle2_trimmed = cycle2_trimmed{1};
+            
+            % periodicity_test_seq here just trims a found cycle
+            [~, cycle1_trimmed] = periodicity_test_seq(all_cycles{i1});
+            [~, cycle2_trimmed] = periodicity_test_seq(all_cycles_net{i2});
+            
+            % test whether cycles are the same
+            same = equivalence_test_cycles(cycle1_trimmed, cycle2_trimmed);
+            if same
+                % cycle has already appeared, go to next cycle
+                break 
+            end
+        end
+        if ~same
+            all_cycles_net{end+1} = all_cycles{i1};
         end
     end
-    if ~same
-        all_cycles_net{end+1} = all_cycles{i1};
+    %{
+    disp('Found cycles (after removing equivalent ones):');
+    for i=1:numel(all_cycles_net)
+        disp(all_cycles_net{i});
     end
+    %}
+    
 end
-
-disp('Found cycles (after removing equivalent ones):');
-for i=1:numel(all_cycles_net)
-    disp(all_cycles_net{i});
-end
-%% Testing code: periodicity_test_seq
-% Works
-clc
-test_cycles = {};
-found_cycle = [];
-test_cycles{end+1} = [1 6 8 5 9 0 1 2 3];
-test_cycles{end+1} = [randperm(10,5) randperm(10,5)];
-test_cycles{end+1} = [randperm(10,5) randperm(10,5)];
-test_cycles{end+1} = [randperm(10,5) randperm(10,5)];
-
-for i=1:numel(test_cycles)
-    [periodic, found_cycle] = periodicity_test_seq(test_cycles{i});
-    disp(test_cycles{i});
-    fprintf('Periodic? %d, found_cycle =  \n', periodic);
-    disp(found_cycle)
-end
-
-%% Testing code: trim_sequences
-% Works
-clc
-[found_cycles, remaining_cycles] = trim_sequences(test_cycles);
-
-disp('Found cycles:');
-for i=1:numel(found_cycles)
-    disp(found_cycles{i});
-end
-disp('Remaining cycles:');
-for i=1:numel(remaining_cycles)
-    disp(remaining_cycles{i});
-end
-
-
-%% Testing code: shift_cycle
-% Passed
-clc
-
-% shift cycle
-cycle = [1 6 8 5 9 0 1 2 3];
-cycle_trimmed = trim_sequences({cycle});
-cycle_trimmed = cycle_trimmed{1};
-
-shifted_cycle = cycle_trimmed;
-disp('Original cycle:');
-disp(cycle_trimmed);
-disp('Shifted cycles:');
-for i=1:numel(cycle_trimmed)
-    shifted_cycle = shift_cycle(shifted_cycle);
-    disp(shifted_cycle);
-end
-
-%% Testing: equivalence_test_cycles(cycle1, cycle2)
-% Works
-clc
-cycle1 = [1 2 3 4 1];
-cycle2 = [2 3 4 1 2];
-same = equivalence_test_cycles(cycle1, cycle2)
-
-cycle1 = [1 2 3 4 1];
-cycle2 = [4 3 2 1 4];
-same = equivalence_test_cycles(cycle1, cycle2)
-
-cycle1 = [1 3 4 5 3 1];
-cycle2 = [3 4 5 3 1 3];
-same = equivalence_test_cycles(cycle1, cycle2)
-
 
 %% Functions
-
 function updated_sequences = update_sequence(A, sequences)
     % updates the sequence by 1 step; appends node children to existing
     % sequences; outputs new array of sequences 
