@@ -14,10 +14,11 @@ ns = [1 0 4 0 4]; % self-similar
 na = [0 8 20 32 12]./2; % remaining
 
 N_phases = sum(Ts.*ns+Ta.*na); % total # phases
-fprintf('Total # single-cell phases: %d \n', N_phases)
+N_phases_all = sum( (ns+2*na).*Ta );
+fprintf('Total # single-cell phases (excl. sym. partners): %d \n', N_phases_all)
+fprintf('Total # single-cell phases (incl. sym. partners): %d \n', N_phases)
 
 % multiple cells
-
 disp('Multiple cells:');
 n_phases = n_phases_all(1);
 n = zeros(1,5);
@@ -40,8 +41,8 @@ Ta = [0 0 10 32 12]./2; % remaining
 Ns3 = sum(Ts.*ns+Ta.*na);
 
 % account for symmetries
-fprintf('Total # multi-cell phases: %d \n', Ns1)
-fprintf('Accounting for symmetry: %d \n', Ns2)
+fprintf('Total # multi-cell phases (excl. sym. partners): %d \n', Ns1)
+fprintf('Total # multi-cell phases (incl. sym. partners): %d \n', Ns2)
 %fprintf('States without self-similarity: %d \n', Ns2a)
 fprintf('Excluding trivial topologies: %d \n', Ns3)
 
@@ -56,6 +57,7 @@ fprintf('Excluding trivial topologies: %d \n', Ns3)
 % Settings
 single_cell = 0;
 draw_diagram = 0; % draw state diagram?
+sym = 1; % include symmetries? 0: symmetric diagrams are excluded, 1: everything included
 n_phases = n_phases_all(single_cell+1);
 
 % tracking variables
@@ -93,8 +95,9 @@ for k=1:3^4
         
         done(i11,i12,i21,i22)=1;
         gM = g([i11 i12; i21 i22]);
-        done(gM(1,1),gM(1,2),gM(2,1),gM(2,2))=1;
-        
+        if ~sym
+            done(gM(1,1),gM(1,2),gM(2,1),gM(2,2))=1;
+        end
         % loop over all phases
         ni = sum(abs(M_int(:))==1);
         sz = n_phases*abs(M_int)+(1-abs(M_int)); % size matrix, for correct index conversion
@@ -106,6 +109,12 @@ for k=1:3^4
             for k1=1:n_phases^ni
                 [i11b, i12b, i21b, i22b] = ind2sub([sz(1,1), sz(1,2), sz(2,1), sz(2,2)], k1);
                 if doneP(i11b,i12b,i21b,i22b)
+                    continue
+                elseif (i11b==5)&&(i12b==6) || (i11b==6)&&(i12b==5) 
+                    doneP(i11b,i12b,i21b,i22b) = 1;
+                    continue
+                elseif (i21b==5)&&(i22b==6) || (i21b==6)&&(i22b==5) 
+                    doneP(i11b,i12b,i21b,i22b) = 1;
                     continue
                 else
                     % 
@@ -122,7 +131,9 @@ for k=1:3^4
                     % update tracking variables: also consider P symmetries
                     doneP(i11b,i12b,i21b,i22b) = 1;
                     gP = g(P);
-                    doneP(gP(1,1),gP(1,2),gP(2,1),gP(2,2))=1;
+                    if ~sym
+                        doneP(gP(1,1),gP(1,2),gP(2,1),gP(2,2))=1;
+                    end
                     countP(k) = countP(k) + 1;
                     
                     if draw_diagram
@@ -136,6 +147,12 @@ for k=1:3^4
             for k1=1:n_phases^ni
                 [i11b, i12b, i21b, i22b] = ind2sub([sz(1,1), sz(1,2), sz(2,1), sz(2,2)], k1);
                 if doneP(i11b,i12b,i21b,i22b)
+                    continue
+                elseif (i11b==5)&&(i12b==6) || (i11b==6)&&(i12b==5) 
+                    doneP(i11b,i12b,i21b,i22b) = 1;
+                    continue
+                elseif (i21b==5)&&(i22b==6) || (i21b==6)&&(i22b==5) 
+                    doneP(i11b,i12b,i21b,i22b) = 1;
                     continue
                 else
                     % 
@@ -168,12 +185,12 @@ end
 fprintf('Total # phases considered: %d \n', sum(countP))
 %%
 % save data
-%save_path = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
-save_path = 'D:\Multicellularity\data\two_signals\all_topologies';
-labels = {'multi_cell', 'single_cell'};
+save_path = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
+%save_path = 'D:\Multicellularity\data\two_signals\all_topologies';
+labels = {'multi_cell', 'single_cell', 'multi_cell_all_incl', 'single_cell_all_incl'};
 qsave = 1;
 if qsave
-    label = labels{single_cell+1};
+    label = labels{single_cell+1 + 2*sym};
     fname_str = sprintf('all_topologies_data_%s', label);
     fname = fullfile(save_path, fname_str);
     save(fname, 'M_int_all', 'phases_all', 'state_diagrams', 'steady_states', 'cycles_all', 'single_cell');
