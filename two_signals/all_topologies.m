@@ -1,10 +1,8 @@
 %% Obtain statistics on all possible topologies (up to equivalence)
-% For 1 cell
 clear variables
 close all
 clc
 %% Count # of topologies
-
 n_phases_all = [6 2];
 
 % Single cell
@@ -170,7 +168,8 @@ end
 fprintf('Total # phases considered: %d \n', sum(countP))
 %%
 % save data
-save_path = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
+%save_path = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
+save_path = 'D:\Multicellularity\data\two_signals\all_topologies';
 labels = {'multi_cell', 'single_cell'};
 qsave = 1;
 if qsave
