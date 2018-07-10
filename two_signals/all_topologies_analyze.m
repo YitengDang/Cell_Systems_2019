@@ -1,4 +1,4 @@
-function [A, ss, cycles] = all_topologies_analyze(single_cell, phase, M_int, draw_diagram)
+function [A, ss, cycles, h] = all_topologies_analyze(single_cell, phase, M_int, draw_diagram)
     % Analyzes the dynamics of a system with given interaction topology and
     % phases of the interactions. 
     % Input:    P, phase matrix (2x2) with phases (1-6) for each interaction.
@@ -110,7 +110,9 @@ function [A, ss, cycles] = all_topologies_analyze(single_cell, phase, M_int, dra
     end
     %% Calculate state diagram
     if draw_diagram
-        draw_state_diagram(A);
+        h=draw_state_diagram(A);
+    else
+        h=[];
     end
     
     %% Find steady states
@@ -132,8 +134,8 @@ function out = and3(x,y)
     out = min(x.*y, 2);
 end
 
-function draw_state_diagram(A)
-    h10 = figure(1);
+function h=draw_state_diagram(A)
+    h = figure(1);
     hold on
     s = [0 1 0 1];
     t = [0 0 1 1];
@@ -156,9 +158,9 @@ function draw_state_diagram(A)
     ax = gca;
     axis([-0.4 1.4 -0.4 1.4]);
     ax.Visible = 'off';
-    h10.Color = [1 1 1];
+    h.Color = [1 1 1];
     %set(ax, 'Units', 'Inches', 'Position', [0 0 9 8]);
     %set(h2, 'Units', 'Inches', 'Position', [1 1 9 8]);
     set(ax, 'Units', 'Inches', 'Position', [0 0 7 6]);
-    set(h10, 'Units', 'Inches', 'Position', [0.2 0.2 7 6]);
+    set(h, 'Units', 'Inches', 'Position', [0.2 0.2 7 6]);
 end

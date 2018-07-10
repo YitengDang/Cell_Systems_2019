@@ -198,11 +198,14 @@ end
 
 %% For given topology (M_int), loop over all phases
 countP = 0;
-M_int = [1 0; 0 1];
+M_int = [0 -1; 1 0];
 
 % Settings
-single_cell = 1;
+single_cell = 0;
 draw_diagram = 1; % draw state diagram?
+save_diagram = 1;
+labels = {'multi_cell', 'single_cell'};
+label = labels{single_cell+1};
 
 % loop over all phases
 n_phases = n_phases_all(single_cell+1);
@@ -215,19 +218,34 @@ state_diagrams = {}; % cell(Ns2, 1); % store all state diagrams (graph transitio
 steady_states = {}; %cell(Ns2, 1); % store all steady states
 cycles_all = {}; %cell(Ns2, 1); % store all loop structures
 
+count = 0;
 for k1=1:n_phases^ni
     disp(k1)
     [i11b, i12b, i21b, i22b] = ind2sub([sz(1,1), sz(1,2), sz(2,1), sz(2,2)], k1);
     if doneP(i11b,i12b,i21b,i22b)
         continue
+    elseif (i11b==5)&&(i12b==6) || (i11b==6)&&(i12b==5) 
+        doneP(i11b,i12b,i21b,i22b) = 1;
+        continue
+    elseif (i21b==5)&&(i22b==6) || (i21b==6)&&(i22b==5) 
+        doneP(i11b,i12b,i21b,i22b) = 1;
+        continue    
     else
         P = [i11b i12b; i21b i22b]; % matrix with phases
         phases_all{end+1} = abs(M_int).*P;
-        [A, ss, cycles] = all_topologies_analyze(single_cell, P, M_int, draw_diagram);
+        [A, ss, cycles, h] = all_topologies_analyze(single_cell, P, M_int, draw_diagram);
         state_diagrams{end+1} = A;
         steady_states{end+1} = ss;
         cycles_all{end+1} = cycles;
         
+        count = count+1;
+        save_folder = fullfile('H:\My Documents\Multicellular automaton\figures\two_signals\all_topologies\temp');
+        phase = abs(M_int).*P;
+        fname_str = sprintf('state_diagram_%s_phase_%d_%d_%d_%d', label,...
+            phase(1,1), phase(1,2), phase(2,1), phase(2,2));
+        fname = fullfile(save_folder, fname_str);
+        save_figure(h, 7, 6, fname, '.pdf', save_diagram)
+            
         % update tracking variables: also consider P symmetries
         doneP(i11b,i12b,i21b,i22b) = 1;
         gP = g(P);
