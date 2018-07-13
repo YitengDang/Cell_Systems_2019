@@ -2,6 +2,7 @@
 clear variables
 close all
 clc
+% NB: phase symmetries seem to be wrong, not working properly
 %% Count # of topologies
 n_phases_all = [6 2];
 
@@ -198,10 +199,10 @@ end
 
 %% For given topology (M_int), loop over all phases
 countP = 0;
-M_int = [0 -1; 1 0];
+M_int = [0 -1; 1 1];
 
 % Settings
-single_cell = 0;
+single_cell = 1;
 draw_diagram = 1; % draw state diagram?
 save_diagram = 1;
 labels = {'multi_cell', 'single_cell'};
@@ -224,10 +225,10 @@ for k1=1:n_phases^ni
     [i11b, i12b, i21b, i22b] = ind2sub([sz(1,1), sz(1,2), sz(2,1), sz(2,2)], k1);
     if doneP(i11b,i12b,i21b,i22b)
         continue
-    elseif (i11b==5)&&(i12b==6) || (i11b==6)&&(i12b==5) 
+    elseif (i11b==1)&&(i12b==6) || (i11b==6)&&(i12b==1) 
         doneP(i11b,i12b,i21b,i22b) = 1;
         continue
-    elseif (i21b==5)&&(i22b==6) || (i21b==6)&&(i22b==5) 
+    elseif (i21b==1)&&(i22b==6) || (i21b==6)&&(i22b==1) 
         doneP(i11b,i12b,i21b,i22b) = 1;
         continue    
     else
@@ -239,7 +240,8 @@ for k1=1:n_phases^ni
         cycles_all{end+1} = cycles;
         
         count = count+1;
-        save_folder = fullfile('H:\My Documents\Multicellular automaton\figures\two_signals\all_topologies\temp');
+        %save_folder = fullfile('H:\My Documents\Multicellular automaton\figures\two_signals\all_topologies\temp');
+        save_folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\all_topologies\single_cell_by_topology';
         phase = abs(M_int).*P;
         fname_str = sprintf('state_diagram_%s_phase_%d_%d_%d_%d', label,...
             phase(1,1), phase(1,2), phase(2,1), phase(2,2));
@@ -248,8 +250,8 @@ for k1=1:n_phases^ni
             
         % update tracking variables: also consider P symmetries
         doneP(i11b,i12b,i21b,i22b) = 1;
-        gP = g(P);
-        doneP(gP(1,1),gP(1,2),gP(2,1),gP(2,2))=1;
+        %gP = g(P);
+        %doneP(gP(1,1),gP(1,2),gP(2,1),gP(2,2))=1;
         countP = countP + 1;
         pause(1);
         close all
