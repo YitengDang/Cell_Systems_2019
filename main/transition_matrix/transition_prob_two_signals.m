@@ -1,4 +1,4 @@
-function [ptsum, pt, pEn] = transition_prob_two_signals(n, N, M_int, a0, fN, gN, Rcell, K, Con)
+function [ptsum, pt, pEn] = transition_prob_two_signals(n, N, M_int, a0, fN, gN, rcell, K, Con, Coff)
 % Calculate the estimated transition probability of a certain number of 
 % cells activating or deactivating for a specified initial number of ON cells
 %{
@@ -9,23 +9,20 @@ fN = sum(sinh(Rcell)*sum(exp(Rcell-r)./r)); % calculate signaling strength
 gN = sum(sum((sinh(Rcell)^2)*exp(2*(Rcell-r))./(r.^2))); % calculate noise variance strength
 %}
 %%
-% Details of the filename
-n_dig = 4; % number of decimal digits used in the filename
-mult_dig = 10^n_dig;
-
 % String of the parameters
-a0_s = sprintf('%.4d', mult_dig*round(a0, n_dig));
-R_s = sprintf('%.4d', mult_dig*round(Rcell, n_dig));
-K_s = sprintf('%.4d', mult_dig*round(K, n_dig));
-Son_s = sprintf('%.4d', mult_dig*round(Con, n_dig));
-%I_s = sprintf('%.4d', mult_dig*round(I, n_dig));
-%fname_str = sprintf('tmat_N%d_n%d_a0_%s_R_%s_K_%s_Son_%s_M_int_%d.mat', ...
-%    N, n, a0_s, R_s, K_s, Son_s, M_int);
-fname_str = 'temp';
-
+a0_s = sprintf('%.2f', a0);
+R_s = sprintf('%.2f', rcell);
+K_s = sprintf('%d_%d_%d_%d', K(1,1), K(1,2), K(2,1), K(2,2));
+Con_s = sprintf('%d_%d', Con(1), Con(2));
+M_int_s = sprintf('%d_%d_%d_%d', M_int(1,1), M_int(1,2), M_int(2,1), M_int(2,2));
+%I_s = sprintf('%d', mult_dig*round(I, n_dig));
+fname_str = strrep(sprintf('tmat_N%d_n1_%d_n2_%d_a0_%s_rcell_%s_K_%s_Con_%s_M_int_%s',...
+    N, n(1), n(2), a0_s, R_s, K_s, Con_s, M_int_s), '.', 'p');
+%fname_str = 'temp';
 %folder = fullfile('..', '..', 'data', 'transition_matrix', 'tmat_n');
 folder = 'H:\My Documents\Multicellular automaton\data\two_signals\transition_matrix\tmat_n';
-fname = fullfile(folder, fname_str);
+fname = fullfile(folder, strcat(fname_str, '.mat'));
+%%
 if exist(fname,'file') == 2
     tmp = load(fname);
     ptsum = tmp.ptsum;
@@ -35,7 +32,7 @@ else
     % initial number/fraction of ON cells
     
     p = n/N;
-    
+    %{
     muON = Con + fN.*(p.*Con+(1-p));
     muOFF = 1 + fN.*(p.*Con+(1-p));
     sigmap = sqrt(p.*(1-p).*gN).*(Con-1);
@@ -47,8 +44,33 @@ else
 
     muOFF_mat = repmat(muOFF, 2, 1);
     poffoff = prod(M_int.*normcdf(M_int.*(-K + muOFF_mat)./sigmap_mat) + (1-abs(M_int)), 2)';
-
+    
     %pEn = ponon.^(n').*poffoff.^(N-n');
+    %}
+    
+    Y_nei_avg = fN.*(p.*Con+(1-p)); % neighbour contributions
+    mu_mat = repmat(Y_nei_avg, 2, 1);
+
+    %muON = Con + fN.*(p.*Con+(1-p));
+    %muOFF = 1 + fN.*(p.*Con+(1-p));
+    sigma = sqrt(p.*(1-p).*gN).*(Con-1);
+    sigma_mat = repmat(sigma, 2, 1);
+
+    % Calculate self-contributions
+
+    %off-diagonal (mean-field) self-contributions, other gene is unknown
+    self_off_diag = zeros(2); 
+    self_off_diag(1,2) = (Con(2)*p(2) + Coff(2)*(1-p(2)));
+    self_off_diag(2,1) = (Con(1)*p(1) + Coff(1)*(1-p(1)));
+
+    Y_self_ON_mat = diag(Con) + self_off_diag;
+    Y_self_OFF_mat = diag(Coff) + self_off_diag;
+
+    % --- Calculate Ponon, Poffoff ---
+    % vectorized
+    ponon = prod(1 - abs(M_int).*normcdf(0, M_int.*(mu_mat + Y_self_ON_mat - K), sigma_mat), 2 )';
+    poffon = prod(1 - abs(M_int).*normcdf(0, M_int.*(mu_mat + Y_self_OFF_mat - K), sigma_mat), 2)';
+    poffoff = 1 - poffon;
 
     % Calculate pt, ptn
     ptsum = zeros(N+1);
@@ -66,7 +88,7 @@ else
                     yplus = [yplus1 yplus2];
                     tmp = ponon.^(n-ymin).*(1-ponon).^ymin.*poffoff.^(N-n-yplus).*(1-poffoff).^yplus;
                     tmp(1) = tmp(1)*nchoosek(n(1),ymin1)*nchoosek(N-n(1),yplus1);
-                    tmp(2) = tmp(2)*nchoosek(n(2),ymin2)*nchoosek(N-n(2),yplus2);  
+                    tmp(2) = tmp(2)*nchoosek(n(2),ymin2)*nchoosek(N-n(2),yplus2);
                     pt(ymin1+1,yplus1+1,ymin2+1,yplus2+1) = prod(tmp);
                     idx = n + yplus - ymin;
                     ptsum(idx(1)+1, idx(2)+1) = ptsum(idx(1)+1, idx(2)+1) + prod(tmp);

@@ -1,4 +1,4 @@
-function [pos, dist, fN0, rejections] = initial_cells_random_markov_periodic(n, mcsteps, rcell, nodisplay)
+function [pos, dist, fN0, rejections] = initial_cells_random_markov_periodic(n, mcsteps, Lx, R, nodisplay)
 % Note: even perfect arrangement might not be accepted because distances
 % are rounded off.
 % Places cells randomly in a continuous space
@@ -8,7 +8,14 @@ L = 1;
 R = 0.02;
 n = round(L/R/5); % nmax = L/R
 %}
-if nargin==3
+if nargin<3
+    Lx = 1;
+    R = 0.2*Lx/(n+1); %default rcell = 0.2
+    nodisplay = 0;
+elseif nargin==3
+    R = 0.2*Lx/(n+1);
+    nodisplay = 0;
+elseif nargin==4
     nodisplay = 0;
 end
 
@@ -16,9 +23,7 @@ if ~nodisplay
     disp('Initiating initial lattice...');
 end
 %---------main code below---------------
-Lx = 1;
 N = n^2;
-R = rcell*Lx/(n+1); 
 
 % hexagonal placement
 delx = Lx/n;

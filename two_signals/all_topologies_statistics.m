@@ -81,7 +81,7 @@ set(h, 'Units', 'Inches', 'Position', [0 0 9 8]);
 set(gca, 'XScale', 'log');
 set(gca, 'YScale', 'log');
 %xlim([-0.5 n_unique+0.5])
-%ylim([0.1 1200])
+ylim([0.1 1200])
 
 % --> Statistics of this distribution? Zipf's Law?
 % save figure
@@ -236,10 +236,12 @@ T = table(cat_sorted, N_sorted', 'VariableNames', {'Cycles', 'Count'});
 fname = fullfile(save_folder, strcat(fname_str, '.xlsx'));
 writetable(T,fname,'sheet',1,'Range','A1')
 %%
+%{
 for i=1:numel(idx)
     disp(steady_states{idx(i)});
     waitforbuttonpress;
 end
+%}
 %% histogram of cycle structures
 % Example: 2, 3, 2 means there are cycles of lengths 2, 3 and 2
 % respectively

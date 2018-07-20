@@ -26,6 +26,13 @@ function [A, ss, cycles, h] = all_topologies_analyze(single_cell, phase, M_int, 
         g_map{2,2,1} = ~g_map{1,2,1};
         g_map{2,2,2} = ~g_map{1,2,2};
     else % multiple cells
+        % Phases:
+        % 1: U
+        % 2: P1
+        % 3: A1
+        % 4: A0
+        % 5: P0
+        % 6: A01
         g_map = cell(2, 6, 2);
         % state 0=OFF, 1:ON, 2:UNKNOWN
         % activation 

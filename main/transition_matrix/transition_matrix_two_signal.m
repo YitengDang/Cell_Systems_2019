@@ -14,6 +14,7 @@ Rcell = rcell*a0;
 
 M_int = [1 1; -1 -1];
 Con = [8 8];
+Coff = [1 1];
 K = [16 15; 10 8];
 lambda = [1 1.2];
 
@@ -31,9 +32,10 @@ for i=1:2
     gN(i) = sum(sinh(Rcell)^2 * sum(exp(2*(Rcell-r)./lambda(i)).*(lambda(i)./r).^2 ) ); % calculate noise variance strength
 end
 
-% Load/save folder
-fname_str = 'temp'; %strrep(sprintf('t_mat_M_int_%d_gz_%d_Con_%.2f_K_%.2f_a0_%.2f_rcell_%.2f', ...
-    %M_int, gridsize, Con, K, a0, Rcell), '.', 'p');
+%% Load/save folder
+fname_str = strrep(sprintf('t_mat_gz_%d_M_int_%d_%d_%d_%d_Con_%d_%d_K_%d_%d_%d_%d_a0_%.2f_rcell_%.2f', ...
+    gz, M_int(1,1), M_int(1,2), M_int(2,1), M_int(2,2), Con,...
+    K(1,1), K(1,2), K(2,1), K(2,2), a0, rcell), '.', 'p');
 
 folder = 'H:\My Documents\Multicellular automaton\data\two_signals\transition_matrix\';
 fname = fullfile(folder, strcat(fname_str, '.mat'));
@@ -47,7 +49,7 @@ else
             n = [n1 n2];
             disp(n)
             [ptsum, ~, ~] = transition_prob_two_signals(n, N, M_int, a0,...
-                fN, gN, Rcell, K, Con);
+                fN, gN, rcell, K, Con, Coff);
             t_mat(n1+1, n2+1, :, :) = ptsum;
         end
     end
@@ -58,7 +60,7 @@ else
 end
 
 %%
-n = [0 9];
+n = [5 5];
 t_mat(t_mat<10^(-50)) = 0; % getting rid of small values
 
 h=figure(1);

@@ -1,17 +1,19 @@
+% v3: use the randomization algorithm to place the cells on a
+% different lattice
 close all
 clear all
-maxNumCompThreads(3);
+maxNumCompThreads(4);
 %warning off
 %% Simulation parameters
-max_trials = 500;
+max_trials = 100;
 
 % lattice parameters
 %gz = 15;
 %N = gz^2;
-gz_all = 15;
+gz_all = [15 11];
 
 % loop over K12
-K12_all = 4:28;
+K12_all = [15 7:11 20:24];
 %% (2) Load parameters from saved trajectory
 %{
 % with parameters saved as structure array 
@@ -68,7 +70,7 @@ end
 %% Specify parameters by hand 
 
 a0 = 1.5;
-K = [0 4; 11 4];
+K = [0 0; 11 4];
 Con = [18 16];
 Coff = [1 1];
 M_int = [0 1; -1 1];
@@ -84,13 +86,14 @@ p0 = [0.5 0.5];
 %gz = sqrt(N);
 Rcell = rcell*a0;
 InitiateI = 0;
+
+mcsteps = 1000;
 %%
 for gz_idx=1:numel(gz_all)    
     
 gz = gz_all(gz_idx);
 N = gz^2;
 
-[dist, pos] = init_dist_hex(gz, gz);
 cell_type = zeros(N,1);
 
 for K12_idx=1:numel(K12_all)
@@ -163,9 +166,9 @@ fprintf('inhibitor fij(a0) = %.4f \n', sinh(Rcell)*sum(exp((Rcell-a0)./lambda(2)
 %}
 %% Check existing files
 % Count how many simulations have already been done
+subfolder = sprintf('N%d mcsteps %d', N, mcsteps);
 %folder = fullfile('L:\HY\Shared\Yiteng\two_signals\parameter set 2b', sprintf('N%d', N));
-%folder = fullfile('L:\BN\HY\Shared\Yiteng\two_signals', 'sweep K12');
-folder = fullfile('L:\HY\Shared\Yiteng\two_signals', 'sweep K12');
+folder = fullfile('L:\HY\Shared\Yiteng\two_signals', 'sweep K12 new lattice', subfolder);
 
 if exist(folder, 'dir') ~= 7
     warning('Folder does not exist! ');
@@ -181,8 +184,8 @@ end
 filecount = 0;
 %pattern = strrep(sprintf('%s_N%d_initiateI%d_%s_t_out_%s_period_%s',...
 %        sim_ID, N, InitiateI, I_ini_str, '(\d+)', '(\d+|Inf)'), '.', 'p');
-pattern = strrep(sprintf('%s_N%d_initiateI%d%s_K12_%d_t_out_%s_period_%s',...
-        sim_ID, N, InitiateI, I_ini_str, K(1,2), '(\d+)', '(\d+|Inf)'), '.', 'p');
+pattern = strrep(sprintf('%s_N%d_initiateI%d%s_randpos_mcsteps%d_K12_%d_t_out_%s_period_%s',...
+        sim_ID, N, InitiateI, I_ini_str, mcsteps, K(1,2), '(\d+)', '(\d+|Inf)'), '.', 'p');
 
 
 listing = dir(folder);
@@ -228,6 +231,11 @@ for trial=1:max_trials-filecount
     %changed = 1;
 
     % generate initial lattice
+    %[dist, pos] = init_dist_hex(gz, gz);
+    nodisplay = 1;
+    [pos, dist] = initial_cells_random_markov_periodic(gz, mcsteps, rcell, nodisplay);
+
+    % generate initial state
     iniON = round(p0*N);
     cells = zeros(N, 2);
     for i=1:numel(iniON)
@@ -280,9 +288,9 @@ for trial=1:max_trials-filecount
     %t_out = tmax;
     %periodic = 'periodic';
     %--------------------------------------------------------------
-    % Save result
-    fname_str = strrep(sprintf('%s_N%d_initiateI%d%s_K12_%d_t_out_%d_period_%s',...
-        sim_ID, N, InitiateI, I_ini_str, K(1,2), t_out, num2str(period)), '.', 'p');
+    %% Save result
+    fname_str = strrep(sprintf('%s_N%d_initiateI%d%s_randpos_mcsteps%d_K12_%d_t_out_%d_period_%s',...
+        sim_ID, N, InitiateI, I_ini_str, mcsteps, K(1,2), t_out, num2str(period)), '.', 'p');
     ext = '.mat';
     label = '';
 
@@ -311,9 +319,10 @@ for trial=1:max_trials-filecount
     end
     
     save_consts_struct = cell2struct(save_vars, save_vars_lbl, 2);
-
+    positions = pos;
+    distances = dist;
     save(fname, 'save_consts_struct', 'cells_hist', 't_out',...
-        'changed', 'period', 't_onset');
+        'changed', 'period', 't_onset', 'positions', 'distances');
         fprintf('Saved simulation: %s ; \n', fname);
     %--------------------------------------------------------------------------
 end

@@ -3,8 +3,8 @@ function [cells_out, changed] = ...
     Rcell, Con, Coff, K, lambda, hill, noise)
 % Update cells without noise in a positive feedback loop with infinite hill
 % coefficient
-cells = zeros(N,2);
-cells(:, 1) = 1;
+%cells = zeros(N,2);
+%cells(:, 1) = 1;
 %%
 N = size(cells, 1);
 

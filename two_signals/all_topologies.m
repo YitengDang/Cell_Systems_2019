@@ -58,7 +58,7 @@ fprintf('Excluding trivial topologies: %d \n', Ns3)
 % Settings
 single_cell = 0;
 draw_diagram = 0; % draw state diagram?
-sym = 1; % include symmetries? 0: symmetric diagrams are excluded, 1: everything included
+sym = 0; % include symmetries? 0: symmetric diagrams are excluded, 1: everything included
 n_phases = n_phases_all(single_cell+1);
 
 % tracking variables
@@ -111,10 +111,10 @@ for k=1:3^4
                 [i11b, i12b, i21b, i22b] = ind2sub([sz(1,1), sz(1,2), sz(2,1), sz(2,2)], k1);
                 if doneP(i11b,i12b,i21b,i22b)
                     continue
-                elseif (i11b==5)&&(i12b==6) || (i11b==6)&&(i12b==5) 
+                elseif (i11b==1)&&(sz(1,1)>1)&&(i12b==6) || (i11b==6)&&(i12b==1)&&(sz(1,2)>1)
                     doneP(i11b,i12b,i21b,i22b) = 1;
                     continue
-                elseif (i21b==5)&&(i22b==6) || (i21b==6)&&(i22b==5) 
+                elseif (i21b==1)&&(sz(2,1)>1)&&(i22b==6) || (i21b==6)&&(i22b==1)&&(sz(2,2)>1)
                     doneP(i11b,i12b,i21b,i22b) = 1;
                     continue
                 else
@@ -149,10 +149,10 @@ for k=1:3^4
                 [i11b, i12b, i21b, i22b] = ind2sub([sz(1,1), sz(1,2), sz(2,1), sz(2,2)], k1);
                 if doneP(i11b,i12b,i21b,i22b)
                     continue
-                elseif (i11b==5)&&(i12b==6) || (i11b==6)&&(i12b==5) 
+                elseif (i11b==1)&&(sz(1,1)>1)&&(i12b==6) || (i11b==6)&&(i12b==1)&&(sz(1,2)>1)
                     doneP(i11b,i12b,i21b,i22b) = 1;
                     continue
-                elseif (i21b==5)&&(i22b==6) || (i21b==6)&&(i22b==5) 
+                elseif (i21b==1)&&(sz(2,1)>1)&&(i22b==6) || (i21b==6)&&(i22b==1)&&(sz(2,2)>1)
                     doneP(i11b,i12b,i21b,i22b) = 1;
                     continue
                 else
