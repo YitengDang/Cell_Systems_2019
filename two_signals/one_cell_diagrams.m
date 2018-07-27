@@ -3,16 +3,20 @@ close all
 clc
 %%
 % Input parameters
-Con = [15 12];
+Con = [5 5];
 Coff = [1 1];
-K = [3 12; 15 8];
-M_int = [0 1; 1 0];
+K = [0 3; 3 3];
+M_int = [0 1; -1 1];
 
 % conditions
 interactions = zeros(2); %0: ON=OFF, 1: ON~=OFF
 for i=1:2
     for j=1:2
-        interactions(i,j) = (Con(j) > K(i,j));
+        if M_int(i,j)==0
+            interactions(i,j) = 0;
+        else
+            interactions(i,j) = 1 + (Con(j) > K(i,j));
+        end
     end
 end
 
@@ -87,7 +91,7 @@ end
 % positions need to be tuned for each interaction
 s2 = [-0.5 0.5; 0.5 1.5];
 t2 = [0 -0.05; 0.05 0];
-text(s2(M_int~=0), t2(M_int~=0), eLabels, 'Color', 'g', 'FontSize', 24); 
+%text(s2(M_int~=0), t2(M_int~=0), eLabels, 'Color', 'g', 'FontSize', 24); 
 %}
 
 ax = gca;
@@ -122,7 +126,7 @@ h2.Color = [1 1 1];
 set(ax, 'Units', 'Inches', 'Position', [0 0 9 8]);
 set(h2, 'Units', 'Inches', 'Position', [1 1 9 8]);
 
-%save_figure_pdf(h2, 9, 8, fullfile(save_path, strcat(fname_str, '_state_diagram')));
+save_figure_pdf(h2, 9, 8, fullfile(save_path, strcat(fname_str, '_state_diagram')));
 %% Own drawing program (not working)
 %{
 h=figure(1);

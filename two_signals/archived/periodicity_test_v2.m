@@ -1,6 +1,6 @@
 function [period, t_onset] = periodicity_test_v2(cells_hist)
     % returns the first found period and the time of onset of the
-    % periodicity
+    % periodicity 
     %N = save_consts_struct.N;
     %gz = sqrt(N);
     t_out = numel(cells_hist)-1;

@@ -4,7 +4,7 @@
 % parameters more or less constant
 close all
 clear all
-maxNumCompThreads(4);
+maxNumCompThreads(6);
 %warning off
 %% Simulation parameters
 max_trials = 100;
@@ -12,14 +12,14 @@ max_trials = 100;
 % lattice parameters
 %gz = 15;
 %N = gz^2;
-gz_all = [15];
+gz_all = [25];
 
 % loop over K12
-K12_all = [15 7:11 20:24];
+K22_all = [17:19];
 
 % (1) Specify parameters by hand 
-a0 = 1.5;
-K = [0 0; 11 4];
+a0 = 0.5;
+K = [0 35; 30 0];
 Con = [18 16];
 Coff = [1 1];
 M_int = [0 1; -1 1];
@@ -37,8 +37,8 @@ Rcell = rcell*a0;
 
 % Settings
 InitiateI = 0;
-mcsteps = 1000;
-tmax = 10000; % cut off simulation if t > tmax
+mcsteps = 0;
+tmax = 10^5; % cut off simulation if t > tmax
 %% (2) Load parameters from saved trajectory
 %{
 % with parameters saved as structure array 
@@ -94,16 +94,16 @@ end
 %}
 
 %% First, calculate how many simulations are needed 
-sim_to_do = zeros(numel(gz_all), numel(K12_all));
+sim_to_do = zeros(numel(gz_all), numel(K22_all));
 for gz_idx=1:numel(gz_all)  
     gz = gz_all(gz_idx);
     N = gz^2;
-    for K12_idx=1:numel(K12_all)
-        K12 = K12_all(K12_idx);
+    for K22_idx=1:numel(K22_all)
+        K22 = K22_all(K22_idx);
         % Count how many simulations have already been done
-        subfolder = sprintf('N%d mcsteps %d', N, mcsteps);
+        subfolder = strrep(sprintf('N%d strong int a0 %.1f', N, a0), '.', 'p');
         %folder = fullfile('L:\HY\Shared\Yiteng\two_signals\parameter set 2b', sprintf('N%d', N));
-        folder = fullfile('L:\HY\Shared\Yiteng\two_signals', 'sweep K12 new lattice', subfolder);
+        folder = fullfile('L:\HY\Shared\Yiteng\two_signals', 'sweep K22 new lattice', subfolder);
 
         if exist(folder, 'dir') ~= 7
             warning('Folder does not exist! ');
@@ -117,8 +117,8 @@ for gz_idx=1:numel(gz_all)
         end
 
         filecount = 0;
-        pattern = strrep(sprintf('%s_N%d_initiateI%d%s_randpos_mcsteps%d_K12_%d_t_out_%s_period_%s%s-v%s',...
-                sim_ID, N, InitiateI, I_ini_str, mcsteps, K12,...
+        pattern = strrep(sprintf('%s_N%d_initiateI%d%s_randpos_mcsteps%d_K22_%d_t_out_%s_period_%s%s-v%s',...
+                sim_ID, N, InitiateI, I_ini_str, mcsteps, K22,...
                 '(\d+)', '(\d+|Inf)', '\w*', '(\d+)'), '.', 'p');
 
         listing = dir(folder);
@@ -138,9 +138,9 @@ for gz_idx=1:numel(gz_all)
             end
         end
 
-        fprintf('N=%d, K12 = %d, sim to do: %d \n', N, K12, max_trials-filecount);
+        fprintf('N=%d, K12 = %d, sim to do: %d \n', N, K22, max_trials-filecount);
         
-        sim_to_do(gz_idx, K12_idx) = max_trials-filecount;
+        sim_to_do(gz_idx, K22_idx) = max_trials-filecount;
     end
 end
 
@@ -154,16 +154,16 @@ for trial=1:max_trials
 
         cell_type = zeros(N,1);
 
-        for K12_idx=1:numel(K12_all)
-            K12 = K12_all(K12_idx);
-            fprintf('trial %d, N %d, K12 %d \n', trial, N, K12);
+        for K22_idx=1:numel(K22_all)
+            K22 = K22_all(K22_idx);
+            fprintf('trial %d, N %d, K12 %d \n', trial, N, K22);
             
             % skip simulation if enough simulations have been done
-            if trial>sim_to_do(gz_idx, K12_idx)
+            if trial>sim_to_do(gz_idx, K22_idx)
                 continue;
             end
             
-            K(1,2) = K12;
+            K(2,2) = K22;
             % ----------- simulation ------------------------------------
             cells_hist = {};
 
@@ -217,13 +217,10 @@ for trial=1:max_trials
 
             %--------------------------------------------------------------
             %% Save result
-            fname_str = strrep(sprintf('%s_N%d_initiateI%d%s_randpos_mcsteps%d_K12_%d_t_out_%d_period_%s%s',...
-                sim_ID, N, InitiateI, I_ini_str, mcsteps, K(1,2), t_out, num2str(period), tmax_string), '.', 'p');
+            fname_str = strrep(sprintf('%s_N%d_initiateI%d%s_randpos_mcsteps%d_K22_%d_t_out_%d_period_%s%s_temp',...
+                sim_ID, N, InitiateI, I_ini_str, mcsteps, K22, t_out, num2str(period), tmax_string), '.', 'p');
             ext = '.mat';
             label = '';
-            
-            subfolder = sprintf('N%d mcsteps %d', N, mcsteps);
-            folder = fullfile('L:\HY\Shared\Yiteng\two_signals', 'sweep K12 new lattice', subfolder);
             
             % check if filename already exists
             i=1;
@@ -232,7 +229,7 @@ for trial=1:max_trials
                 i=i+1;
                 fname = fullfile(folder, strcat(fname_str, '-v', num2str(i), label, ext));
             end
-
+            
             if InitiateI
                 save_vars = {N, a0, K, Con, Coff, M_int, hill, noise, p0, I0, rcell,...
                     lambda12, sim_ID, I_ini_str, mcsteps};

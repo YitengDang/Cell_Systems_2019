@@ -4,18 +4,19 @@ clear variables
 close all
 warning off
 set(0, 'defaulttextinterpreter', 'latex');
+maxNumCompThreads(5);
 
 % Parameters of the system
-gz = 3;
+gz = 10;
 N = gz^2;
-a0 = 0.5;
+a0 = 1.5;
 rcell = 0.2;
 Rcell = rcell*a0;
 
-M_int = [1 1; -1 -1];
-Con = [8 8];
+M_int = [0 1; -1 1];
+Con = [18 16];
 Coff = [1 1];
-K = [16 15; 10 8];
+K = [0 15; 11 4];
 lambda = [1 1.2];
 
 % use hexagonal lattice
@@ -56,10 +57,11 @@ else
     if max(t_mat(:))>1
        warning('Error, there is a probability > 1!');
     end
-    %save(fname)
+    save(fname)
 end
 
 %%
+%{
 n = [5 5];
 t_mat(t_mat<10^(-50)) = 0; % getting rid of small values
 
@@ -78,3 +80,4 @@ if qsave
     fname_fig = fullfile(folder_fig, strcat(fname_str, '_map'));
     save_figure(h, 10, 8, fname_fig, '.pdf')
 end
+%}

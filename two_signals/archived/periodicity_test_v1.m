@@ -1,4 +1,4 @@
-function period_out = periodicity_test(cells_hist, save_consts_struct)
+function period_out = periodicity_test_v1(cells_hist, save_consts_struct)
 
 N = save_consts_struct.N;
 gz = sqrt(N);
