@@ -76,17 +76,16 @@ h=figure(2);
 %bar(1:n_unique, count_diagrams);
 %bar(1:n_unique, count_diagrams_sorted);
 % Alternative: scatter plot
-scatter(1:n_unique, count_diagrams_sorted, 40, ...
-    'MarkerEdgeColor' ,'b', 'MarkerFaceColor' ,'b', 'MarkerFaceAlpha', 0.5);
+scatter(1:n_unique, count_diagrams_sorted);
 
-xlabel('State diagram rank');
+xlabel('Rank');
 ylabel('Frequency');
-set(gca, 'FontSize', 18);
+set(gca, 'FontSize', 16);
 set(h, 'Units', 'Inches', 'Position', [0 0 9 8]);
 set(gca, 'XScale', 'log');
 set(gca, 'YScale', 'log');
 %xlim([-0.5 n_unique+0.5])
-ylim([1 100])
+ylim([0.1 1200])
 
 % --> Statistics of this distribution? Zipf's Law?
 % save figure
@@ -178,7 +177,7 @@ fname_str = sprintf('classification_types_%s', label);
 path_out = fullfile(save_folder, fname_str);
 save_figure(h, 7, 6, path_out, '.pdf', qsave && mastersave)
 
-%% (4) Number of stationary cell states
+%% (4) Number of steady states
 % N.B. for a single cell, this gives the actual # of fixed points, as
 % transitions are unambiguous
 n_steady_states = zeros(n_states+1, 1);
@@ -191,7 +190,7 @@ end
 close all
 h=figure(4);
 bar(0:n_states, n_steady_states);
-xlabel('Stationary cell states');
+xlabel('Steady states');
 ylabel('Count');
 set(gca, 'FontSize', 16);
 set(h, 'Units', 'Inches', 'Position', [1 1 9 8]);
@@ -240,6 +239,13 @@ if exist(fname, 'file')~=2
     fname = fullfile(save_folder, strcat(fname_str, '.xlsx'));
     writetable(T,fname,'sheet',1,'Range','A1')
 end
+%%
+%{
+for i=1:numel(idx)
+    disp(steady_states{idx(i)});
+    waitforbuttonpress;
+end
+%}
 %% histogram of cycle structures
 % Example: 2, 3, 2 means there are cycles of lengths 2, 3 and 2
 % respectively
@@ -253,10 +259,8 @@ ylabel('Frequency');
 %}
 
 % (2) cycle rank
-%
-%bar(1:numel(unique(cycle_structures)), N_sorted);
-scatter(1:numel(unique(cycle_structures)), N_sorted, 40, ...
-    'MarkerEdgeColor' ,'k', 'MarkerFaceColor' ,'b', 'MarkerFaceAlpha', 0.5);
+bar(1:numel(unique(cycle_structures)), N_sorted);
+scatter(1:numel(unique(cycle_structures)), N_sorted);
 set(gca, 'XTickLabel', []); %1:numel(  unique(cycle_structures) ) );
 xlabel('Cycle Rank');
 ylabel('Frequency');
@@ -265,8 +269,8 @@ ylabel('Frequency');
 set(gca, 'FontSize', 18);
 set(h, 'Units', 'Inches', 'Position', [0.2 0.2 8 8]);
 title(sprintf('Total: %d phases', n_data));
-set(gca, 'XScale', 'log');
-set(gca, 'YScale', 'log');
+%set(gca, 'XScale', 'log');
+%set(gca, 'YScale', 'log');
 
 % save figure
 qsave = 1;
@@ -329,7 +333,6 @@ ss_data = zeros(size(count_int_type));
 ss_data(idx) = ss_int_type(idx)./count_int_type(idx);
 osc_period_int_type(idx) = osc_period_int_type(idx)./count_int_type(idx);
 osc_q_int_type(idx) = osc_q_int_type(idx)./count_int_type(idx);
-
 %% -----------Plots--------------
 % Plot (a0)
 %{
@@ -380,7 +383,7 @@ h = figure(7);
 hold on
 imagesc(0:n_int, 0:n_int, ss_data);
 [a, b] = meshgrid(0:n_int, 0:n_int);
-s = string(round(ss_data, 3)); s = reshape(s, 25, 1);
+s = string(ss_data); s = reshape(s, 25, 1);
 text(a(:), b(:), s, 'HorizontalAlignment', 'center',...
     'FontSize', 14, 'Color', 'w');
 set(gca,'YDir', 'normal', 'XTick', 0:n_int, 'YTick', 0:n_int);
@@ -394,7 +397,7 @@ c = colorbar;
 cm_viridis = viridis;
 colormap(cm_viridis);
 caxis([0 n_states])
-title('Mean number of stationary cell states');
+title('Average number of steady states');
 
 % save figure
 qsave = 1;
@@ -407,7 +410,7 @@ h = figure(8);
 hold on
 imagesc(0:n_int, 0:n_int, osc_period_int_type);
 [a, b] = meshgrid(0:n_int, 0:n_int);
-s = string(round(osc_period_int_type, 3)); s = reshape(s, numel(s), 1);
+s = string(osc_period_int_type); s = reshape(s, numel(s), 1);
 text(a(:), b(:), s, 'HorizontalAlignment', 'center',...
     'FontSize', 14, 'Color', 'w');
 set(gca,'YDir', 'normal', 'XTick', 0:n_int, 'YTick', 0:n_int);

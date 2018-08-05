@@ -48,7 +48,7 @@ phase = 1 + R1 + 2*R2 + 3*R3 + 4*R4;
 % 6: autonomy (+) / autonomous oscillations (-)
 
 % Map from phase to diagram
-% state | activation/repression | input molecule (1/2)
+% activation/repression | state | input molecule (1/2)
 g_map = cell(2, 6, 2);
 % 0=OFF, 1:ON, 2:UNKNOWN
 % activation 
