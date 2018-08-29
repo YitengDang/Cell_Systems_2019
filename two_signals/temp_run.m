@@ -1,4 +1,0 @@
-maxNumCompThreads(5);
-time_evolution_multiple_signals_multiply_no_tmax_save_v4_run2;
-time_evolution_multiple_signals_multiply_no_tmax_save_v4;
-time_evolution_multiple_signals_multiply_no_tmax_save_v4_run3;

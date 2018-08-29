@@ -2,7 +2,19 @@
 clear all
 close all
 set(0, 'defaulttextinterpreter', 'latex');
-%% Load files
+%% Load analyzed data files
+path = 'D:\Multicellularity-codes\data\temp';
+fname_str = 'Sweep_K22_5_to_25_N625_randpos_mcsteps0_data';
+load(fullfile(path, fname_str));
+save_path_fig = 'D:\temp';
+
+mcsteps = 0;
+tmax = 10^5;
+lattice_lbl = sprintf('randpos_mcsteps%d', mcsteps);
+fname_str = sprintf('Sweep_K22_%d_to_%d_N%d_%s', K_all(1), K_all(end), N, lattice_lbl);
+
+%% Load trajectory data files
+%{
 % load path
 %path = 'L:\BN\HY\Shared\Yiteng\two_signals\parameter set 2b';
 %path = 'L:\BN\HY\Shared\Yiteng\two_signals\sweep K12';
@@ -140,21 +152,27 @@ fname_str = sprintf('Sweep_K22_%d_to_%d_N%d_%s', K_all(1), K_all(end), N, lattic
 fname = fullfile(folder, strcat(fname_str, '_data'));
 %save(fname, 'N', 'a0', 'K_all', 'nruns', 't_out', 'periods',...
 %    'n_trav_wave', 'p_av_all', 'pij_av_all', 'I_av_all');
+%}
 
-
-%% Plot trajectory types vs K12
+%% Plot trajectory types vs K^ij
 % (1) fraction of stationary/non-periodic trajectories
 % (2) fraction of travelling waves
 % (3) fraction of trajectories with period 4
 % (4) fraction of other periodic trajectories
+% (5) fraction of trajectories that reach tmax
 
-f_stationary = sum(periods==Inf, 2)/nruns;
-f_trav_wave = n_trav_wave/nruns;
-f_period4 = sum(periods==4, 2)/nruns;
-f_period_other = 1 - f_stationary - f_trav_wave - f_period4; 
+%f_stationary = sum(periods==Inf & t_out<tmax, 2)/nruns;
+%f_trav_wave = n_trav_wave/nruns;
+%f_period4 = sum(periods==4, 2)/nruns;
+%f_period_other = 1 - f_stationary - f_trav_wave - f_period4; 
 
-h = figure(1);
+f_periodic = sum(periods<Inf, 2)/nruns; 
+f_tmax_reached = sum(t_out==tmax, 2)/nruns;
+f_stationary = sum(periods==Inf & t_out<tmax, 2)/nruns;
+
+h = figure;
 hold on
+%{
 plot(K_all, f_stationary, 'k--', 'MarkerSize', 10);
 scatter(K_all, f_stationary, 100, 'k', 'filled', 'MarkerFaceAlpha', 0.5);
 
@@ -166,6 +184,18 @@ scatter(K_all, f_period4, 100, 'r', 'filled', 'MarkerFaceAlpha', 0.5);
 
 plot(K_all, f_period_other, 'g--', 'MarkerSize', 10);
 scatter(K_all, f_period_other, 100, 'g', 'filled', 'MarkerFaceAlpha', 0.5);
+%}
+plot(K_all, f_periodic, 'g--', 'MarkerSize', 10);
+p1=scatter(K_all, f_periodic, 100, 'filled',...
+    'MarkerFaceColor', 'g', 'MarkerFaceAlpha', 0.5);
+
+plot(K_all, f_stationary, 'k--', 'MarkerSize', 10);
+p2=scatter(K_all, f_stationary, 100, 'filled',...
+    'MarkerFaceColor', 'k', 'MarkerFaceAlpha', 0.5);
+
+plot(K_all, f_tmax_reached, 'r--', 'MarkerSize', 10);
+p3=scatter(K_all, f_tmax_reached, 100, '^', 'filled',  ...
+    'MarkerFaceColor', 'r', 'MarkerFaceAlpha', 0.5);
 
 % settings
 xlim([K_all(1) K_all(end)])
@@ -173,15 +203,17 @@ xlim([K_all(1) K_all(end)])
 xlabel('$$K_{22}$$');
 ylabel('Fraction');
 set(gca,'FontSize', 24);
-set(h, 'Units', 'Inches', 'Position', [1 1 9 8]);
+%set(h, 'Units', 'Inches', 'Position', [1 1 9 8]);
 set(gca, 'XTick', K_all(1):4:K_all(end));
+legend([p1 p2 p3], {'Periodic', 'Stationary', 'tmax reached'},...
+    'Location', 'no', 'Orientation','horizontal');
 
 qsave = 1;
 fname = fullfile(save_path_fig, strcat(fname_str, '_frac_all_types_vs_K_v1_',...
     num2str(nruns), 'runs'));
-save_figure(h, 9, 8, fname, '.pdf', qsave);
+save_figure(h, 9, 6, fname, '.pdf', qsave);
 
-%% Plot trajectory types vs K12, v2
+%% Plot trajectory types vs K^ij, v2
 % (1) trajectories that reach tmax
 % (2) trajectories that end up in a stationary state at t<tmax
 % (3) trajectories that end up in oscillatory states
@@ -192,7 +224,7 @@ f_period4 = sum(periods==4, 2)/nruns;
 f_period_other = 1 - f_stationary - f_tmax - f_period4; 
 %f_osc = sum(periods<Inf, 2)/nruns;
 
-h = figure(1);
+h = figure;
 hold on
 plot(K_all, f_tmax, 'm--', 'MarkerSize', 10);
 scatter(K_all, f_tmax, 100, 'm', 'filled', 'MarkerFaceAlpha', 0.5);
@@ -215,7 +247,7 @@ set(gca,'FontSize', 24);
 set(h, 'Units', 'Inches', 'Position', [1 1 9 8]);
 set(gca, 'XTick', K_all(1):4:K_all(end));
 
-qsave = 1;
+qsave = 0;
 fname = fullfile(save_path_fig, strcat(fname_str, '_frac_all_types_vs_K_v2_',...
     num2str(nruns), 'runs_v2'));
 save_figure(h, 9, 8, fname, '.pdf', qsave);
@@ -250,6 +282,7 @@ scatter(K12_all, n_trav_wave/nruns, 100, 'k', 'filled');
 ylabel('Fraction travelling waves');
 ylim([0 1.05]);
 %}
+
 % general settings
 xlim([K_all(1) K_all(end)])
 %xlabel('$$K_{12}$$');
@@ -278,13 +311,6 @@ set(h,'defaultAxesColorOrder', [left_color; right_color]);
 
 hold on
 
-% plot travelling waves
-%
-yyaxis right
-plot(K_all, n_trav_wave/nruns, 'k--', 'MarkerSize', 10);
-scatter(K_all, n_trav_wave/nruns, 100, 'k', 'filled', 'MarkerFaceAlpha', 0.5);
-ylabel('Fraction travelling waves');
-ylim([0 1.05]);
 %}
 % Plot with average I_final
 yyaxis left
@@ -292,23 +318,36 @@ plot(K_all, I_av(:,1), 'b--'); %, 'MarkerSize', 10, 'MarkerFaceColor', 'b');
 plot(K_all, I_av(:,2), 'r--'); %, 'MarkerSize', 10, 'MarkerFaceColor', 'r');
 p1=scatter(K_all, I_av(:,1),  100, 'b', 'filled', 'MarkerFaceAlpha', 0.5);
 p2=scatter(K_all, I_av(:,2),  100, 'r', 'filled', 'MarkerFaceAlpha', 0.5);
-legend([p1 p2], {'1', '2'}, 'Location', 'nw');
-ylim([0 1.05]);
+ylim([-0.05 1.05]);
 ylabel('Final $$\langle I^{(i)}\rangle$$');
 
+% plot travelling waves
+yyaxis right
+plot(K_all, n_trav_wave/nruns, 'k--', 'MarkerSize', 10);
+p3 = scatter(K_all, n_trav_wave/nruns, 100, '^', 'filled',...
+    'MarkerFaceColor', 'k', 'MarkerFaceAlpha', 0.5);
+ylabel('Fraction travelling waves');
+ylim([-0.05 1.05]);
+
 % general settings
+legend([p1 p2 p3], {'\langle I^{(1)} \rangle', '\langle I^{(2)} \rangle', 'Trav. wave'},...
+    'Location', 'ne');
+set(gca,'Color', [0.8 0.8 0.8]);
 %xlabel('$$K_{12}$$');
 xlabel('$$K_{22}$$');
-xlim([K_all(1) K_all(end)])
+xlim([K_all(1)-0.3 K_all(end)+0.3])
 set(gca,'FontSize', 24);
-set(h, 'Units', 'Inches', 'Position', [1 1 9 8]);
-set(gca, 'XTick', K_all(1):4:K_all(end));
+%set(h, 'Units', 'Inches', 'Position', [1 1 9 8]);
+set(gca, 'XTick', K_all(1):4:K_all(end), 'YTick', 0:0.2:1);
+grid on
 
 qsave = 1;
 if qsave
+    h.Color = 'white';
+    h.InvertHardcopy = 'off';
     fname = fullfile(save_path_fig, strcat(fname_str, '_frac_trav_wave_and_Ifinal_vs_K_',...
         num2str(nruns), 'runs'));
-    save_figure(h, 9, 8, fname, '.pdf');
+    save_figure(h, 9, 6, fname, '.pdf');
 end
 
 %% Plot average final p
@@ -320,22 +359,27 @@ plot(K_all, p_av(:,1), 'b--'); %, 'MarkerSize', 10, 'MarkerFaceColor', 'b');
 plot(K_all, p_av(:,2), 'r--'); %, 'MarkerSize', 10, 'MarkerFaceColor', 'r');
 p1=scatter(K_all, p_av(:,1), 100, 'b', 'filled', 'MarkerFaceAlpha', 0.5);
 p2=scatter(K_all, p_av(:,2), 100, 'r', 'filled', 'MarkerFaceAlpha', 0.5);
-legend([p1 p2], {'1', '2'});
 
 % settigns
+legend([p1 p2], {'\langle p^{(1)} \rangle', '\langle p^{(2)} \rangle'});%,...
+%    'Location', 'no', 'Orientation', 'horizontal');
+set(gca, 'Color', [0.8 0.8 0.8]);
 xlim([K_all(1) K_all(end)])
 ylim([0 1]);
 xlabel('$$K_{12}$$');
 ylabel('Final $$\langle p^{(i)}\rangle$$');
 set(gca,'FontSize', 24);
 set(h, 'Units', 'Inches', 'Position', [1 1 9 8]);
-set(gca, 'XTick', K_all(1):4:K_all(end));
+set(gca, 'XTick', K_all(1):4:K_all(end), 'YTick', 0:0.2:1);
+grid on
 
 qsave = 1;
 if qsave
-    fname = fullfile(save_path_fig, strcat(fname_str, '_p_av_vs_K12_',...
+    h.Color = 'white';
+    h.InvertHardcopy = 'off';
+    fname = fullfile(save_path_fig, strcat(fname_str, '_p_av_vs_K_',...
         num2str(nruns), 'runs'));
-    save_figure(h, 9, 8, fname, '.pdf');
+    save_figure(h, 9, 6, fname, '.pdf');
 end
 
 %% Plot average final p_ij
@@ -354,13 +398,16 @@ p4=scatter(K_all, pij_av(:,4), 100, 'k', 'filled', 'MarkerFaceAlpha', 0.5, 'Mark
 
 % settings
 set(gca, 'Color', [0.8 0.8 0.8]);
-legend([p1 p2 p3 p4], {'(0,0)', '(1,0)', '(0,1)', '(1,1)'}, 'Location', 'eo');
+legend([p1 p2 p3 p4], {'(0,0)', '(1,0)', '(0,1)', '(1,1)'},...
+    'Location', 'no', 'Orientation', 'horizontal');
 xlim([K_all(1) K_all(end)])
 xlabel('$$K_{12}$$');
 ylabel('Final $$\langle p^{(i,j)}\rangle$$');
 set(gca,'FontSize', 24);
 set(h, 'Units', 'Inches', 'Position', [1 1 12 8]);
-set(gca, 'XTick', K_all(1):4:K_all(end));
+set(gca, 'XTick', K_all(1):4:K_all(end), 'YTick', 0:0.2:1);
+
+grid on
 
 qsave = 1;
 if qsave
@@ -368,12 +415,13 @@ if qsave
     h.InvertHardcopy = 'off';
     fname = fullfile(save_path_fig, strcat(fname_str, '_pij_av_vs_K_',...
         num2str(nruns), 'runs'));
-    save_figure(h, 10, 8, fname, '.pdf');
+    save_figure(h, 9, 6, fname, '.pdf');
 end
 
-%% Scatter t_out against K12
+%% Scatter t_out against K^ij
 % data processing
 K_data = zeros(size(t_out));
+nK = size(K_data, 1);
 for idxK=1:nK
     K_data(idxK, :, :) = K_all(idxK)*ones(1, size(t_out, 2));
 end
@@ -394,9 +442,9 @@ y2 = t_out(~t_idx);
 % plot data
 h = figure(41);
 hold on
-scatter(x1, y1);
-scatter(x2, y2, 'r');
-plot([K_all(1) K_all(end)], [tmax tmax], 'r--');
+scatter(x1, y1, 100, 's', 'MarkerFaceColor', 'b', 'MarkerFaceAlpha', 0.2);
+scatter(x2, y2, 100, 'k', 'MarkerFaceColor', 'k', 'MarkerFaceAlpha', 0.2);
+plot([K_all(1) K_all(end)], [tmax tmax], 'k--', 'LineWidth', 2);
 %[corr_N_t_out,  pval] = corr(K12_data(:), t_out(:));
 %fprintf('Corr(N, t_out) = %.2f, pval = %.2f \n', corr_N_t_out, pval)
 
@@ -407,21 +455,21 @@ if qsave
     save_figure(h, 9, 8, fname, '.pdf');
 end
 
-% Plot <t_out> against K12
-%N = [5 8 10 15].^2;
-%N = [5 8 10 12 13 15 20].^2;
-
+% Plot <t_out> or median t_out against K^ij
+%
 h = figure(41);
 hold on
 %scatter(N, mean(t_out(1:6,:), 2), 100, 'b');
 %errorbar(K12_all, mean(t_out, 2), std(t_out, 1, 2), 'rd', 'LineWidth', 2, 'MarkerSize', 20);
-plot(K_all, mean(t_out, 2), 'rd', 'LineWidth', 2, 'MarkerSize', 20);
+%plot(K_all, mean(t_out, 2), 'rd', 'LineWidth', 2, 'MarkerSize', 20);
+p2=plot(K_all, median(t_out, 2), 'rx', 'LineWidth', 2, 'MarkerSize', 20);
 
 %yFit = [ones(length(N), 1) N']*b;
 %plot(N, yFit, 'r-');
 
 % figure settings
 %xlabel('$$K_{12}$$');
+%legend(p2, 'Median', 'Location', 'ne');
 xlabel('$$K_{22}$$');
 ylabel('$$t_{out}$$');
 xlim([K_all(1) K_all(end)]);
@@ -435,12 +483,12 @@ set(h, 'Units', 'Inches', 'Position', [1 1 9 8]);
 
 qsave = 1;
 if qsave
-    fname = fullfile(save_path_fig, strcat(fname_str, '_K_vs_t_out_mean_scatter_', ...
+    fname = fullfile(save_path_fig, strcat(fname_str, '_t_out_mean_vs_K_scatter_', ...
         num2str(nruns) ,'runs'));
-    save_figure(h, 9, 8, fname, '.pdf');
+    save_figure(h, 9, 6, fname, '.pdf');
 end
 
-%% Plot <t_out> against K12 - boxplot
+%% Plot <t_out> against K^ij - boxplot
 h = figure(42);
 hold on
 %scatter(repmat(1:numel(K12_all), 1, nruns), y);
@@ -464,7 +512,7 @@ if qsave
     save_figure(h, 9, 8, fname, '.pdf');
 end
 
-%% plot periods against K12
+%% plot periods against K^ij
 K_data = repmat(K_all', 1, nruns);
 
 x = K_data(:); %+rand(size(K12_data(:)))*0.1; % randomize x positions
@@ -491,7 +539,7 @@ for i=1:nK
     periods_stat(i, 2) = std(periods(i, idx));
     
     % count unique periods
-    uniq_periods = unique(periods(i, :));
+    %uniq_periods = unique(periods(i, :));
     C = categorical(periods(i, idx));
     [counts, cats] = histcounts(C);
     num_traj = sum(counts);
@@ -503,7 +551,11 @@ for i=1:nK
     end
 end
 
-legend(plot_list, uniq_periods_str, 'Location', 'eo')
+dK = 1.5 - 0.4*(-1).^(1:numel(uniq_periods));
+text(repmat(K_all(end), 1,  numel(uniq_periods))+dK,...
+    uniq_periods, uniq_periods_str);
+%legend(plot_list, uniq_periods_str,...
+%    'Location', 'so', 'Orientation', 'horizontal')
 set(gca, 'YScale', 'log');
 xlim([K_all(1)-1 K_all(end)+1]);
 %xlabel('$$K_{12}$$');
@@ -562,7 +614,7 @@ set(gca, 'XScale', 'log');
 set(h, 'Units', 'Inches', 'Position', [1 1 9 8]);
 legend(sprintfc('$$K_{12}=%d$$',K_all), 'Interpreter', 'latex');
 
-qsave = 1;
+qsave = 0;
 if qsave
     fname = fullfile(save_path_fig, strcat(fname_str, '_t_out_hist_all_',...
         num2str(nruns) ,'runs'));
@@ -573,6 +625,7 @@ end
 %% Plot period histogram
 % (for single N value at a time)
 close all
+nK = numel(K_all);
 for idxK=1:nK
     %idxN = 5; % 
     %thisN = N(idxN);
@@ -584,7 +637,7 @@ for idxK=1:nK
     histogram(C, 'Normalization', 'count');
     xlabel('period');
     ylabel('count');
-    title(sprintf('K12=%d, %d simulations', K22, nruns));
+    title(sprintf('$$K^{(22)}=%d$$, %d simulations', K22, nruns));
     set(gca,'FontSize', 24);
     set(h1, 'Units', 'Inches', 'Position', [1 1 9 8]);
 
@@ -595,7 +648,7 @@ for idxK=1:nK
     if qsave
         fname = fullfile(save_path, strcat('K_',...
             num2str(K_all(idxK)), '_period_hist'));
-        save_figure(h1, 9, 8, fname, '.pdf');
+        save_figure(h1, 7, 7, fname, '.pdf');
     end
     %close all
 end
