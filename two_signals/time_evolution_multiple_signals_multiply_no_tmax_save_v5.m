@@ -2,12 +2,14 @@
 % different lattice
 % v4: inner loop over K12 to keep the number of simulations with given
 % parameters more or less constant
+% v5: decrease the number of periodicity checks to one every t_check time
+% steps
 close all
 clear all
 %maxNumCompThreads(12);
 %warning off
 %% Simulation parameters
-max_trials = 100;
+max_trials = 1;
 
 % lattice parameters
 %gz = 15;
@@ -104,7 +106,7 @@ for gz_idx=1:numel(gz_all)
         subfolder = strrep(sprintf('N%d strong int a0 %.1f', N, a0), '.', 'p');
         %folder = fullfile('L:\HY\Shared\Yiteng\two_signals\parameter set 2b', sprintf('N%d', N));
         folder = fullfile('L:\HY\Shared\Yiteng\two_signals', 'sweep K22 new lattice', subfolder);
-
+        
         if exist(folder, 'dir') ~= 7
             warning('Folder does not exist! ');
         end

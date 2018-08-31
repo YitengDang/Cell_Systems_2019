@@ -3,9 +3,8 @@ clear all
 % maxNumCompThreads(4);
 % warning off
 %% (1) input parameters
-%{
 % lattice parameters
-gz = 15;
+gz = 16;
 N = gz^2;
 a0 = 1.5;
 rcell = 0.2;
@@ -22,7 +21,6 @@ noise = 0;
 
 % initial conditions
 p0 = [0.2 0.6];
-iniON = round(p0*N);
 I0 = [0 0];
 dI = 0.01;
 InitiateI = 0; % 0: no, 1: yes
@@ -32,13 +30,7 @@ cell_type = zeros(N,1);
 
 % simulation parameters
 tmax = 200;
-mcsteps = 10^3;
-
-% pos, dist
-Lx = 1;
-R = rcell*Lx/(gz+1); % disc radius
-[pos, dist] = initial_cells_random_markov_periodic(...
-    gz, Lx, R, mcsteps);
+mcsteps = 0; %10^3;
 
 %{
 fname_str = strrep(sprintf('N%d_iniON_%d_%d_M_int_%d_%d_%d_%d_a0_%.1f_Con_%d_%d_K_%d_%d_%d_%d_lambda_%.1f_%.1f', ...
@@ -68,7 +60,7 @@ fprintf('inhibitor fij(a0) = %.4f \n', sinh(Rcell)*sum(exp((Rcell-a0)./lambda(2)
 %}
 
 %% (2) Load parameters from saved trajectory
-%
+%{
 % with parameters saved as structure array 
 % load data
 %data_folder = 'H:\My Documents\Multicellular automaton\app\Multicellularity-2.1\data\time_evolution';
@@ -125,13 +117,33 @@ for i=1:numel(cells_hist_2)
     eq(i) = all(all(cells_hist{i} == cells_hist_2{i}));
 end
 %}
+%% Save a single shot
+%{
+h = figure;
+set(gca, 'Color', [0.8 0.8 0.8])
+cells = zeros(N, 2);
+cells(1:2:N, :) = repmat([1 1], numel(1:2:N), 1);
+t = 0;
+disp_mol = 12;
+rcell = 0.25;
+showI = 0;
+plot_handle = reset_cell_figure(h, pos, rcell);
+update_figure_periodic_scatter(plot_handle, cells, t, disp_mol, showI, a0, dist);
+h.Color = 'white';
+h.InvertHardcopy = 'off';
+save_figure(h, 7, 6, 'D:\temp\hex_lattice_example', '.pdf', 0)
+save_figure(h, 8, 6, 'D:\temp\new_lattice_example_2', '.pdf', 1)
+%}
 %% Simulate
 % settings
 disp_mol = 12;
 showI = 0;
+nodisplay = 1;
+
+% pos, dist
+[pos, dist, ~, ~] = initial_cells_random_markov_periodic(gz, mcsteps, rcell, nodisplay);
 
 % generate initial lattice
-%{
 iniON = round(p0*N);
 cells = zeros(N, 2);
 for i=1:numel(iniON)
@@ -167,6 +179,10 @@ while changed && t < tmax
         cells, dist, M_int, a0, Rcell, Con, Coff, K, lambda, hill, noise);
 end
 t_out = t; % save final time
+
+%% Periodicity test
+t_check = 1;
+[period, t_onset] = periodicity_test_detailed(cells_hist, t_check, period);
 
 %% Plot p(t)
 t0 = 0;
