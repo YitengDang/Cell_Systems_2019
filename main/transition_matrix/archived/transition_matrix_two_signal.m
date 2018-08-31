@@ -7,7 +7,7 @@ set(0, 'defaulttextinterpreter', 'latex');
 maxNumCompThreads(5);
 
 % Parameters of the system
-gz = 10;
+gz = 5;
 N = gz^2;
 a0 = 1.5;
 rcell = 0.2;

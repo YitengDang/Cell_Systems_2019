@@ -123,7 +123,7 @@ xlabel('$$p_1(t+1)$$', 'FontSize', 24)
 ylabel('$$p_2(t+1)$$', 'FontSize', 24)
 c.Label.String = 'Probability';
 %}
-%% Full calculation
+%% Full calculation - for all initial p values
 t_mat = zeros(N+1, N+1, N+1, N+1);
 for n1 = 0:N
     for n2 = 0:N

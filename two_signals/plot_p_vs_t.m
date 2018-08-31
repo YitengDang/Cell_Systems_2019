@@ -17,7 +17,7 @@ for i=1:tmax+1
         Non(i,j) = sum(cells(:, j));
     end
 end
-%%        
+%%
 h1 = figure(1);
 cla(h1, 'reset');
 hold on
