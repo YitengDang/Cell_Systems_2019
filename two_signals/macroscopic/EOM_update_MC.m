@@ -5,7 +5,7 @@ function [n_out, Peq] = EOM_update_MC(N, M_int, Con, Coff, K, fN, gN, n_in, I_in
     p_in = n_in/N;
     
     % get transition matrix
-    W = transition_prob_states_two_signals_analytical_calc(M_int, Con, Coff, K, fN, gN, p_in, I_in);
+    W = transition_prob_two_signals_pij(M_int, Con, Coff, K, fN, gN, p_in, I_in);
     % (0,0), (0,1), (1,0), (1,1)
     %disp(W);
     
@@ -23,7 +23,7 @@ function [n_out, Peq] = EOM_update_MC(N, M_int, Con, Coff, K, fN, gN, n_in, I_in
     
     % Calculate equilibrium probability
     p_out = n_out/N;
-    W = transition_prob_states_two_signals_analytical_calc(M_int, Con, Coff, K, fN, gN, p_out);
+    W = transition_prob_two_signals_pij(M_int, Con, Coff, K, fN, gN, p_out);
     iniON = reshape(n_out, 4, 1); % (0,0), (1,0), (0,1), (1,1)
     Peq = prod(diag(W).^iniON);
 end

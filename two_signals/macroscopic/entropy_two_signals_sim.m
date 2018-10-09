@@ -1,10 +1,10 @@
 % Obtains the multicellular entropy for circuits with two signals
 % from simulations
 clear all
-close all
+close all 
 clc
 set(0, 'defaulttextinterpreter', 'latex');
-
+maxNumCompThreads(6);
 %% Likely to work only for small enough N
 %{
 gz = [5:25];
@@ -35,7 +35,7 @@ Rcell = rcell*a0;
 M_int = [0 -1; 1 1];
 Con = [18 16];
 Coff = [1 1];
-K = [0 25; 5 10];% K(i,j): sensitivity of type i to type j molecules
+K = zeros(2); %[0 0; 0 4];% K(i,j): sensitivity of type i to type j molecules
 lambda = [1 1.2]; % diffusion length (normalize first to 1)
 hill = Inf;
 noise = 0;
@@ -154,9 +154,9 @@ frac_E_all = exp(S_all - Smax);
 %}
 
 %% Load results
-%{
-folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\entropy';
-fname_str = 'Entropy_M_int_0_-1_1_1_N25_a0_1p50_rcell_0p20_K_sweep_all_Con_18_16';
+%
+folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\entropy\data';
+fname_str = 'Sim_entropy_M_int_0_-1_1_1_N25_a0_1p50_rcell_0p20_K22_4_K_sweep_all_Con_18_16_hillInf_noise0p0';
 load(fullfile(folder, fname_str));
 %}
 %% Plot results
@@ -186,7 +186,7 @@ h2 = figure;
 imagesc(K12_all, K21_all, frac_E_all(:,:,K22_idx)' );
 hold on
 c = colorbar;
-%caxis([0 1]);
+caxis([0 1]);
 title('Fraction equilibrium states');
 c.Label.String = 'Fraction';
 set(gca, 'Ydir', 'normal', 'FontSize', 20)
@@ -207,14 +207,14 @@ folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\entropy';
 fname_str = strrep(sprintf(...
     'Sim_entropy_M_int_%s_N%d_a0_%s_rcell_%s_K_%s_Con_%s_hill%.1f_noise%.1f',...
     M_int_s, N, a0_s, R_s, K_s, Con_s, hill, noise), '.', 'p');
-fname_str_2 = strrep(sprintf(...
+fname_str_data = strrep(sprintf(...
     'Sim_entropy_M_int_%s_N%d_a0_%s_rcell_%s_K_%s_Con_%s_hill%.1f_noise%.1f',...
-    M_int_s, N, a0_s, R_s, 'sweep_all', Con_s, hill, noise), '.', 'p');
+    M_int_s, N, a0_s, R_s, K_s, Con_s, hill, noise), '.', 'p');
 
 % Save data
-qsave = 1;
+qsave = 0;
 if qsave
-save(fullfile(folder, 'data', fname_str_2), 'gz', 'N', 'a0', 'rcell', ...
+save(fullfile(folder, 'data', fname_str_data), 'gz', 'N', 'a0', 'rcell', ...
     'Rcell', 'M_int', 'Con', 'Coff', 'K', 'lambda', 'K12_all', 'K21_all', 'K22_all',...
     'S_all', 'frac_E_all');
 end
@@ -222,4 +222,4 @@ end
 % Save figure
 qsave = 1;
 save_figure(h, 10, 8, fullfile(folder, fname_str), '.pdf', qsave);
-save_figure(h2, 10, 8, fullfile(folder, strcat(fname_str, '_frac_eq')), '.pdf', qsave);
+save_figure(h2, 10, 8, fullfile(folder, strcat(fname_str, '_frac_eq_plot2')), '.pdf', qsave);

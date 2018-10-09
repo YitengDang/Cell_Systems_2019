@@ -1,0 +1,1 @@
+% Computes the autocorrelation function for a macroscopic trajectory

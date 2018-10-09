@@ -1,8 +1,8 @@
-%% Obtain statistics on all possible topologies (up to equivalence)
+%% Generate and save state diagrams of all possible topologies (up to equivalence) 
 clear variables
 close all
 clc
-% NB: phase symmetries seem to be wrong, not working properly
+% NB: recheck phase symmetries, not working properly
 %% Count # of topologies
 % # phases per interaction
 n_phases_all = [6 2];
@@ -58,7 +58,7 @@ fprintf('Excluding trivial topologies: %d \n', Ns3)
 % activation-deactivation are both present for the same gene
 
 % Settings
-single_cell = 0;
+single_cell = 1;
 draw_diagram = 0; % draw state diagram?
 sym = 0; % include symmetries? 0: symmetric diagrams are excluded, 1: everything included
 n_phases = n_phases_all(single_cell+1);
@@ -106,8 +106,9 @@ for k=1:3^4
         ni = sum(abs(M_int(:))==1);
         sz = n_phases*abs(M_int)+(1-abs(M_int)); % size matrix, for correct index conversion
         doneP = zeros(sz(1,1), sz(1,2), sz(2,1), sz(2,2));
+        
         % distinguish between self-similar topologies and others
-        if all(all(g(M_int) == M_int))
+        if all(all(g(M_int) == M_int)) % self-similar topology
             % topology symmetry 1<->2
             %disp(M_int);
             for k1=1:n_phases^ni
@@ -124,7 +125,7 @@ for k=1:3^4
                     %disp(sum(countP));
                     P = [i11b i12b; i21b i22b]; % matrix with phases
                     
-                    %{
+                    %
                     phases_all{end+1} = abs(M_int).*P; % store phase matrix 
                     M_int_all{end+1} = M_int; %store interaction matrix
                     
@@ -160,7 +161,7 @@ for k=1:3^4
                     doneP(i11b,i12b,i21b,i22b) = 1;
                     continue
                 else
-                    %{
+                    %
                     disp(sum(countP));
                     P = [i11b i12b; i21b i22b]; % matrix with phases
                     phases_all{end+1} = abs(M_int).*P; % store phase matrix
@@ -191,8 +192,8 @@ end
 fprintf('Total # phases considered: %d \n', sum(countP))
 %%
 % save data
-%save_path = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
-save_path = 'D:\Multicellularity\data\two_signals\all_topologies';
+save_path = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
+%save_path = 'D:\Multicellularity\data\two_signals\all_topologies';
 labels = {'multi_cell', 'single_cell', 'multi_cell_all_incl', 'single_cell_all_incl'};
 qsave = 1;
 if qsave

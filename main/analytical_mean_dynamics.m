@@ -6,16 +6,16 @@ close all
 
 % Parameters of the system
 gridsize = 25; % size of re hexagonal grid
-a0 = 0.5;
+a0 = 1.5;
 Rcell = 0.2*a0;
-Con = 5;
-K = 10;
+Con = 35;
+K = 35;
 alpha = 0; % noise
 % Initial state (the run is for one state)
-p_ini = 0.6;
-Ii = 0;
+p_ini = 0.5;
+Ii = 0.5;
 % Number of steps to run
-steps = 100;
+steps = 50;
 
 % initialize the hexagonal grid
 N = gridsize^2;
@@ -119,7 +119,7 @@ for i = 2:steps
     % Calculate the hamiltonian of the new state
     h(i) = hfunc(p(i), I(i));
 end
-
+%{
 % Plot the evolution of the fraction of ON cells
 figure(1)
 plot(p)
@@ -144,13 +144,14 @@ figure(4)
 plot(h)
 xlabel('Time (Steps)')
 ylabel('Hamiltonian (H/N)')
-
+%}
 % Plot the evolution of the order parameter theta
 figure(5)
 plot(theta/fN, '-x')
 xlabel('Time (Steps)')
 ylabel('\Theta')
-
+ylim([-0.2 1]);
+%{
 % Plot the evolution of the spatial order parameter
 figure(6)
 plot(p,I, '-x')
@@ -159,4 +160,4 @@ ylim([-0.05 0.8])
 % Plot the variance of dp
 figure(7)
 plot(test)
-
+%}

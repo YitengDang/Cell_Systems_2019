@@ -11,18 +11,19 @@ a0 = 1.5;
 Rcell = 0.2*a0;
 
 % circuit parameters 
-M_int = [1 1; -1 -1];
-Con = [15 15];
+M_int = [0 1; -1 -1];
+Con = [18 16];
 Coff = [1 1];
-K = [12 13; 10 8];% K(i,j): sensitivity of type i to type j molecules
-lambda = [1 1.2]; % diffusion length (normalize first to 1)
+K = [0 8; 11 4];% K(i,j): sensitivity of type i to type j molecules
+lambda = [1 1]; % diffusion length (normalize first to 1)
 lambda12 = lambda(2)/lambda(1);
 hill = Inf;
 noise = 0;
 
 % initial conditions
-p0 = [0.5 0.5];
-iniON = round(p0*N);
+%p0 = [0.5 0.5];
+%iniON = round(p0*N);
+iniON = [51 61; 61 52];
 I0 = [0 0];
 dI = 0.01;
 InitiateI = 0; % 0: no, 1: yes
@@ -129,7 +130,7 @@ nodisplay = 1;
 [pos, dist] = initial_cells_random_markov_periodic(gz, mcsteps, rcell, nodisplay);
 
 % generate initial state
-iniON = round(p0*N);
+%iniON = round(p0*N);
 cells = zeros(N, 2);
 for i=1:numel(iniON)
     cells(randperm(N,iniON(i)), i) = 1;
@@ -159,7 +160,7 @@ update_figure_periodic_scatter(plot_handle, cells, t, disp_mol, showI, a0, dist)
 t_ac = 10^2; 
 while changed && period==Inf && t<t_ac
     %disp(t);
-    pause(0.2);
+    pause(1);
     t = t+1;
     cells = cellsOut;
     cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
@@ -236,6 +237,9 @@ save_consts_struct = cell2struct(save_vars, save_vars_lbl, 2);
 positions = pos;
 distances = dist;
 
-save(fname, 'save_consts_struct', 'cells_hist', 't_out',...
-    'changed', 'period', 't_onset', 'positions', 'distances');
-    fprintf('Saved simulation: %s ; \n', fname);
+qsave = 0;
+if qsave
+    save(fname, 'save_consts_struct', 'cells_hist', 't_out',...
+        'changed', 'period', 't_onset', 'positions', 'distances');
+        fprintf('Saved simulation: %s ; \n', fname);
+end

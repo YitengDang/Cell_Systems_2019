@@ -5,7 +5,7 @@ clc
 set(0, 'defaulttextinterpreter', 'latex');
 %% Parameters
 % lattice parameters
-gz = 5;
+gz = 15;
 N = gz^2;
 a0 = 1.5;
 rcell = 0.2;
@@ -22,7 +22,7 @@ lambda = [1 1.2]; % diffusion length (normalize first to 1)
 % looping parameters
 K12_all = [5:2:35];
 K21_all = [5:2:35];
-K22_all = [10];
+K22_all = [4];
 
 % load dist, pos
 % [dist, pos] = init_dist_hex(gz, gz);
@@ -63,41 +63,52 @@ Omega_En = mult_coeff*Peq;
 %% Loop over parameter values
 S_all = zeros(numel(K12_all), numel(K21_all), numel(K22_all));
 for i1=1:numel(K12_all)
-    for i2=1:numel(K21_all)
-        for i3=1:numel(K22_all)
-            fprintf('Loop indices %d %d %d \n', i1, i2, i3);
-            this_K = K;
-            this_K(1,2) = K12_all(i1);
-            this_K(2,1) = K21_all(i2);
-            this_K(2,2) = K22_all(i3);
-            [~, S, ~] = entropy_two_signals_calc(N, M_int, Con, Coff, this_K, fN, gN);
-            %Omega_E_all(i1,i2,i3) = Omega_E;
-            S_all(i1,i2,i3) = S;
-        end
+    this_K12 = K12_all(i1);
+    fprintf('K12 = %.2f \n', this_K12);
+    parfor i2=1:numel(K21_all)
+        %parfor i3=1:numel(K22_all)
+        fprintf('Loop indices %d %d \n', i1, i2);
+        
+        this_K = K;
+        this_K(1,2) = this_K12;
+        this_K(2,1) = K21_all(i2);
+        %this_K(2,2) = K22_all(i3);
+
+        [~, S, ~] = entropy_two_signals_calc(N, a0, M_int, Con, Coff, this_K, fN, gN);
+        %Omega_E_all(i1,i2,i3) = Omega_E;
+        %S_all(i1,i2,i3) = S;
+        S_all(i1,i2,1) = S;
+        %end
     end
 end
 
 Smax = N*log(2);
 frac_E_all = exp(S_all - Smax);
 %% Load results
-%{
-folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\entropy';
-fname_str = 'Entropy_M_int_0_-1_1_1_N25_a0_1p50_rcell_0p20_K_sweep_all_Con_18_16';
+%
+% V1
+folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\entropy\data';
+%fname_str = 'Entropy_M_int_0_-1_1_1_N25_a0_1p50_rcell_0p20_K_sweep_all_Con_18_16';
+fname_str = 'Entropy_M_int_0_-1_1_1_N225_a0_1p50_rcell_0p20_K_sweep_all_Con_18_16';
 load(fullfile(folder, fname_str));
 %}
+
 %% Plot results
 K22_idx = 1; % fix K22
 this_K = K; this_K(2,2) = K22_all(K22_idx);
 
 % Plot S
 h=figure;
-imagesc(K12_all, K21_all, S_all(:,:,K22_idx)' );
-hold on
+im_fig = imagesc(K12_all, K21_all, S_all(:,:,K22_idx)' );
+set(im_fig, 'AlphaData', S_all(:,:,K22_idx)' > 0);
+set(gca, 'Color', [0 0 0]);
+%hold on
 %for i=1:3
 %    line([0.5, 4.5], [i+0.5, i+0.5], 'Color', 'r', 'LineWidth', 1);
 %    line([i+0.5, i+0.5], [0.5, 4.5], 'Color', 'r', 'LineWidth', 1);
 %end
 c = colorbar;
+caxis([0 max(max(S_all(:,:,K22_idx)))]);
 set(gca, 'Ydir', 'normal', 'FontSize', 20)
 xlabel('$$K^{(12)}$$', 'FontSize', 24)
 ylabel('$$K^{(21)}$$', 'FontSize', 24)
@@ -136,7 +147,7 @@ fname_str_2 = strrep(sprintf('Entropy_M_int_%s_N%d_a0_%s_rcell_%s_K_%s_Con_%s',.
     M_int_s, N, a0_s, R_s, 'sweep_all', Con_s), '.', 'p');
 
 % Save data
-qsave = 0;
+qsave = 1;
 if qsave
 save(fullfile(folder, 'data', fname_str_2), 'gz', 'N', 'a0', 'rcell', ...
     'Rcell', 'M_int', 'Con', 'Coff', 'K', 'lambda', 'K12_all', 'K21_all', 'K22_all',...
@@ -144,6 +155,6 @@ save(fullfile(folder, 'data', fname_str_2), 'gz', 'N', 'a0', 'rcell', ...
 end
 
 % Save figure
-qsave = 0;
+qsave = 1;
 save_figure(h, 10, 8, fullfile(folder, fname_str), '.pdf', qsave);
 save_figure(h2, 10, 8, fullfile(folder, strcat(fname_str, '_frac_eq')), '.pdf', qsave);

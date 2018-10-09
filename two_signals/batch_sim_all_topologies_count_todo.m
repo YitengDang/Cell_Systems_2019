@@ -1,4 +1,4 @@
-function [sim_todo, filecount] = all_topologies_simulate_count_todo(...
+function [sim_todo, filecount] = batch_sim_all_topologies_count_todo(...
     max_trials, folder, pattern)
     
     % Count how many simulations have already been done
@@ -8,7 +8,9 @@ function [sim_todo, filecount] = all_topologies_simulate_count_todo(...
 
     filecount = 0;
     %pattern = 'all_topologies_simulate-v(\d+)';
-
+    
+    % original method
+    %{
     listing = dir(folder);
     num_files = numel(listing)-2;
     names = {};
@@ -26,7 +28,25 @@ function [sim_todo, filecount] = all_topologies_simulate_count_todo(...
         end
     end
     
+    %}
+    
+    % more accurate method (simulate file loading), slower
+    for idx2=1:max_trials
+        % load file
+        fname_str = sprintf('all_topologies_simulate-v%d.mat', idx2);
+        fname = fullfile(folder, fname_str);
+        if exist(fname, 'file')~=2
+            fname_str = sprintf('all_topologies_simulate-v%d_tmax_reached.mat', idx2);
+            fname = fullfile(folder, fname_str);
+        end
+        % if new file name also doens't exist, continue
+        if exist(fname, 'file')~=2
+            continue;
+        end
+        filecount = filecount + 1;
+    end
+    
     sim_todo = max_trials-filecount;
-    fprintf('Sim to do: %d \n', max_trials-filecount);
+    fprintf('Sim to do: %d \n', sim_todo);
     
 end

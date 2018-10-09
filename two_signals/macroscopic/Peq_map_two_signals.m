@@ -1,5 +1,5 @@
 %% Plots a map of Peq in p, I space
-% Plot trajectories (simulated, Langevin) on top of it
+% Calculates Peq from contributions of both genes separately
 clear all
 close all
 clc

@@ -4,12 +4,12 @@ close all
 clc
 set(0, 'defaulttextinterpreter', 'latex');
 %% Parameters
-gridsize = 11;
+gridsize = 15;
 N = gridsize^2;
-a0 = 1.5;
+a0 = 3;
 rcell = 0.2;
 Rcell = rcell*a0;
-K = 7;
+K = 11; % A1: 2-4, A01: 5-12, A0: 13-15
 Con = 12;
 alpha = 0; % noise
 
@@ -21,39 +21,39 @@ fN = sum(sinh(Rcell)*sum(exp(Rcell-r)./r)); % calculate signaling strengthN
 gN = sum(sum((sinh(Rcell)*exp(Rcell-r)./r).^2)); % calculate signaling strength
 
 % Simulation parameters
-p0 = 0.3;
+p0 = 0.5;
 I0 = 0;
 n_runs = 10;
-tmax = 100;
-withoutI = 0;
+tmax = 1000;
+noSpatialOrder = 0;
 
 % filename for saving
 fname_str = strrep(sprintf(...
     'Montecarlo_repr_N%d_a0_%.2f_K_%d_Con_%d_noise_%.1f_p_ini_%.1f_I_ini_%.1f_withoutI_%d_t_%d',...
-	N, a0, K, Con, alpha, p0, I0, withoutI, tmax), '.', 'p');
+	N, a0, K, Con, alpha, p0, I0, noSpatialOrder, tmax), '.', 'p');
 %% Single simulation 
 p_t = [];
 %I_t = [];
 Theta_t = [];
 
 p = p0;
-theta = (2*p-1)^2 + 4*p*(1-p)*I0;
+theta = fN*((2*p-1)^2 + 4*p*(1-p)*I0);
 
 t = 0;
 p_t(end+1) = p;
 Theta_t(end+1) = theta;
 %[theta, p, pe] = update_montecarlo(theta, p, N, Con, K, fN, gN, alpha);
-[theta, p, pe] = update_montecarlo_repression(theta, p, N, Con, K, fN, gN, alpha, withoutI);
+[theta, p, pe] = update_montecarlo_repression(theta, p, N, Con, K, fN, gN, alpha, noSpatialOrder);
 while rand > pe && t < tmax
     t = t+1;
     p_t(end+1) = p;
     Theta_t(end+1) = theta;
     %[theta, p, pe] = update_montecarlo(theta, p, N, Con, K, fN, gN, alpha);
-    [theta, p, pe] = update_montecarlo_repression(theta, p, N, Con, K, fN, gN, alpha, withoutI);
+    [theta, p, pe] = update_montecarlo_repression(theta, p, N, Con, K, fN, gN, alpha, noSpatialOrder);
 end
 
 % save trajectory
-qsave = 1;
+qsave = 0;
 if qsave
     folder = 'H:\My Documents\Multicellular automaton\figures\one_signal_repression';
     i = 1;
@@ -73,7 +73,7 @@ h = figure;
 hold on
 legend_lbl = {'$$p$$'};
 plot(tmin:tmax, p_t(tmin+1:tmax+1), 'b-');
-if ~withoutI
+if ~noSpatialOrder
     plot(tmin:tmax, Theta_t(tmin+1:tmax+1)/fN, 'r-');
     legend_lbl{end+1} = '$$\Theta/f_N$$';
 end
@@ -82,8 +82,9 @@ ylim([0 1]);
 set(gca, 'FontSize', 20);
 xlabel('t');
 ylabel('p');
+
 % save figure
-qsave = 1;
+qsave = 0;
 if qsave
     folder = 'H:\My Documents\Multicellular automaton\figures\one_signal_repression';
     i = 1;
@@ -95,8 +96,8 @@ if qsave
     end
     save_figure(h, 10, 8, fname, '.pdf');
 end
-
 %% Troubleshoot EOM (update_montecarlo*)
+%{
 p = p0;
 I = 0;
 
@@ -192,7 +193,7 @@ end
 
 theta_new = theta + dtheta;
 theta_new = min(theta_new, fN);
-
+%}
 %% Plot on top of Peq map 
 %{
 % Calculate P_eq
@@ -259,88 +260,3 @@ vf_y = -delh_delI(pm2, Im2);
 quiver(pm2, Im2, vf_x, vf_y, 'LineWidth', 1, 'AutoScaleFactor', 1.2,...
     'Color', [0.5 0.5 0.5]);
 %}
-%% MC trajectories
-%p_stoch = zeros(n_runs, 1);
-%I_stoch = zeros(n_runs, 1);
-%{
-% Calculate and plot MC trajectories
-figure(h1);
-hold on
-for run = 1:n_runs %numel(p0_all)
-
-    disp(run)
-    
-    p = p0;
-    %iniON = round(p0*N);
-    %p = iniON/N;
-    I_t = I0;
-
-    theta = fN*(4*I_t*p*(1-p)+(2*p-1)^2);
-    t = 0;
-    I = [];
-    I_2 = [];
-    Non = [];
-    h = [];
-    Non(end+1) = round(p*N);
-    I(end+1) = I_t;
-    %I_2(end+1) = I_t;
-    h(end+1) = hfunc(p,I_t, fN, Con, K);
-    %[theta, p, pe] = update_montecarlo_2(theta, p, N, Con, K, fN, gN, 0);
-    %[theta, theta_2, p, pe] = update_montecarlo_YD(theta, p, N, Con, K, fN, gN, 0);
-    [theta, p, pe] = update_montecarlo_repression(theta, p, N, Con, K, fN, gN, alpha);
-    while rand > pe && t < tmax
-        t = t+1;
-        Non(end+1) = round(p*N);
-        I(end+1) = calc_I(p, theta, fN);
-        %I_2(end+1) = calc_I(p, theta_2, fN);
-        h(end+1) = hfunc(p,I_t, fN, Con, K);
-        %[theta, p, pe] = update_montecarlo_2(theta, p, N, Con, K, fN, gN, 0);
-        %[theta, theta_2, p, pe] = update_montecarlo_YD(theta, p, N, Con, K, fN, gN, 0);
-        [theta, p, pe] = update_montecarlo_repression(theta, p, N, Con, K, fN, gN, alpha);
-    end
-
-    % plot trajectories
-    plot_handle = plot(Non/N, I, 'g-', 'LineWidth', 1.5);
-    plot_handle.Color(4) = 1; % transparency
-    %plot(Non/N, I_2, 'b-', 'LineWidth', 1.5);
-    plot(Non(1)/N, I(1), 'gx');
-    plot(Non(end)/N, I(end), 'gx');
-    %plot(Non(1)/N, I_2(1), 'bx');
-    %plot(Non(end)/N, I_2(end), 'bx');
-end
-
-%plot(p_stoch', I_stoch', 'g-', 'LineWidth', 1.5);
-%handles = cell(numel(p_ini), 1);
-%for pl=1:nruns
-%    handles{pl} = plot(p_stoch(pl,:)', I_stoch(pl,:)', 'g-', 'LineWidth', 2);
-%    handles{pl}.Color(4) = 0.6;
-%end   
-
-% plot start and end points
-%plot(p_stoch(:,1), I_stoch(:,1), 'go', 'LineWidth', 2);
-%plot(p_stoch(:,end), I_stoch(:,end), 'gx', 'LineWidth', 2);
-
-% set figure properties
-set(gca, 'FontSize', 40);
-xticks([0 1]);
-yticks([0 1]);
-set(c, 'XTick', [0 1]);
-
-%}
-% Save figure
-qsave = 0;
-if qsave
-    fname_str = strrep(sprintf('MC_trajectories_Peq_map_N%d_a0_%.1f_K_%d_Con_%d', ...
-        N, a0, K, Con), '.', 'p');
-    fname = fullfile(pwd, 'figures', fname_str);
-    save_figure_pdf(h, 1.2*10, 1.2*8, fname);
-    save_figure_eps(h, 1.2*10, 1.2*8, fname);
-end
-
-%-------end for loop K, Con---------
-%end
-%% local functions
-function h = hfunc(p, I, fN, Con, K)
-    h = -0.5*(Con-1)*(1 + 4*fN.*p.*(1-p).*I + fN*(2*p-1).^2) ...
-                -(2*p-1).*(0.5*(Con+1)*(1+fN) - K);
-end

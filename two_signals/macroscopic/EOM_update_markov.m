@@ -1,13 +1,14 @@
 function [p_out, Peq] = EOM_update_markov(N, M_int, Con, Coff, K, fN, gN, p_in, I_in)
-% Update the system variables using a Markovian approach (calculate p^{ij}
-% using transition matrix)
+    % Update the system variables using a Markovian approach (calculate p^{ij}
+    % using transition matrix)
+    % Despite the name, this gives deterministic dynamics
     if nargin<9
         I_in = [0 0];
     end
     %p_in = n_in/N;
     
     % get transition matrix
-    W = transition_prob_states_two_signals_analytical_calc(M_int, Con, Coff, K, fN, gN, p_in, I_in);
+    W = transition_prob_two_signals_pij(M_int, Con, Coff, K, fN, gN, p_in, I_in);
     % (0,0), (0,1), (1,0), (1,1)
     %disp(W);
     
@@ -16,8 +17,9 @@ function [p_out, Peq] = EOM_update_markov(N, M_int, Con, Coff, K, fN, gN, p_in, 
     p_out = reshape(p_out, 2, 2);
     
     % Calculate Peq
+    % (could also try without rounding n_out)
     n_out = round(N*p_out); % approximate, might have rounding error
-    W = transition_prob_states_two_signals_analytical_calc(M_int, Con, Coff, K, fN, gN, p_out);
+    W = transition_prob_two_signals_pij(M_int, Con, Coff, K, fN, gN, p_out);
     iniON = reshape(n_out, 4, 1); % (0,0), (1,0), (0,1), (1,1)
     Peq = prod(diag(W).^iniON);
 end

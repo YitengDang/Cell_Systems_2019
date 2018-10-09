@@ -58,7 +58,7 @@ while changed
     [cells_out, changed, h(end+1)] = update_cells(cells, dist, Con, K, a0, Rcell);
 end
 %% Plot trajectory in p, I space
-
+%{
 figure();
 hold on
 plot(Non/N, I, 'r');
@@ -66,7 +66,7 @@ plot(Non(1)/N, I(1), 'ro');
 plot(Non(end)/N, I(end), 'rx');
 xlim([0 1]);
 ylim([-0.05 1]);
-
+%}
 %% Plot h
 
 %figure();

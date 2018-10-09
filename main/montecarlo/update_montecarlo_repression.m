@@ -1,6 +1,12 @@
-function [theta_new, p_new, pe] = update_montecarlo(theta, p, N, Con, K, fN, gN, alpha)
-    phi = @(x) exp(-0.5*x^2)/sqrt(2*pi);
-    if p <= 0 || p >= 1
+function [theta_new, p_new, pe] = update_montecarlo_repression(theta, p, N, Con, K, fN, gN, alpha, noSpatialOrder)
+    % noSpatialOrder: Do not take Theta/I into account in equation for p
+    % input theta: unnormalized Theta/fN
+    if nargin < 9
+        noSpatialOrder = 0;
+    end
+
+    %phi = @(x) exp(-0.5*x^2)/sqrt(2*pi);
+    if p <= 0 || p >= 1 || noSpatialOrder
         I = 0;
     else
         I = (theta - (2*p-1)^2*fN)/4/p/(1-p)/fN;
@@ -8,13 +14,13 @@ function [theta_new, p_new, pe] = update_montecarlo(theta, p, N, Con, K, fN, gN,
     muon = fN*(Con*p + 1 - p + (Con-1)*(1-p)*I);
     muoff = fN*(Con*p + 1 - p - (Con-1)*p*I);
     kappa = sqrt((Con-1)^2*(gN)*p*(1-p));
-    sigmaon = sqrt(kappa^2+alpha^2);
-    sigmaoff = sqrt(kappa^2+alpha^2);
-
-    zon = (K - Con - muon)/sigmaon;
+    sigmaon = real(sqrt(kappa^2+alpha^2));
+    sigmaoff = real(sqrt(kappa^2+alpha^2));
+    
     zoff = (K - 1 - muoff)/sigmaoff;
-    Poffoff = normcdf(zoff);
-    Ponon = 1-normcdf(zon);
+    zon = (K - Con - muon)/sigmaon;
+    Poffoff = 1-normcdf(zoff);
+    Ponon = normcdf(zon);
     
     pe = (Ponon^p*Poffoff^(1-p))^N;
 
@@ -41,6 +47,16 @@ function [theta_new, p_new, pe] = update_montecarlo(theta, p, N, Con, K, fN, gN,
     p_minus = binornd(round(N*p), 1-Ponon)/N;
     p_plus = binornd(round(N*(1-p)), 1-Poffoff)/N;
     
+    dp = p_plus - p_minus;
+    
+    p_new = p + dp;
+    p_new = max(0,min(p_new,1));
+    
+    if noSpatialOrder
+        theta_new = theta;
+        return
+    end
+    % ----- Evolution of Theta --------------------------------------------
     % Calculate the average and variance of dtheta. Take care that the
     % function has a problem when P(off->off) and/or P(on->on) are close to
     % unity.
@@ -71,18 +87,20 @@ function [theta_new, p_new, pe] = update_montecarlo(theta, p, N, Con, K, fN, gN,
     end
 
     % Evolve the state one time step
-    dp = p_plus - p_minus;
+    
     % dp = -(1-Ponon)*p+(1-Poffoff)*(1-p); % alternative (not good)
     dtheta = 8/(Con-1)*(p_plus*Y_plus - p_minus*Y_minus) - ...
         4*(Con+1)/(Con-1)*fN*dp + 4*fN*dp^2;
-
-    theta_new = theta + dtheta;
     
-    theta_new = min(theta_new, fN);
-    if theta_new == fN
+    %{
+    if theta_new/fN == 1
         p_new = round(p);
     else
         p_new = p + dp;
         p_new = round(N*p_new)/N; % To make it a possible value
         p_new = max(0,min(p_new,1));
     end
+    %}
+    
+    theta_new = theta + dtheta;
+    theta_new = min(theta_new, fN);

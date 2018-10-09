@@ -4,17 +4,17 @@ close all
 clc
 %%
 % Settings
-single_cell = 1;
+single_cell = 0;
 sym = 0; % include symmetric partners?
-save_folder_fig = 'D:\Multicellularity\figures\two_signals\all_topologies'; % for figures
-save_folder_data = 'D:\Multicellularity\data\two_signals\all_topologies'; % for data
-
-%default_save_folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\all_topologies'; % for figures
-mastersave = 1; % switch off all save options
+save_folder_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\all_topologies';
+save_folder_data = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
+%save_folder_fig = 'D:\Multicellularity\figures\two_signals\all_topologies'; % for figures
+%save_folder_data = 'D:\Multicellularity\data\two_signals\all_topologies'; % for data
+mastersave = 0; % switch off all save options
 
 % Load data
-%load_path = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
-load_path = 'D:\Multicellularity\data\two_signals\all_topologies';
+load_path = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
+%load_path = 'D:\Multicellularity\data\two_signals\all_topologies';
 labels = {'multi_cell', 'single_cell', 'multi_cell_all_incl', 'single_cell_all_incl'};
 label = labels{single_cell+1 + 2*sym};
 fname_str = sprintf('all_topologies_data_%s', label);
@@ -312,7 +312,7 @@ for i=1:n_data
     ss_int_type(n_act+1, n_rep+1) = ss_int_type(n_act+1, n_rep+1) + n_ss;
     
     if ~isempty(cycles_all{i})
-        osc_q_int_type(n_act+1, n_rep+1) = osc_q_int_type(n_act+1, n_rep+1)+1;
+        osc_q_int_type(n_act+1, n_rep+1) = osc_q_int_type(n_act+1, n_rep+1) + 1;
         av_osc = mean( cellfun(@numel, cycles_all{i})-1 );
         osc_period_int_type(n_act+1, n_rep+1) = osc_period_int_type(n_act+1, n_rep+1) + av_osc;
     end
@@ -322,13 +322,18 @@ for i=1:n_data
     osc_vs_ss(n_ss+1, idx_C) = osc_vs_ss(n_ss+1, idx_C) + 1;
     %scatter(n_ss, n_int, 'bo');
 end
+osc_q_count = osc_q_int_type;
 
 % calculate average # steady states
 idx = (count_int_type~=0);
 ss_data = zeros(size(count_int_type));
 ss_data(idx) = ss_int_type(idx)./count_int_type(idx);
-osc_period_int_type(idx) = osc_period_int_type(idx)./count_int_type(idx);
+
 osc_q_int_type(idx) = osc_q_int_type(idx)./count_int_type(idx);
+
+% average osc. period only over trajectories that oscillate
+idx2 = (osc_q_count~=0);
+osc_period_int_type(idx2) = osc_period_int_type(idx2)./osc_q_count(idx2);
 
 %% -----------Plots--------------
 % Plot (a0)
@@ -375,6 +380,7 @@ save_folder = save_folder_fig;
 fname_str = sprintf('classification_act_vs_rep_int_%s', label);
 path_out = fullfile(save_folder, fname_str);
 save_figure(h, 7, 6, path_out, '.pdf', qsave && mastersave)
+
 %% 5b: # steady states vs. activation/repression
 h = figure(7);
 hold on
@@ -402,6 +408,7 @@ save_folder = save_folder_fig;
 fname_str = sprintf('num_steady_states_vs_interactions_%s', label);
 path_out = fullfile(save_folder, fname_str);
 save_figure(h, 7, 6, path_out, '.pdf', qsave && mastersave)
+
 %% 5c: oscillations vs. activating/repressing interactions
 h = figure(8);
 hold on
@@ -420,7 +427,7 @@ set(h, 'Units', 'Inches', 'Position', [1 1 9 8]);
 c = colorbar;
 cm_viridis = viridis;
 colormap(cm_viridis);
-caxis([0 2]);
+caxis([0 4]);
 title('Average cycle length');
 
 % save figure

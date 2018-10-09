@@ -1,4 +1,4 @@
-function pEn = Peq_two_signals_withI_v2(n, I, N, M_int, a0, fN, gN, rcell, K, Con, Coff)
+function pEn = Peq_two_signals_withI_pij(n, I, N, M_int, a0, fN, gN, rcell, K, Con, Coff)
 % v2: Uses p^ij to calculate P_eq
 
 %{

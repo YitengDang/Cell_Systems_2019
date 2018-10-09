@@ -1,4 +1,4 @@
-function [delta, sigma] = EOM_calc_delta_sigma(N, K, Con, fN, gN)
+function [delta, sigma] = EOM_calc_delta_sigma_two_signals(N, K, Con, fN, gN)
 % Estimate delta and sigma in Langevin equation
     % Calculate as for loop
     delta = 0;

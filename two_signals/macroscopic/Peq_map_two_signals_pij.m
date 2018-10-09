@@ -48,7 +48,7 @@ for i=1:2
 end
 %% Check custom result
 pij = [0 0.3; 0.7 0];
-W = transition_prob_states_two_signals_analytical_calc(M_int, Con, Coff, K, fN, gN, pij);
+W = transition_prob_two_signals_pij(M_int, Con, Coff, K, fN, gN, pij);
 %disp(diag(W))
 iniON = reshape(round(pij.*N),4,1); % iniON: (0,0), (1,0), (0,1), (1,1)
 Peq = prod(diag(W).^iniON); % diag(W): W(0,0), W(1,0), W(0,1), W(1,1)
@@ -91,7 +91,7 @@ for i00=N-25:N
         for i10=0:N-i00-i01
             fprintf('%d %d %d %d \n', i00, i01, i10, N-i00-i01-i10);
             pij = [i00 i01; i10 N-i00-i01-i10]./N;
-            W = transition_prob_states_two_signals_analytical_calc(M_int, Con, Coff, K, fN, gN, pij);
+            W = transition_prob_two_signals_pij(M_int, Con, Coff, K, fN, gN, pij);
             
             iniON = reshape(round(pij.*N)',4,1); % iniON: (0,0), (0,1), (1,0), (1,1)
             this_Peq =  prod(diag(W).^iniON);

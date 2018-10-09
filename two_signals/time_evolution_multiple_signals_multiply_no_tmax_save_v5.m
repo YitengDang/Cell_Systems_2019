@@ -6,18 +6,26 @@
 % steps
 close all
 clear all
-%maxNumCompThreads(12);
+maxNumCompThreads(3);
 %warning off
-%% Simulation parameters
-max_trials = 1;
 
+%% Simulation parameters
+max_trials = 100;
+
+% loop 
+p_all = 0:0.1:1; % loop variable (to be specified below)
+
+% other settings
+% p0=[0.5 0.5];
+InitiateI = 0;
+tmax = 10^4;
+
+%% System parameters
+%{
 % lattice parameters
 %gz = 15;
 %N = gz^2;
-gz_all = [25];
-
-% loop over K12
-K22_all = [17:19];
+gz_all = 5;
 
 % (1) Specify parameters by hand 
 a0 = 0.5;
@@ -40,23 +48,22 @@ Rcell = rcell*a0;
 % Settings
 InitiateI = 0;
 mcsteps = 0;
-tmax = 10^5; % cut off simulation if t > tmax
+tmax = 10^4; % cut off simulation if t > tmax
+%}
 %% (2) Load parameters from saved trajectory
-%{
+%
 % with parameters saved as structure array 
 % load data
-%data_folder = 'H:\My Documents\Multicellular automaton\app\git_repository\release_2_1_full\data\time_evolution\sample_trajectories\typeIV';
-data_folder = 'H:\My Documents\Multicellular automaton\app\git_repository\raw_current\data\time_evolution\parameter set 2b';
-%data_folder = 'D:\Multicellularity\app\Multicellularity-2.1\data\time_evolution';
-%file = 'two_signal_mult_M_int1_1_-1_-1_chaotic_state_tmax5000-v1.mat';
+data_folder = 'H:\My Documents\Multicellular automaton\app\data\time_evolution\travelling waves';
 %file = 'two_signal_mult_M_int0_1_-1_1_long_t_trans_wave_to_period10_trav_wave-v1';
 %file = 'two_signal_mult_M_int0_1_-1_1_transient_wave_to_travelling_wave-v1';
-file = 'two_signal_mult_N225_initiateI1_I_ini_0p50_0p50_t_out_2436_period_15-v1';
+%file = 'two_signal_mult_N225_initiateI1_I_ini_0p50_0p50_t_out_2436_period_15-v1';
+file = 'two_signal_mult_M_int0_1_-1_1_hillInf_N225_a0_1p50_K0p0_22p0_11p0_4p0_Con18p0_16p0_Coff1p0_1p0-v1';
 %[file, data_folder] = uigetfile(fullfile(data_folder, '\*.mat'), 'Load saved simulation');
 load(fullfile(data_folder, file));
 
 s = save_consts_struct;
-%N = s.N;
+N = s.N;
 a0 = s.a0;
 K = s.K;
 Con = s.Con;
@@ -65,21 +72,18 @@ M_int = s.M_int;
 hill = s.hill;
 noise = s.noise;
 rcell = s.rcell;
-cells = cells_hist{1};
+%cells = cells_hist{1};
 lambda12 = s.lambda12;
 lambda = [1 lambda12];
+mcsteps = str2double(s.mcsteps);
+
 %p0 = s.p_ini;
-p0 = [0.5 0.5];
 %tmax =  s.tmax;
-%gz = sqrt(N);
+gz = sqrt(N);
 Rcell = rcell*a0;
-
-% simulation parameters
-%tmax = 10^4;
-
+cell_type = zeros(N,1);
 
 % Initial I
-InitiateI = 0;
 %{
 InitiateI = 0;
 I0 = [0 0];
@@ -93,39 +97,57 @@ for i=1:numel(s_fields)
     end
 end
 %}
+
+% default file name
+sim_ID = 'two_signal_mult';
+I_ini_str = '';
+if InitiateI
+    I_ini_str = sprintf('_I_ini_%.2f_%.2f', I0(1), I0(2));
+end
 %}
 
+%% Temporary change
+K(1,2) = 9;
+
 %% First, calculate how many simulations are needed 
-sim_to_do = zeros(numel(gz_all), numel(K22_all));
-for gz_idx=1:numel(gz_all)  
-    gz = gz_all(gz_idx);
-    N = gz^2;
-    for K22_idx=1:numel(K22_all)
-        K22 = K22_all(K22_idx);
-        % Count how many simulations have already been done
-        subfolder = strrep(sprintf('N%d strong int a0 %.1f', N, a0), '.', 'p');
-        %folder = fullfile('L:\HY\Shared\Yiteng\two_signals\parameter set 2b', sprintf('N%d', N));
-        folder = fullfile('L:\HY\Shared\Yiteng\two_signals', 'sweep K22 new lattice', subfolder);
+%sim_to_do = zeros(numel(noise_all), 1);
+% sim_to_do = zeros(numel(loopvar_all), 1);
+sim_to_do = zeros(numel(p_all));
+for idx1=1:numel(p_all)
+    for idx2=1:numel(p_all)
+        p0 = [p_all(idx1) p_all(idx2)];
+        %noise = noise_all(inner_idx);
+        %hill = loopvar_all(inner_idx);
         
-        if exist(folder, 'dir') ~= 7
+        % Count how many simulations have already been done
+        %subfolder = strrep(sprintf('N%d strong int a0 %.1f', N, a0), '.', 'p');
+        %folder = fullfile('L:\HY\Shared\Yiteng\two_signals\parameter set 2b', sprintf('N%d', N));
+        %folder = fullfile('L:\HY\Shared\Yiteng\two_signals', 'sweep K22 new lattice', subfolder);
+        %folder = 'L:\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis\vs_Hill';
+        parent_folder = 'L:\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis\vs_p0_set2';
+        
+        if exist(parent_folder, 'dir') ~= 7
             warning('Folder does not exist! ');
+            break
         end
-        sim_ID = 'two_signal_mult';
-
-        % default file name
-        I_ini_str = '';
-        if InitiateI
-            I_ini_str = sprintf('_I_ini_%.2f_%.2f', I0(1), I0(2));
+        subfolder = strrep(sprintf('ini_p1_%.2f_p2_%.2f', p0(1), p0(2)), '.', 'p');
+        folder = fullfile(parent_folder, subfolder);
+        if exist(folder, 'dir') ~= 7
+            mkdir(folder);
         end
-
-        filecount = 0;
-        pattern = strrep(sprintf('%s_N%d_initiateI%d%s_randpos_mcsteps%d_K22_%d_t_out_%s_period_%s%s-v%s',...
-                sim_ID, N, InitiateI, I_ini_str, mcsteps, K22,...
-                '(\d+)', '(\d+|Inf)', '\w*', '(\d+)'), '.', 'p');
-
+        
+        % Filename pattern
+        %pattern = strrep(sprintf('%s_N%d_initiateI%d%s_noise_%.2f_t_out_%s_period_%s%s-v%s',...
+        %        sim_ID, N, InitiateI, I_ini_str, noise,...
+        %        '(\d+)', '(\d+|Inf)', '\w*', '(\d+)'), '.', 'p');
+        pattern = strrep(sprintf('%s_N%d_p1_%.2f_p2_%.2f_K12_%d_t_out_%s_period_%s-v%s',...
+                sim_ID, N, p0(1), p0(2), K(1,2), '(\d+)', '(\d+|Inf)',...
+                '(\d+)'), '.', 'p');
+        
         listing = dir(folder);
         num_files = numel(listing)-2;
         names = {};
+        filecount = 0;
         for i = 1:num_files
             filename = listing(i+2).name;
             % remove extension and do not include txt files
@@ -140,32 +162,29 @@ for gz_idx=1:numel(gz_all)
             end
         end
 
-        fprintf('N=%d, K12 = %d, sim to do: %d \n', N, K22, max_trials-filecount);
-        
-        sim_to_do(gz_idx, K22_idx) = max_trials-filecount;
+        %fprintf('N=%d, noise = %.2f sim to do: %d \n', N, noise, max_trials-filecount);
+        fprintf('N=%d, p0 = [%.1f %.1f], sim to do: %d \n', N, p0(1), p0(2), max_trials-filecount);
+
+        sim_to_do(idx1, idx2) = max_trials-filecount;
     end
 end
 
 %% Then, do the simulations
 for trial=1:max_trials
-    
-    for gz_idx=1:numel(gz_all)    
-        
-        gz = gz_all(gz_idx);
-        N = gz^2;
+    for idx1=1:numel(p_all) %numel(noise_all)
+        for idx2=1:numel(p_all)
+            %noise = noise_all(inner_idx);
+            %hill = p_all(idx1);
+            p0 = [p_all(idx1) p_all(idx2)];
 
-        cell_type = zeros(N,1);
+            %fprintf('trial %d, N %d, noise %.2f \n', trial, N, noise);
+            fprintf('trial %d, N %d, p0 = [%.1f %.1f] \n', trial, N, p0(1), p0(2));
 
-        for K22_idx=1:numel(K22_all)
-            K22 = K22_all(K22_idx);
-            fprintf('trial %d, N %d, K12 %d \n', trial, N, K22);
-            
             % skip simulation if enough simulations have been done
-            if trial>sim_to_do(gz_idx, K22_idx)
+            if trial > sim_to_do(idx1, idx2)
                 continue;
             end
-            
-            K(2,2) = K22;
+
             % ----------- simulation ------------------------------------
             cells_hist = {};
 
@@ -197,7 +216,7 @@ for trial=1:max_trials
             t_onset = Inf; 
             [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
                     Rcell, Con, Coff, K, lambda, hill, noise);
-            
+
             % always check within first t_ac time steps
             t_ac = 10^2; 
             while changed && period==Inf && t<t_ac
@@ -227,28 +246,41 @@ for trial=1:max_trials
                     Rcell, Con, Coff, K, lambda, hill, noise);
             end
             %pause(1);
-            
+
             t_out = t; %default t_out
+            trav_wave = 0; % default trav_wave
+            trav_wave_2 = 0;
             % if periodicity found, refine check to find period
             if period<Inf && t>t_ac
                 [period, t_onset] = periodicity_test_detailed(cells_hist, t_check, period);
-                t_out = t_onset + period; 
+                t_out = t_onset + period;
+
+                % also check if the solution is a traveling wave
+                [trav_wave, trav_wave_2] = travelling_wave_test(cells_hist, a0, period, t_out); 
+                % check over [t_out - period, t_out]
             end
-            
+
+            tmax_string = '';
             if changed && t==tmax
                 tmax_string = '_tmax_reached';
-            else
-                tmax_string = '';
             end
+
             fprintf('Final: t_out = %d, period %d \n', t_out, period);
 
             %--------------------------------------------------------------
             %% Save result
-            fname_str = strrep(sprintf('%s_N%d_initiateI%d%s_randpos_mcsteps%d_K22_%d_t_out_%d_period_%s%s_temp',...
-                sim_ID, N, InitiateI, I_ini_str, mcsteps, K22, t_out, num2str(period), tmax_string), '.', 'p');
+            % save folder
+            subfolder = strrep(sprintf('ini_p1_%.2f_p2_%.2f', p0(1), p0(2)), '.', 'p');
+            folder = fullfile(parent_folder, subfolder);
+        
+            % filename
+            fname_str = strrep(sprintf('%s_N%d_p1_%.2f_p2_%.2f_K12_%d_t_out_%d_period_%s',...
+                sim_ID, N, p0(1), p0(2), K(1,2), t_out, num2str(period)), '.', 'p');
+            %fname_str = strrep(sprintf('%s_N%d_initiateI%d%s_randpos_mcsteps%d_K12_%d_t_out_%d_period_%s',...
+            %    sim_ID, N, InitiateI, I_ini_str, mcsteps, K12, t_out, num2str(period)), '.', 'p');
             ext = '.mat';
             label = '';
-            
+
             % check if filename already exists
             i=1;
             fname = fullfile(folder, strcat(fname_str, '-v', num2str(i), label, ext));
@@ -257,28 +289,30 @@ for trial=1:max_trials
                 fname = fullfile(folder, strcat(fname_str, '-v', num2str(i), label, ext));
             end
             
+            % variables to be saved
+            save_vars = {N, a0, K, Con, Coff, M_int, hill, noise, p0, rcell,...
+                lambda12, sim_ID, I_ini_str, mcsteps};
+            save_vars_lbl = {'N', 'a0', 'K', 'Con', 'Coff', 'M_int', 'hill',...
+                'noise', 'p_ini', 'rcell', 'lambda12', 'sim_ID', ...
+                'I_ini_str', 'mcsteps'};
+
             if InitiateI
-                save_vars = {N, a0, K, Con, Coff, M_int, hill, noise, p0, I0, rcell,...
-                    lambda12, sim_ID, I_ini_str, mcsteps};
-                save_vars_lbl = {'N', 'a0', 'K', 'Con', 'Coff', 'M_int', 'hill', 'noise', 'p_ini', 'I_ini', 'rcell',...
-                    'lambda12', 'sim_ID', 'I_ini_str', 'mcsteps'};
-            else
-                save_vars = {N, a0, K, Con, Coff, M_int, hill, noise, p0, rcell,...
-                    lambda12, sim_ID, I_ini_str, mcsteps};
-                save_vars_lbl = {'N', 'a0', 'K', 'Con', 'Coff', 'M_int', 'hill', 'noise', 'p_ini', 'rcell',...
-                    'lambda12', 'sim_ID', 'I_ini_str', 'mcsteps'};
+                save_vars{end+1} = I0;
+                save_vars_lbl{end+1} = 'I0';
             end
 
             save_consts_struct = cell2struct(save_vars, save_vars_lbl, 2);
             positions = pos;
             distances = dist;
+
             %
             save(fname, 'save_consts_struct', 'cells_hist', 't_out',...
-                'changed', 'period', 't_onset', 'positions', 'distances');
-                fprintf('Saved simulation: %s ; \n', fname);
+                'changed', 'period', 't_onset', 'positions', 'distances',...
+                'trav_wave', 'trav_wave_2');
+            fprintf('Saved simulation: %s ; \n', fname);
             %}
             %--------------------------------------------------------------------------
+        %}
         end
-    %}
     end
 end
