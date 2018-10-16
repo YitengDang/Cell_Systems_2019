@@ -1,5 +1,4 @@
-function cond_set = trav_wave_conditions_nn(dist, Con, K, rcell, a0,...
-    lambda, wave_type, nbands)
+function cond_set = trav_wave_conditions_nn(dist, Con, K, rcell, a0, lambda, wave_type)
     % Calculates the conditions under which a travelling wave 
     % can propagate for a given input set, under the nearest-neighbour
     % approximation
@@ -19,9 +18,7 @@ function cond_set = trav_wave_conditions_nn(dist, Con, K, rcell, a0,...
     z = 6;
     
     % background p depends on number of bands of the wave 
-    if nargin<8
-        nbands = 1; 
-    end
+    nbands = 1; 
     p = nbands.*[2/gz 2/gz]; 
     
     % ---------

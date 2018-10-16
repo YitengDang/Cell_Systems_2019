@@ -1,4 +1,4 @@
-%% Calculates the time evolution of the equation of motion (EOM) in terms of p^{(i,j)}(t)
+% Calculates the time evolution of the equation of motion (EOM) in terms of p^{(i,j)}(t)
 % Use a Monte Carlo algorithm (stochastic)
 clear variables
 close all

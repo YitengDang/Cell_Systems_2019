@@ -24,9 +24,9 @@ hill = Inf;
 noise = 0;
 
 % K for all cells
-K_all = zeros(N, 2, 2);
+K_all = zeros( 2, 2, N );
 for i=1:N
-    K_all(i, :, :) = K;
+    K_all(:, :, i) = K;
 end
 
 % initial conditions
@@ -58,11 +58,10 @@ int_wave = [2 1];
 
 % Parameters
 Lx = 1; %default size
-
-Ax = 0.6;
+Ax = 0.4;
 nx = 1; %number of times the wave fits into x-range
 lambda_x = 1/nx*Lx;
-Ay = 0.0;
+Ay = 0.4;
 ny = 1;
 lambda_y = 1/ny*sqrt(3)/2*Lx;
 wave_x = Ax.*square(pos(:, 1).*(2*pi/lambda_x));
@@ -73,7 +72,7 @@ wave_y = Ay.*square(pos(:, 2).*(2*pi/lambda_y));
 % K_all = K_func(pos(:, 1), pos(:, 2));
 
 % square wave
-K_all(:, int_wave(1), int_wave(2)) = K(int_wave(1),int_wave(2)).*(1 + wave_x + wave_y);
+K_all(int_wave(1), int_wave(2), :) = K(int_wave(1),int_wave(2)).*(1 + wave_x.*wave_y);
 
 %{
 figure;
@@ -89,8 +88,8 @@ colorbar;
 set(gca, 'YDir', 'normal');
 %}
 %% Check that K values should still be able to generate waves (nearest-neighbour calculation)
-Kmin = min(K_all(:, int_wave(1), int_wave(2)));
-Kmax = max(K_all(:, int_wave(1), int_wave(2)));
+Kmin = min(K_all(int_wave(1), int_wave(2), :));
+Kmax = max(K_all(int_wave(1), int_wave(2), :));
 
 Kmin_set = K; 
 Kmin_set(int_wave(1), int_wave(2)) = Kmin;
@@ -132,11 +131,11 @@ ylim([-d Ly+d]);
 % --plot cells--
 hold on
 % colours
-c_all = K_all(:, int_wave(1), int_wave(2));
+c_all = K_all(int_wave(1), int_wave(2), :);
 clr_k = zeros(N, 3); % black boundaries
 %markers = {'o', 's'};
 
-scatter(pos(:,1), pos(:,2), Rcell_fig^2, c_all, 'filled', 'o');
+scatter(pos(:,1), pos(:,2), Rcell_fig^2, squeeze(c_all), 'filled', 'o');
 scatter(pos(:,1), pos(:,2), Rcell_fig^2, clr_k, 'o'); % plot cell boundaries
 
 % Plot box outline
@@ -186,18 +185,28 @@ update_figure_periodic_scatter(plot_handle, cells, t, disp_mol, showI, a0, dist)
 
 % save vars and update cells
 cells_hist{end+1} = cells;
+%[cells_out, changed] = ...
+%    update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell, Con, Coff, K_all, lambda, noise);
 [cells_out, changed] = ...
-    update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell, Con, Coff, K_all, lambda, noise);
+    update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+    Rcell, Con, Coff, K_all, lambda, hill, noise);
 while changed
-    pause(0.1);
+    pause(0.01);
     t = t+1;
     update_figure_periodic_scatter(plot_handle, cells_out, t, disp_mol, showI, a0, dist)
     cells_hist{end+1} = cells_out;
     cells = cells_out;
+    %[cells_out, changed] = ...
+    %    update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell, Con, Coff, K_all, lambda, noise);
     [cells_out, changed] = ...
-    update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell, Con, Coff, K_all, lambda, noise);
+        update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+        Rcell, Con, Coff, K_all, lambda, hill, noise);
 end
 
+%% Periodicity test
+[period, t_onset] = periodicity_test_short(cells_hist);
+%[period, t_onset] = periodicity_test_detailed(cells_hist, t_check,...
+%    period_ub, decimals)
 %% Save result
 %{
 data_path = 'H:\My Documents\Multicellular automaton\data\two_signals\parameter_gradient';
@@ -234,9 +243,4 @@ end
     
 save(fname, 'save_consts_struct',...
     'cells_hist', 't_out', 'changed', 'positions', 'distances', 'save_gradient_struct');
-%}
-%%
-%{
-data_path = 'H:\My Documents\Multicellular automaton\data\two_signals\parameter_gradient';
-load(fullfile(data_path, 'Parameter_gradient_K_2_1_square_wave-v1'))
 %}

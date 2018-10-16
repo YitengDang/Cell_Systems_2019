@@ -24,9 +24,9 @@ hill = Inf;
 noise = 0;
 
 % K for all cells
-K_all = zeros(N, 2, 2);
+K_all = zeros( 2, 2, N );
 for i=1:N
-    K_all(i, :, :) = K;
+    K_all(:, :, i) = K;
 end
 
 % initial conditions
@@ -74,7 +74,7 @@ lambda_y = 1/ny*sqrt(3)/2*Lx;
 % K_all = K_func(pos(:, 1), pos(:, 2));
 
 % square wave
-K_all(:, int_wave(1), int_wave(2)) = K(int_wave(1),int_wave(2))...
+K_all(int_wave(1), int_wave(2), :) = K(int_wave(1),int_wave(2))...
     .*(1 + Ax.*square(pos(:, 1).*(2*pi/lambda_x)) + Ay.*square(pos(:, 2).*(2*pi/lambda_y)));
 
 %{
@@ -112,7 +112,7 @@ ylim([-d Ly+d]);
 % --plot cells--
 hold on
 % colours
-c_all = K_all(:, int_wave(1), int_wave(2));
+c_all = squeeze(K_all(int_wave(1), int_wave(2)), :);
 clr_k = zeros(N, 3); % black boundaries
 %markers = {'o', 's'};
 
