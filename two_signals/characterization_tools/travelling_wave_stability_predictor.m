@@ -130,15 +130,18 @@ for k=1:numel(K_22_all)
 
             % new method
             Xself = [0 0; 0 1; 1 1; 1 0; 0 0]; % fixed
-
+            
+            % plane wave
             Xnei = [0 2; 2 4; 4 4; 4 2; 2 0]; 
             cond_set1 = calc_conditions(fnn, Con, thisK, Y_mf, z, Xself, Xnei);
             trav_wave_cond_met(1, i, j, k) = all(cond_set1);
-
+        
+            % inward bend
             Xnei = [0 3; 3 5; 5 3; 3 1; 1 0]; 
             cond_set2 = calc_conditions(fnn, Con, thisK, Y_mf, z, Xself, Xnei);
             trav_wave_cond_met(2, i, j, k) = all(cond_set2);
-
+            
+            % outward bend
             Xnei = [0 1; 1 3; 3 5; 5 3; 3 0]; 
             cond_set3 = calc_conditions(fnn, Con, thisK, Y_mf, z, Xself, Xnei);
             trav_wave_cond_met(3, i, j, k) = all(cond_set3);

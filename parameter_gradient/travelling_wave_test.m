@@ -1,16 +1,12 @@
-function [trav_wave, trav_wave_2] = travelling_wave_test(cells_hist, a0,...
-    this_period, this_t_out, digits)
+function [trav_wave, trav_wave_2]  = travelling_wave_test(cells_hist, a0, this_period, this_t_out, dist)
     % Predicts whether a given simulation is likely a travelling wave using
     % a set of criteria
-    if nargin<5
-        digits = 5;
-    end
+
     % Inputs:
     % (1) cells_hist: cell array with the simulation data
     % (2) a0: distance between cells
     % (3) this_period: period of the oscillation
     % (4) this_t_out: final time of the simulation 
-    % (5) round: number of decimals to round p, I
     
     % Outputs:
     % In both cases, output = 1 if travelling wave is predicted, 0
@@ -19,10 +15,11 @@ function [trav_wave, trav_wave_2] = travelling_wave_test(cells_hist, a0,...
     % period.
     % (2) trav_wave_2: loose criterion; p strictly constant.
     
+    Rcell = 0.2 * a0;
     N = size(cells_hist{1}, 1);
     s = size(cells_hist{1}, 2);
     gz = sqrt(N);
-    dist = init_dist_hex(gz, gz);
+    %dist = init_dist_hex(gz, gz);
     
     trav_wave = 0;
     trav_wave_2 = 0;
@@ -38,17 +35,29 @@ function [trav_wave, trav_wave_2] = travelling_wave_test(cells_hist, a0,...
             cells = cells_hist{i2};
             p_last(i1, :) = sum(cells, 1)/N;
             for j1=1:s
-                [I_last(i1, j1), ~] = moranI(cells(:, j1), a0*dist);
+                [I_last(i1, j1), ~] = moranI(cells(:, j1),dist,Rcell);
             end
         end
+       
+        % deal with rounding mistakes in calculation of I
+        I_last = round(I_last, 5);
         
-        % deal with rounding mistakes in calculation of p, I
-        p_last = round(p_last, digits);
-        I_last = round(I_last, digits);
-
         % check that the variables remain constant
         cond1 = size(unique(p_last, 'rows'), 1)==1;
         cond2 = size(unique(I_last, 'rows'), 1)==1;
+        
+        % If there are multiple unique values, there could still be a wave.
+        % Because I differs slightly if wave passes the periodic border.
+        % Therefore also set condition to true if the deviaitons in I are
+        % small.
+        if cond2 == 0
+            I_mode = mode(I_last);
+            I_delta = max(max(abs(I_last - I_mode)));
+        
+            if I_delta < 0.04
+                cond2 = 1;
+            end
+        end
         
         trav_wave = cond1 && cond2;
         trav_wave_2 = cond1;

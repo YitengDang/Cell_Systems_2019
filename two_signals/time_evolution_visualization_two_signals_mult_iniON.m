@@ -21,17 +21,19 @@ hill = Inf;
 noise = 0;
 
 % initial conditions
-p0 = [0.5 0.5];
-iniON = round(p0*N);
-I0 = [0.2 0.2];
+%p0 = [0.5 0.5];
+%iniON = round(p0*N);
+iniON = [51 61; 61 52];
+I0 = [0 0];
 dI = 0.01;
-InitiateI = 1; % 0: no, 1: yes
+InitiateI = 0; % 0: no, 1: yes
 
 % generate cell_type (0 case type 1, 1 case type 2)
 cell_type = zeros(N,1);
 
 % simulation parameters
 tmax = 100;
+nruns = 10;
 mcsteps = 0;
 
 %
@@ -133,11 +135,11 @@ cells = zeros(N, 2);
 for i=1:numel(iniON)
     cells(randperm(N,iniON(i)), i) = 1;
     if InitiateI && hill==Inf
-        fprintf('Generating lattice with I%d(t=0)... \n', i);
-        dI = 0.01;
+        %fprintf('Generating lattice with I%d(t=0)... \n', i);
+        dI = 0.1;
         [cells_temp, test, I_ini] = generate_I_new(cells(:, i), I0(i), I0(i)+dI, dist, a0);
         cells(:,i) = cells_temp;
-        fprintf('Generated initial I%d: %.2f; in range (Y=1/N=0)? %d; \n', i, I_ini, test);
+        %fprintf('Generated initial I%d: %.2f; in range (Y=1/N=0)? %d; \n', i, I_ini, test);
     end
 end
 

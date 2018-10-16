@@ -1,7 +1,9 @@
 function [cells_out, changed] = ...
-    update_cells_two_signals_multiply(cells, dist, M_int, a0, Rcell, Con, Coff, K, lambda, noise)
+    update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell, Con, Coff, K, lambda, noise)
 % Update cells without noise in a positive feedback loop with infinite hill
 % coefficient
+% v2: possibly different K for each cell
+N = size(cells, 1);
 
 % Account for self-influence
 idx = dist>0;
@@ -21,14 +23,14 @@ Y1 = M1*C0(:, 1);
 Y2 = M2*C0(:, 2);
 
 % Add noise to K
-dK = normrnd(0, noise, 2, 2);
+dK = normrnd(0, noise, N, 2, 2);
 K = K + dK;
 
 % Multiplicative interaction
-out11 = ((Y1-K(1,1))*M_int(1,1) > 0) + (1 - abs(M_int(1,1)));
-out12 = ((Y2-K(1,2))*M_int(1,2) > 0) + (1 - abs(M_int(1,2)));
-out21 = ((Y1-K(2,1))*M_int(2,1) > 0) + (1 - abs(M_int(2,1)));
-out22 = ((Y2-K(2,2))*M_int(2,2) > 0) + (1 - abs(M_int(2,2)));
+out11 = ((Y1-K(:,1,1))*M_int(1,1) > 0) + (1 - abs(M_int(1,1)));
+out12 = ((Y2-K(:,1,2))*M_int(1,2) > 0) + (1 - abs(M_int(1,2)));
+out21 = ((Y1-K(:,2,1))*M_int(2,1) > 0) + (1 - abs(M_int(2,1)));
+out22 = ((Y2-K(:,2,2))*M_int(2,2) > 0) + (1 - abs(M_int(2,2)));
 
 cells_out = [out11.*out12 out21.*out22];
 

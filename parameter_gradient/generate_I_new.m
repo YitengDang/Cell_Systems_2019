@@ -54,11 +54,15 @@ N = numel(cells_in);
 
 % Check that the lattice is not all ON/OFF or single ON/OFF
 if sum(cells_in)==N || sum(cells_in)==0 || sum(cells_in)==1 || sum(cells_in)==N-1
-    disp('Only one possible value of I');
-    return
+    check = false;
+else 
+    check = true;
 end
 
-% Get first neighbors of cells
+% Determine whether to increase or decrease I
+increase = (I < I_min); % 0: decrease I, 1: increase I
+
+% Get first neighbors
 eps = 1e-5;
 dist_vec = get_unique_distances(dist, eps);
 dist1 = dist_vec(2);
@@ -69,13 +73,10 @@ first_nei = 1*(dist < dist1+eps & dist > dist1-eps);
 %update_cell_figure(h1, pos, 1, cells_in, cell_type, 0);
 %fprintf('I = %.3f \n', I_1)
 
-%% Generate new I
-% Determine whether to increase or decrease I
-increase = (I < I_min); % 0: decrease I, 1: increase I
-
+%% Increase I
 %--- start while loop------
 t = 0;
-while (I < I_min || I > I_max) && t < maxsteps
+while (I < I_min || I > I_max) && t < maxsteps && check
     %k = waitforbuttonpress;
     t = t+1;
     cells_new = cells_in; 
@@ -85,18 +86,18 @@ while (I < I_min || I > I_max) && t < maxsteps
 
     % get ON cell with min./max. # ON neighbours
     nei_ON_1 = nei_ON(logical(cells_new));
-    %cond1 = 1;
+    cond1 = 1;
     if increase % distinguish between increasing and decreasing I
         idx_temp = find(nei_ON_1 < 3);
         if isempty(idx_temp) % if no good cells
             idx_temp = find(nei_ON_1 == min(nei_ON_1)); % select most suitable
-            %cond1 = 0;
+            cond1 = 0;
         end
     else
         idx_temp = find(nei_ON_1 > 3);
         if isempty(idx_temp) 
             idx_temp = find(nei_ON_1 == max(nei_ON_1), 1);
-            %cond1 = 0;
+            cond1 = 0;
         end
     end
     idx_ON = datasample(idx_temp, 1);
@@ -104,18 +105,18 @@ while (I < I_min || I > I_max) && t < maxsteps
 
     % get OFF cell with max./min. # ON neighbours
     nei_ON_0 = nei_ON(~logical(cells_new));
-    %cond2 = 1;
+    cond2 = 1;
     if increase
         idx_temp = find(nei_ON_0 > 3);
         if isempty(idx_temp) 
             idx_temp = find(nei_ON_0 == max(nei_ON_0));
-            %cond2 = 0;
+            cond2 = 0;
         end
     else
         idx_temp = find(nei_ON_0 < 3);
         if isempty(idx_temp) 
             idx_temp = find(nei_ON_0 == min(nei_ON_0));
-            %cond2 = 0;
+            cond2 = 0;
         end
     end
     idx_OFF = datasample(idx_temp, 1);
@@ -135,21 +136,22 @@ while (I < I_min || I > I_max) && t < maxsteps
 
     % if not sure, check whether I has increased/decreased
     I_new = moranI(cells_new, a0*dist);
-    if increase && (I_new >= I) %New I increased as required
+    if cond1 && cond2 % conditions met
+        cells_in = cells_new; % accept change
+        I = I_new;
+    elseif increase && (I_new >= I) % conds not met, but new I increased as required
         cells_in = cells_new; % accept change        
         I = I_new;
-    elseif ~increase && (I_new <= I) % New I decreased as required
+    elseif (I_new <= I) % conds not met, but new I decreased as required
         cells_in = cells_new;
         I = I_new;
-    else % (else: reject change)
+    else
         %disp('rejected!');
     end
-    
-    % For next step: reanalyze whether to increase or decrease I
-    increase = (I < I_min);
-    %disp(I);
+    % (else: reject change)
+    increase = (I < I_min); % reanalyze whether to increase or decrease I
 end
-%--------
+
 %% Output
 cells_out = cells_in;
 test = (I > I_min) && (I < I_max); %Check whether final I is in desired range
