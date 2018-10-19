@@ -36,7 +36,7 @@ iniON = round(p0*N);
 
 % simulation parameters
 tmax = 10^4;
-nruns = 100;
+nruns = 102;
 
 % Initialize parameters
 %[pos,ex,ey] = init_cellpos_hex(gridsize,gridsize);
@@ -112,7 +112,7 @@ ylim([-d Ly+d]);
 % --plot cells--
 hold on
 % colours
-c_all = squeeze(K_all(int_wave(1), int_wave(2)), :);
+c_all = squeeze(K_all(int_wave(1), int_wave(2), :));
 clr_k = zeros(N, 3); % black boundaries
 %markers = {'o', 's'};
 
@@ -161,8 +161,11 @@ for run=1:nruns
 
     % always check within first t_ac time steps
     t_ac = 10^2; 
-    [cells_out, changed] = update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell,...
-            Con, Coff, K_all, lambda, noise);
+    %[cells_out, changed] = update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell,...
+    %        Con, Coff, K_all, lambda, noise);
+    [cells_out, changed] = ...
+            update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+            Rcell, Con, Coff, K, lambda, hill, noise);
     while changed && period==Inf && t<t_ac
         %disp(t);
         pause(0.01);
@@ -171,8 +174,11 @@ for run=1:nruns
         cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
         [period, t_onset] = periodicity_test_short(cells_hist); 
         %update_figure_periodic_scatter(plot_handle, cells, t, disp_mol, showI, a0, dist);
-        [cells_out, changed] = update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell,...
-            Con, Coff, K_all, lambda, noise);
+        %[cells_out, changed] = update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell,...
+        %    Con, Coff, K_all, lambda, noise);
+        [cells_out, changed] = ...
+            update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+            Rcell, Con, Coff, K, lambda, hill, noise);
     end
 
     % check periodically after t_ac time steps, with period t_check
@@ -188,8 +194,11 @@ for run=1:nruns
             [period, t_onset] = periodicity_test_short(cells_hist); 
         end
         %update_figure_periodic_scatter(plot_handle, cells, t, disp_mol, showI, a0, dist);
-        [cells_out, changed] = update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell,...
-            Con, Coff, K_all, lambda, noise);
+        [cells_out, changed] = ...
+            update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+            Rcell, Con, Coff, K, lambda, hill, noise);
+        %[cells_out, changed] = update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell,...
+        %    Con, Coff, K_all, lambda, noise);
     end
     %pause(1);
 

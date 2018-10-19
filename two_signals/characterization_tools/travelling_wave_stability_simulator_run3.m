@@ -39,9 +39,9 @@ fN(2) = sum(sinh(Rcell)*exp((Rcell-r)./lambda(2)).*(lambda(2)./r));
 
 % Load initial conditions
 load_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\travelling_wave_snapshots';
-%fname_str = 'trav_wave_single_horizontal_inward_bend';
+fname_str = 'trav_wave_single_horizontal_inward_bend';
 %fname_str = 'trav_wave_single_horizontal_outward_bend'; 
-fname_str = 'trav_wave_single_vertical'; 
+%fname_str = 'trav_wave_single_vertical'; 
 
 fname = fullfile(load_folder, fname_str);
 cells_load = cell(2,1);
@@ -151,7 +151,7 @@ close all
 %}
 
 %% Save data
-%
+%{
 save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\data';
 fname_str_data = sprintf('%s_stability_sim_K12_K21_K22_range', fname_str);  
 fname = fullfile(save_folder, fname_str_data);
@@ -159,7 +159,7 @@ save(fname, 'K_12_all', 'K_21_all', 'K_22_all', 'trav_wave_all', 'unmodified_all
 %}
 
 %% Load data
-%{
+%
 load_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\data';
 %fname_str_data = sprintf('%s_stability_sim_%s_K12_K21_K22_range', fname_str, fname_str_default);  
 fname_str_data = sprintf('%s_stability_sim_K12_K21_K22_range', fname_str);  

@@ -181,8 +181,11 @@ for param_idx=1:numel(Ax_all)
             cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
             [period, t_onset] = periodicity_test_short(cells_hist); 
             %update_figure_periodic_scatter(plot_handle, cells, t, disp_mol, showI, a0, dist);
-            [cells_out, changed] = update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell,...
-                Con, Coff, K_all, lambda, noise);
+            %[cells_out, changed] = update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell,...
+            %    Con, Coff, K_all, lambda, noise);
+            [cells_out, changed] = ...
+                update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+                Rcell, Con, Coff, K, lambda, hill, noise);
         end
 
         % check periodically after t_ac time steps, with period t_check
@@ -198,8 +201,11 @@ for param_idx=1:numel(Ax_all)
                 [period, t_onset] = periodicity_test_short(cells_hist); 
             end
             %update_figure_periodic_scatter(plot_handle, cells, t, disp_mol, showI, a0, dist);
-            [cells_out, changed] = update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell,...
-                Con, Coff, K_all, lambda, noise);
+            %[cells_out, changed] = update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell,...
+            %    Con, Coff, K_all, lambda, noise);
+            [cells_out, changed] = ...
+                update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+                Rcell, Con, Coff, K, lambda, hill, noise);
         end
         %pause(1);
 

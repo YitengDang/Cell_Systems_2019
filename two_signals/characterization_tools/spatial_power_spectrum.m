@@ -1,4 +1,8 @@
-% Computes the spatial power spectrum of a macroscopic trajectory
+% Computes the spatial power spectrum of the snapshot of the system
+% Get a snapshot of the system by loading a full trajectory and looking at
+% the system at a particular time. Decompose the lattice of the snapshot
+% into Fourier modes and calculate the spatial power spectrum. Take a
+% long-time average of the power spectra over the entire simulation.
 clear all
 close all
 set(0, 'defaulttextinterpreter', 'latex');
@@ -16,12 +20,13 @@ gz = sqrt(N);
 a0 = save_consts_struct.a0;
 rcell = save_consts_struct.rcell;
 
-% Default save folder 
+% Default save folder for figures
 %save_folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\fourier_analysis';
 save_folder = 'K:\bn\hy\Shared\Yiteng\Multicellularity\videos\selected\spatial power spectra';
-%% Save a lattice snapshot 
+%% Load and snapshot of the lattice
 % For comparison with spectral density, save a lattice snapshot
-time = 400; % time of the simulation to look at
+% First, specify the time of the simulation to look at
+time = 400; 
 cells = cells_hist{time+1};
 
 % Plot snapshot
@@ -41,9 +46,9 @@ fname = fullfile(save_folder, fname_str);
 colored_background = 1;
 save_figure(h, 0, 0, fname, '.pdf', qsave, colored_background);
 
-%% 2D Fourier transform
+%% Plot the spatial power spectrum (2D discrete Fourier transform)
+% 2D Fourier transform, calculate power spectrum
 cells_norm = (cells - mean(cells, 1)); % normalise cells
-
 cells_fft1 = fft2(reshape(cells_norm(:,1), gz, gz));
 %cells_fft1(1,1) = 0;
 cells_fft2 = fft2(reshape(cells_norm(:,2), gz, gz));
@@ -52,6 +57,7 @@ cells_fft2 = fft2(reshape(cells_norm(:,2), gz, gz));
 power1 = abs(fftshift(cells_fft1)).^2/N;
 power2 = abs(fftshift(cells_fft2)).^2/N;
 
+% Plot power spectrum
 h = figure;
 x = 0:gz-1;
 x = fftshift(0:gz-1);
@@ -67,7 +73,7 @@ set(gca, 'YDir', 'normal', 'FontSize', 20)
 set(h, 'Units', 'Inches', 'Position', [1 1 10 8]);
 
 % Save figure
-qsave = 1;
+qsave = 0;
 fname_str = sprintf('%s_spatial_spectrum_t%d', load_fname, time);
 fname = fullfile(save_folder, fname_str);
 colored_background = 0;
@@ -103,7 +109,7 @@ set(h, 'Units', 'Inches', 'Position', [1 1 10 8]);
 title('Long-time average');
 
 % Save figure
-qsave = 1;
+qsave = 0;
 fname_str = sprintf('%s_spatial_spectrum_avg_t%d_to_%d', load_fname, t1, t2);
 fname = fullfile(save_folder, fname_str);
 colored_background = 0;
