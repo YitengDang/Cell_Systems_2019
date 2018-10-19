@@ -1,5 +1,6 @@
 % Predicts whether a travelling wave can propagate according to nearest
 % neighbour interactions
+%{
 clear all
 close all
 set(0,'defaulttextinterpreter', 'latex')
@@ -31,8 +32,8 @@ mcsteps = 0;
 %%
 trav_wave_conds_met = temp(gz, a0, dist, rcell, lambda, M_int, Con, K,...
     wave_type, states_perm, num_waves, bandwidth);
-
-function trav_wave_conds_met = temp(gz, a0, dist, rcell, lambda, M_int, Con, K,...
+%}
+function trav_wave_conds_met = travelling_wave_stability_predictor_general_func(gz, a0, dist, rcell, lambda, M_int, Con, K,...
     wave_type, states_perm, num_waves, bandwidth)
     % calculate fN
     Rcell = a0*rcell;
@@ -126,7 +127,7 @@ function trav_wave_conds_met = temp(gz, a0, dist, rcell, lambda, M_int, Con, K,.
         output_state_list(i,:) = output_state;
     end
     %disp(output_state_list);
-    disp(conditions_met);
+    %disp(conditions_met);
 
     trav_wave_conds_met = all(conditions_met);
 end
