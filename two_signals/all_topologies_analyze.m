@@ -8,7 +8,13 @@ function [A, ss, cycles, h] = all_topologies_analyze(single_cell, phase, M_int, 
     % Output:   A, 4x4 matrix, state diagram of the system
     %           ss, vector, all steady states
     %           cycles, cell, all cycles of the system
+    %           structure: A(input_state, output_state)
     
+    % State are numbered
+    % 1 - (0,0)
+    % 2 - (1,0)
+    % 3 - (0,1)
+    % 4 - (1,1)
     %% Map from phase to diagram
     % state | activation/repression | input molecule (1/2)
     if single_cell %single cell

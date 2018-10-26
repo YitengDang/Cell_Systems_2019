@@ -1,8 +1,8 @@
 function [trav_wave, trav_wave_2] = travelling_wave_test(cells_hist, a0,...
-    this_period, this_t_out, digits)
+    this_period, this_t_out, dist, digits)
     % Predicts whether a given simulation is likely a travelling wave using
     % a set of criteria
-    if nargin<5
+    if nargin<6
         digits = 5;
     end
     % Inputs:
@@ -22,7 +22,7 @@ function [trav_wave, trav_wave_2] = travelling_wave_test(cells_hist, a0,...
     N = size(cells_hist{1}, 1);
     s = size(cells_hist{1}, 2);
     gz = sqrt(N);
-    dist = init_dist_hex(gz, gz);
+    %dist = init_dist_hex(gz, gz);
     
     trav_wave = 0;
     trav_wave_2 = 0;

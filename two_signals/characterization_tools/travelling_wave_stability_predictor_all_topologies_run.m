@@ -73,8 +73,9 @@ default_states = [0 0; 0 1; 1 0; 1 1];
 %}
 
 % save folder
-save_folder = 'H:\My Documents\Multicellular automaton\data\two_signals\trav_wave_stability_general';
-
+%save_folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2';
+%save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2';
+save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run3_vary_a0_lambda12';
 %% do for a fixed network & wave
 %{
 trav_wave_conds_met = travelling_wave_stability_predictor_general_func(gz, a0,...
@@ -83,7 +84,8 @@ trav_wave_conds_met = travelling_wave_stability_predictor_general_func(gz, a0,..
 %}
 %% Loop over all waveforms
 P = perms(1:4);
-for idx_P=1:size(P, 1)
+n_networks = 44;
+for idx_P=12:size(P, 1)
     states_perm = P(idx_P, :);
 
     % loop over all phases
@@ -92,10 +94,15 @@ for idx_P=1:size(P, 1)
     count = 0;
     networks_all = 1:3^4;
     networks_idx = [];
-    trav_wave_cond_met = zeros(numel(networks_all), n_pset);
-
+    
+    trav_wave_cond_met = zeros(n_networks, n_pset);
+    Con_all = zeros(n_networks, n_pset, 2);
+    K_all = zeros(n_networks, n_pset, 2, 2);
+    a0_all = zeros(n_networks, n_pset);
+    lambda2_all = zeros(n_networks, n_pset);
+    
     for k=networks_all
-        disp(k);
+        fprintf('Waveform %d, Network %d \n', idx_P, k);
         [i11, i12, i21, i22] = ind2sub([3, 3, 3, 3], k);
 
         % matrix associated with indices
@@ -128,9 +135,7 @@ for idx_P=1:size(P, 1)
         networks_idx(count) = k;
 
         % Latin hypercube
-        x = lhsdesign(n_pset, nK+nCon);
-        Con_all = zeros(n_pset, 2);
-        K_all = zeros(n_pset, 2, 2);
+        x = lhsdesign(n_pset, nK+nCon+2);
         
         % Visualize parameters
         %{
@@ -139,25 +144,21 @@ for idx_P=1:size(P, 1)
         xlim(K_b);
         ylim(Con_b);
         %}
-        for idx1=1:n_pset
+        parfor idx1=1:n_pset
             thisK = zeros(2);
             thisCon = zeros(1,2);
             thisK(idxK) = (K_b(2) - K_b(1))*x(idx1, 1:nK) + K_b(1);
-            thisCon(idxCon) = (Con_b(2) - Con_b(1))*x(idx1, nK+1:end) + Con_b(1); 
+            thisCon(idxCon) = (Con_b(2) - Con_b(1))*x(idx1, nK+1:nK+nCon) + Con_b(1); 
+            thisa0 = 10*x(idx1, nK+nCon+1);
+            thislambda = [1 2*x(idx1, nK+nCon+2);];
             
-            Con_all(idx1, :) = thisCon;
-            K_all(idx1, :, :) = thisK;
+            Con_all(count, idx1, :) = thisCon;
+            K_all(count, idx1, :, :) = thisK;
+            a0_all(count, idx1) = thisa0;
+            lambda2_all(count, idx1) = thislambda(2);
             
-            % Visualize parameters
-            % plot(thisK(2,2), thisCon(2), 'bo');
-            % plot(thisK(1,2), thisK(2,1), 'bo');
-            % plot(thisCon(1), thisCon(2), 'ro');
-
-            % calculate stability
-
-            % --> wrap in function
-            trav_wave_conds_met(k, idx1) = travelling_wave_stability_predictor_general_func(...
-                gz, a0, dist, rcell, lambda, M_int, thisCon, thisK,...
+            trav_wave_conds_met(count, idx1) = travelling_wave_stability_predictor_general_func(...
+                gz, thisa0, dist, rcell, thislambda, M_int, thisCon, thisK,...
                 wave_type, states_perm, num_waves, bandwidth);
             %}
         end
@@ -166,10 +167,6 @@ for idx_P=1:size(P, 1)
     fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
         num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
     fname = fullfile(save_folder, fname_str);
-    save(fname, 'gz', 'a0', 'rcell', 'lambda', 'M_int', 'trav_wave_conds_met');
+    save(fname, 'gz', 'a0', 'rcell', 'lambda', 'M_int',...
+        'trav_wave_conds_met', 'Con_all', 'K_all', 'networks_idx');
 end
-
-%% Find networks that can support the wave
-idx_network_1 = find( sum(trav_wave_conds_met, 2)>0 ); % network indices, 1:81 indexing
-idx_network_2 = networks_idx( idx_network_1 );
-

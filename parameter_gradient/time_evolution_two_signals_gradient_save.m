@@ -36,7 +36,7 @@ iniON = round(p0*N);
 
 % simulation parameters
 tmax = 10^4;
-nruns = 102;
+nruns = 1;
 
 % Initialize parameters
 %[pos,ex,ey] = init_cellpos_hex(gridsize,gridsize);
@@ -53,7 +53,7 @@ cell_type = zeros(N,1); % all the same here
 
 %% Plot phase diagram
 %M_int = 1; lambda12 = 1;
-h = plot_phase_diagram(gz, a0, rcell, M_int, K, Con, lambda12);
+%h = plot_phase_diagram(gz, a0, rcell, M_int, K, Con, lambda12);
 
 %% K profile
 % Choose which interaction to make spatially dependent
@@ -62,20 +62,24 @@ int_wave = [2 1];
 
 % Parameters
 Ax = 0.0;
-Ay = 0.6;
+Ay = 0.0;
 nx = 1;
 ny = 1;
 Lx = 1; %default size
 lambda_x = 1/nx*Lx;
 lambda_y = 1/ny*sqrt(3)/2*Lx;
 
-% sinusoidal wave
-% K_func = @(x, y) K.*(1 + Ax.*sin(2.*pi.*x/lambda_x) + Ay.*sin(2.*pi.*y/lambda_y));
-% K_all = K_func(pos(:, 1), pos(:, 2));
-
 % square wave
-K_all(int_wave(1), int_wave(2), :) = K(int_wave(1),int_wave(2))...
-    .*(1 + Ax.*square(pos(:, 1).*(2*pi/lambda_x)) + Ay.*square(pos(:, 2).*(2*pi/lambda_y)));
+%wave_type_str = 'square_wave';
+%K_all(int_wave(1), int_wave(2), :) = K(int_wave(1),int_wave(2))...
+%    .*(1 + Ax.*square(pos(:, 1).*(2*pi/lambda_x)) + Ay.*square(pos(:, 2).*(2*pi/lambda_y)));
+
+% sinusoidal wave
+wave_type_str = 'sine_wave';
+x = pos(:, 1);
+y = pos(:, 2);
+K_all(int_wave(1), int_wave(2), :) = K(int_wave(1),int_wave(2)).*...
+    (1 + Ax.*sin(2.*pi.*x/lambda_x) + Ay.*sin(2.*pi.*y/lambda_y));
 
 %{
 figure;
@@ -215,10 +219,12 @@ for run=1:nruns
 
     %% Save result
     %
-    data_path = 'H:\My Documents\Multicellular automaton\data\two_signals\parameter_gradient';
+    %data_path = 'H:\My Documents\Multicellular automaton\data\two_signals\parameter_gradient';
+    data_path = 'L:\BN\HY\Shared\Yiteng\two_signals\parameter_gradient_sinusoidal';
     %data_path = 'H:\My Documents\Multicellular automaton\data\two_signals\parameter_gradient\negative_control';
     %subfolder = strrep(sprintf('horizontal_step_function_Ax_%.1f_nx_%d', Ax, nx), '.', 'p');
-    subfolder = strrep(sprintf('vertical_step_function_Ay_%.1f_ny_%d', Ay, ny), '.', 'p');
+    subfolder = strrep(sprintf('%s_gradient_K%d%d_Ax_%.1f_nx_%d_Ay_%.1f_ny_%d',...
+        wave_type_str, int_wave(1), int_wave(2), Ax, nx, Ay, ny), '.', 'p');
     
     % variables
     positions = pos;
@@ -239,8 +245,8 @@ for run=1:nruns
     save_gradient_vars_lbl = {'int_wave', 'Ax', 'Ay', 'nx', 'ny', 'Lx'};
     save_gradient_struct = cell2struct(save_gradient_vars, save_gradient_vars_lbl, 2);
 
-    fname_str = sprintf('Parameter_gradient_K_%d_%d_square_wave_t_out_%d_period_%d', ...
-        int_wave(1), int_wave(2), t_out, period);
+    fname_str = sprintf('Parameter_gradient_K_%d_%d_%s_t_out_%d_period_%d', ...
+        int_wave(1), int_wave(2), wave_type_str, t_out, period);
     i = 1;
     fname = fullfile(data_path, subfolder,...
         strcat(fname_str,'-v',int2str(i),'.mat'));

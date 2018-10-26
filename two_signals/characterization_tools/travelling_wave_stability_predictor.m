@@ -4,20 +4,48 @@ clear all
 close all
 set(0,'defaulttextinterpreter', 'latex')
 %% Parameters
+% Manual input
 gz = 15;
 N = gz^2;
 a0 = 1.5;
 rcell = 0.2;
 Rcell = rcell*a0;
 lambda = [1 1.2];
-
+M_int = [1 1; -1 0]; % network 19 
+%{
+M_int = [0 1; -1 1]; % network 15 reversed
+M_int = [1 -1; 1 0]; % network 15
+M_int = [1 1; -1 0]; % network 19
+M_int = [1 -1; 1 1]; % network 33
+M_int = [-1 -1; 1 1]; % network 34
+M_int = [-1 1; -1 1]; % network 36
+%}
 Con = [18 16];
-K = [0 9; 11 1];
+K = zeros(2);
+%K = [0 9; 11 4];
 
 % get pos, dist
 mcsteps = 0;
 [pos, dist] = initial_cells_random_markov_periodic(gz, mcsteps, rcell);
 
+% Obtain from simulation
+folder = 'L:\BN\HY\Shared\Yiteng\two_signals\batch_sim_all_topologies_run2\selected';
+subfolder = 'patterns\Network 33';
+fname_str = 'tripple_wave_diagonally';
+fname = fullfile(folder, subfolder, fname_str);
+load(fname, 'save_consts_struct');
+
+Con = save_consts_struct.Con;
+K = save_consts_struct.K;
+N = save_consts_struct.N;
+gz = sqrt(N);
+a0 = save_consts_struct.a0;
+rcell = save_consts_struct.rcell;
+Rcell = rcell*a0;
+lambda = save_consts_struct.lambda;
+M_int = save_consts_struct.M_int;
+
+%%
 % calculate fN
 idx = gz + round(gz/2); % pick cell not at corner of grid
 dist_vec = a0*dist(idx,:);
@@ -37,222 +65,159 @@ rnnn = [sqrt(3) 2].*a0;
 fnnn(1,:) = sinh(Rcell)*exp((Rcell-rnnn)./lambda(1)).*(lambda(1)./rnnn);
 fnnn(2,:) = sinh(Rcell)*exp((Rcell-rnnn)./lambda(2)).*(lambda(2)./rnnn);
 
-% calculate mean-field contribution
-z = 6; % coordination number
-p = [2/gz 2/gz]; %single band, horizontal / vertical 
-%p = [4/gz 4/gz]; %double band, horizontal / double vertical  / diagonal
-
-Y_mf = zeros(1, 2);
-Y_mf(1) = (fN(1) - z*fnn(1))*( Con(1)*p(1) + (1-p(1)) );
-Y_mf(2) = (fN(2) - z*fnn(2))*( Con(2)*p(2) + (1-p(2)) );
-
 % save folder 
 save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability';
 fname_str_default = strrep(sprintf('N%d_a0_%.1f_rcell_%.1f_lambda12_%.1f_Con_%d_%d_K_%d_%d_%d_%d',...
     N, a0, rcell, lambda(2), Con(1), Con(2), K(1,1), K(1,2), K(2,1), K(2,2)), '.', 'p');
+
+%% Calculate Y_all
+% specify wave type and characteristics
+wave_types_str = {'straight', 'inward bend', 'outward bend'};
+wave_type = 1;
+num_waves = 2; % number of waves
+bandwidth = 1; % width of band of cells of one type
+
+% order of states: F, M, B, E
+states_perm = [4 2 1 3]; 
+%{
+states_perm = [2 4 3 1]; % network 15
+states_perm = [4 3 1 2]; % network 19
+states_perm = [3 4 2 1]; % network 33
+states_perm = [4 2 1 3]; % network 33/34
+states_perm = [2 4 3 1]; % network 36
+%}
+default_states = [0 0; 0 1; 1 0; 1 1];
+
+% calculate Y(alpha)
+% neighbour data
+switch wave_type
+    case 1
+        n_nei = [2	0	0	4; % EF
+            2	2	0	2; % F
+            2	2	2	0; % M 
+            0	2	2	2; % B
+            0	0	2	4; % EB
+            0	0	0	6]; % E
+    case 2
+        n_nei = [3	0	0	3;
+            2	3	0	1;
+            1	2	3	0;
+            0	1	2	3;
+            0	0	1	5;
+            0	0	0	6];
+    case 3
+        n_nei = [1	0	0	5;
+            2	1	0	3;
+            3	2	1	0;
+            0	3	2	1;
+            0	0	3	3;
+            0	0	0	6];
+end
+states = default_states(states_perm, :); % F, M, B, E
+types = [states(4,:); states(1,:); states(2,:); states(3,:); states(4,:); states(4,:)];
+Y_self = (Con-1).*types + 1;
+
+% calculate Y_nei
+Y_nei = zeros(size(n_nei, 1), 2);
+for i=1:6
+    Y_nei(i,1) = fnn(1)*n_nei(i,:)*((Con(1)-1)*states(:,1)+1);
+    Y_nei(i,2) = fnn(2)*n_nei(i,:)*((Con(2)-1)*states(:,2)+1);
+end
+%
+% estimate p
+tmp = num_waves*bandwidth;
+tmp2 = [tmp tmp tmp gz-3*tmp];
+p = (tmp2*states)/gz;
+
+% calculate Y_mf (mean-field contribution)
+z = 6; % coordination number
+Y_mf = zeros(1, 2);
+Y_mf(1) = (fN(1) - z*fnn(1))*( Con(1)*p(1) + (1-p(1)) );
+Y_mf(2) = (fN(2) - z*fnn(2))*( Con(2)*p(2) + (1-p(2)) );
+%disp(Y_mf)
+
+Y_all = Y_self + Y_nei + Y_mf;
+
+%% Check conditions for specific parameter set
+conditions_met = zeros(6,1);
+% (1) E_F?F
+% (2) F?M
+% (3) M?B
+% (4) B?E
+% (5) E_B?E
+% (6) E?E 
+targets = [1 2 3 4 4 4]; % recall F, M, B, E
+output_state_list = zeros(6, 2);
+for i=1:6
+    %i = 1;
+    Y = Y_all(i, :); % 2x1
+    output_state = prod(((Y - K).*M_int>0) + (1-abs(M_int)), 2)';
+    target_state = states(targets(i),:);
+    conditions_met(i) = all(output_state==target_state);
+    output_state_list(i,:) = output_state;
+end
+%disp(output_state_list);
+disp(conditions_met);
+
 %% Check for a set of parameters
-K_12_all = 1:30;
-K_21_all = 1:30;
-K_22_all = 1:10;
-%check_results = zeros(5, numel(K_12_all), numel(K_21_all), numel(K_22_all));
-trav_wave_cond_met = zeros(5, numel(K_12_all), numel(K_21_all), numel(K_22_all));
+var_x_all = 1:10:1000; %variable to plot on x axis
+var_y_all = 1:10:1000; %variable to plot on y axis
+var_z_all = 1:10:1000; %variable to plot on z axis
+%K_22_all = 1:10;
+%trav_wave_cond_met = zeros(numel(K_12_all), numel(K_21_all), numel(K_22_all));
+trav_wave_cond_met = zeros(numel(var_x_all), numel(var_y_all), numel(var_z_all));
 
-for k=1:numel(K_22_all)
-    for i=1:numel(K_12_all)
-        for j=1:numel(K_21_all)
+for k=1:numel(var_z_all)
+    for j=1:numel(var_y_all)
+        for i=1:numel(var_x_all)
             thisK = K;
-            thisK(1,2) = K_12_all(i);
-            thisK(2,1) = K_21_all(j);
-            thisK(2,2) = K_22_all(k);
-
-            % new method
-            Xself = [0 0; 0 1; 1 1; 1 0; 0 0]; % fixed
+            thisK(1,2) = var_x_all(i); %K12
+            thisK(2,1) = var_y_all(j); %K21
+            %thisK(2,2) = K_22_all(k);
+            thisK(1,1) = var_z_all(k); %K11
             
-            % plane wave
-            Xnei = [0 2; 2 4; 4 4; 4 2; 2 0]; 
-            cond_set1 = calc_conditions(fnn, Con, thisK, Y_mf, z, Xself, Xnei);
-            trav_wave_cond_met(1, i, j, k) = all(cond_set1);
-        
-            % inward bend
-            Xnei = [0 3; 3 5; 5 3; 3 1; 1 0]; 
-            cond_set2 = calc_conditions(fnn, Con, thisK, Y_mf, z, Xself, Xnei);
-            trav_wave_cond_met(2, i, j, k) = all(cond_set2);
+            conditions_met = zeros(6,1);
+            % (1) E_F?F
+            % (2) F?M
+            % (3) M?B
+            % (4) B?E
+            % (5) E_B?E
+            % (6) E?E 
+            targets = [1 2 3 4 4 4]; % recall F, M, B, E
+            output_state_list = zeros(6, 2);
+            for i2=1:6
+                %i = 1;
+                Y = Y_all(i2, :); % 2x1
+                output_state = prod(((Y - thisK).*M_int>0) + (1-abs(M_int)), 2)';
+                target_state = states(targets(i2),:);
+                conditions_met(i2) = all(output_state==target_state);
+                output_state_list(i2,:) = output_state;
+            end
+            %disp(output_state_list);
+            %disp(conditions_met);
             
-            % outward bend
-            Xnei = [0 1; 1 3; 3 5; 5 3; 3 0]; 
-            cond_set3 = calc_conditions(fnn, Con, thisK, Y_mf, z, Xself, Xnei);
-            trav_wave_cond_met(3, i, j, k) = all(cond_set3);
-
-            % old method
-            %{
-            cond_set1 = [...
-                1+2*Con(2)*fnn(2)+4*fnn(2)+Y_mf(2)<thisK(1,2) ...
-                Con(2)+4*Con(2)*fnn(2)+2*fnn(2)+Y_mf(2)>thisK(1,2)...
-                1+2*Con(1)*fnn(1)+4*fnn(1)+Y_mf(2)<thisK(2,1)...
-                Con(1)+4*Con(1)*fnn(1)+2*fnn(1)+Y_mf(2)>thisK(2,1)...
-                1+2*Con(2)*fnn(2)+4*fnn(2)+Y_mf(2)>thisK(2,2)...
-                1+6*fnn(2)+Y_mf(2)<thisK(2,2)];
-            check_results(i, j, 1) = all(cond_set1);
-
-
-            cond_set2 = [...
-                1+3*Con(2)*fnn(2)+3*fnn(2)+Y_mf(2)<thisK(1,2) ...
-                Con(2)+3*Con(2)*fnn(2)+3*fnn(2)+Y_mf(2)>thisK(1,2)...
-                1+3*Con(1)*fnn(1)+3*fnn(1)+Y_mf(1)<thisK(2,1)...
-                Con(1)+5*Con(1)*fnn(1)+fnn(1)+Y_mf(1)>thisK(2,1)...
-                1+3*Con(2)*fnn(2)+3*fnn(2)+Y_mf(2)>thisK(2,2)...
-                Con(1)+3*Con(1)*fnn(1)+Y_mf(1)>thisK(2,1) || 1+Con(2)*fnn(2)+5*fnn(2)+Y_mf(2)<thisK(2,2)...
-                1+Con(1)*fnn(1)+5*fnn(1)+Y_mf(1)>thisK(2,1) || 1+6*fnn(2)+Y_mf(2)<thisK(2,2)];
-            check_results(i, j, 2) = all(cond_set2);
-
-            cond_set3 = [...
-            1+3*Con(2)*fnn(2)+3*fnn(2)+Y_mf(2)<thisK(1,2) ...
-            Con(2)+3*Con(2)*fnn(2)+3*fnn(2)+Y_mf(2)>thisK(1,2)...
-            1+Con(1)*fnn(1)+5*fnn(1)+Y_mf(1)<thisK(2,1)...
-            Con(1)+3*Con(1)*fnn(1)+3*fnn(1)+Y_mf(1)>thisK(2,1)...
-            1+Con(2)*fnn(2)+5*fnn(2)+Y_mf(2)>thisK(2,2)...
-            1+3*Con(1)*fnn(1)+3*fnn(1)+Y_mf(2)>thisK(2,1) || 1+6*fnn(2)+Y_mf(2)<thisK(2,2)];
-            %disp(cond_set3);
-            check_results(i, j, 3) = all(cond_set3);
-
-            % plane waves possible of type 1, 2 and 3?
-            cond_set123 = [...
-                1+3*Con(2)*fnn(2)+3*fnn(2)<thisK(1,2) ...
-                Con(2)+3*Con(2)*fnn(2)+3*fnn(2)>thisK(1,2)...
-                1+3*Con(1)*fnn(1)+3*fnn(1)<thisK(2,1)...
-                Con(1)+3*Con(1)*fnn(1)+3*fnn(1)>thisK(2,1)...
-                1+6*fnn(2)<thisK(2,2)...
-                1+Con(2)*fnn(2)+5*fnn(2)>thisK(2,2)];
-            check_results(i, j, 4) = all(cond_set123);
-
-            % plane waves possible of type 1 and 2?
-            cond_set12 = [...
-                1+3*Con(2)*fnn(2)+3*fnn(2)<thisK(1,2) ...
-                Con(2)+3*Con(2)*fnn(2)+3*fnn(2)>thisK(1,2)...
-                1+3*Con(1)*fnn(1)+3*fnn(1)<thisK(2,1)...
-                Con(1)+4*Con(1)*fnn(1)+2*fnn(1)>thisK(2,1)...
-                1+6*fnn(2)<thisK(2,2)...
-                1+2*Con(2)*fnn(2)+4*fnn(2)>thisK(2,2)...
-                Con(1)+3*Con(1)*fnn(1)+3*fnn(1)>thisK(2,1) || ...
-                    1+Con(2)*fnn(2)+5*fnn(2)<thisK(2,2)];
-            disp(cond_set12);
-            check_results(i, j, 5) = all(cond_set12);
-            %}
+            trav_wave_cond_met(i,j,k) = all(conditions_met);
         end        
     end
 end
-    
-disp('Parameter bounds estimates:');
-fprintf('%.2f < K12 < %.2f \n', 1+2*Con(2)*fnn(2)+4*fnn(2),...
-    Con(2)+4*Con(2)*fnn(2)+2*fnn(2));
-fprintf('%.2f < K21 < %.2f \n', 1+2*Con(1)*fnn(1)+4*fnn(1),...
-    Con(1)+4*Con(1)*fnn(1)+2*fnn(1));
-fprintf('%.2f < K22 < %.2f \n', 1+6*fnn(2),...
-    1+2*Con(2)*fnn(2)+4*fnn(2));
-
-%% Save data
-%
-save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\data';
-fname_str_data = sprintf('Trav_wave_stability_analytical_%s_K12_K21_K22_range', fname_str_default);  
-fname = fullfile(save_folder, fname_str_data);
-save(fname, 'K_12_all', 'K_21_all', 'K_22_all', 'trav_wave_cond_met');
-%}
-%Trav_wave_stability_nn_N225_a0_1p5_rcell_0p2_lambda12_1p2_Con_18_16_K_0_9_11_1_K12_K21_K22_range
-%% Load data
-load_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\data';
-fname_str_data = sprintf('Trav_wave_stability_analytical_%s_K12_K21_K22_range', fname_str_default);  
-fname = fullfile(load_folder, fname_str_data);
-load(fname, 'K_12_all', 'K_21_all', 'K_22_all', 'trav_wave_cond_met');
-
-%% Plot results (new method)
-wave_types_str = {'plane', 'inward bend', 'outward bend'};
-
-% Plot results 1D
-h = figure;
-hold on
-%bar(K_12_all, check_results);
-plot(K_12_all, trav_wave_cond_met(1,:,1,1), 'o', 'MarkerSize', 15);
-plot(K_12_all, trav_wave_cond_met(2,:,1,1), 'x', 'MarkerSize', 15);
-plot(K_12_all, trav_wave_cond_met(3,:,1,1), '+', 'MarkerSize', 15);
-%plot(K_12_all, check_results(:,4), 'o', 'MarkerSize', 25);
-%plot(K_12_all, check_results(:,5), 'o', 'MarkerSize', 25);
-
-legend(wave_types_str, 'Location', 'ne');
-xlabel('$K^{(12)}$');
-ylabel('Travelling wave possible?');
-set(gca, 'FontSize', 20, 'YTick', [0 1], 'YTickLabels', {'no', 'yes'});
-set(h, 'Units', 'Inches', 'Position', [1 1 10 8]);
-ylim([-0.2 1.2]);
-
-qsave = 0;
-fname_str = sprintf('Trav_wave_stab_nn_MF_%s_vs_K12', fname_str_default);    
-fname = fullfile(save_folder, fname_str);
-save_figure(h, 10, 8, fname, '.pdf', qsave);
-
-%% Plot results as heatmap in 2D
-K22_idx = 2;
-
-%for K22_idx=1:10
-    fname_str_default = strrep(sprintf('N%d_a0_%.1f_rcell_%.1f_lambda12_%.1f_Con_%d_%d_K_%d_%d_%d_%d',...
-        N, a0, rcell, lambda(2), Con(1), Con(2), K(1,1), K(1,2), K(2,1), K22_idx), '.', 'p');
-    h = figure;
-    hold on
-    [K_21_mesh, K_12_mesh] = meshgrid(K_21_all, K_12_all);
-    %temp1 = squeeze(trav_wave_cond_met(1, :,:,K22_idx));
-    idx1 = (trav_wave_cond_met(1, :,:,K22_idx)==1);
-    scatter(K_12_mesh(idx1), K_21_mesh(idx1), 100, 'o');
-    idx2 = (trav_wave_cond_met(2, :,:,K22_idx)==1);
-    scatter(K_12_mesh(idx2), K_21_mesh(idx2), 100, 'x');
-    idx3 = (trav_wave_cond_met(3, :,:,K22_idx)==1);
-    scatter(K_12_mesh(idx3), K_21_mesh(idx3), 100, '+');
-    legend(wave_types_str, 'Location', 'ne');
-    xlabel('$K^{(12)}$');
-    ylabel('$K^{(21)}$');
-    title(sprintf('$K^{(22)} = %.1f $', K_22_all(K22_idx) ));
-    set(gca, 'FontSize', 20);
-    set(h, 'Units', 'Inches', 'Position', [1 1 10 8]);
-
-    xlim([K_12_all(1)-1 K_12_all(end)+1]);
-    ylim([K_21_all(1)-1 K_21_all(end)+1]);
-
-    qsave = 0;
-    fname_str = sprintf('Trav_wave_stab_nn_MF_%s_vs_K12_K21', fname_str_default);    
-    fname = fullfile(save_folder, fname_str);
-    save_figure(h, 10, 8, fname, '.pdf', qsave);
-    %close all
-%end
 
 %% 3D scatter plot
-[K_21_mesh, K_12_mesh, K_22_mesh] = meshgrid(K_21_all, K_12_all, K_22_all);
+%[K_21_mesh, K_12_mesh, K_22_mesh] = meshgrid(K_21_all, K_12_all, K_22_all);
+[K_y_mesh, K_x_mesh, K_z_mesh] = meshgrid(var_y_all, var_x_all, var_z_all); %N.B. x,y order changed by meshgrid
 
 h = figure;
 hold on
 grid on
-type = 3;
 colors = {'b', 'r', 'g'};
-idx1 = squeeze(trav_wave_cond_met(type, :,:,:)==1);
-s1 = scatter3(K_12_mesh(idx1), K_21_mesh(idx1), K_22_mesh(idx1),...
-    150, 'o', 'filled', 'MarkerFaceColor', colors{type});
+idx1 = squeeze(trav_wave_cond_met==1);
+%s1 = scatter3(K_12_mesh(idx1), K_21_mesh(idx1), K_22_mesh(idx1),...
+%    150, 'o', 'filled', 'MarkerFaceColor', colors{wave_type});
+s1 = scatter3(K_x_mesh(idx1), K_y_mesh(idx1), K_z_mesh(idx1),...
+    150, 'o', 'filled', 'MarkerFaceColor', colors{wave_type});
 s1.MarkerFaceAlpha = 0.5;
-%{
-eps = 0.0;
-idx1 = squeeze(trav_wave_cond_met(1, :,:,:)==1);
-offset = eps*rand(sum(idx1(:)), 1);
-s1 = scatter3(K_12_mesh(idx1)+offset, K_21_mesh(idx1)+offset,...
-    K_22_mesh(idx1)+offset, 100, 'o', 'filled');
-s1.MarkerFaceAlpha = 0.5;
-idx2 = (trav_wave_cond_met(2, :,:,:)==1);
-offset = eps*rand(sum(idx2(:)), 1);
-s2=scatter3(K_12_mesh(idx2)+offset, K_21_mesh(idx2)+offset, K_22_mesh(idx2)+offset, 100, 'd', 'filled');
-s2.MarkerFaceAlpha = 0.5;
-idx3 = (trav_wave_cond_met(3, :,:,:)==1);
-s3=scatter3(K_12_mesh(idx3), K_21_mesh(idx3), K_22_mesh(idx3),100, 'v', 'filled');
-s3.MarkerFaceAlpha = 0.5;
-legend(wave_types_str);
-%}
-xlim([K_12_all(1)-1 K_12_all(end)+1]);
-ylim([K_21_all(1)-1 K_21_all(end)+1]);
-zlim([K_22_all(1)-1 K_22_all(end)+1]);
+xlim([var_x_all(1)-1 var_x_all(end)+1]);
+ylim([var_y_all(1)-1 var_y_all(end)+1]);
+zlim([var_z_all(1)-1 var_z_all(end)+1]);
 az = -45; el = 20;
 view(az, el);
 xlabel('$$K^{(12)}$$');
@@ -262,125 +227,33 @@ set(gca, 'FontSize', 20);
 set(h, 'Units', 'inches', 'position', [1 1 10 6]);
 daspect([1 1 1])
 
-qsave = 1;
-fname_str = strrep(sprintf('Trav_wave_stab_nn_MF_%s_3D_vs_K12_K21_K22_scatter_%s',...
-    fname_str_default, wave_types_str{type}), ' ', '_');    
+qsave = 0;
+fname_str = strrep(sprintf('Trav_wave_stability_analytical_v2_scatter3_%s_num_waves_%d',...
+    wave_types_str{wave_type}, num_waves), ' ', '_');    
 fname = fullfile(save_folder, fname_str);
 save_figure(h, 10, 6, fname, '.pdf', qsave);
 %}
 
-%% functions
-function cond_set = calc_conditions(fnn, Con, K, Y_mf, z, Xself, Xnei)
-    % calculate the specific conditions for a given input set
-    fnn_mat = repmat(fnn, 5, 1);
-    Con_mat = repmat(Con, 5, 1);
-
-    Y_self = (Con_mat-1).*Xself + 1;
-    Y_nei = fnn_mat.*(Con_mat.*Xnei + (z-Xnei));
-    Y_mf_mat = repmat(Y_mf, 5, 1);
-    Y_all_mat = Y_self + Y_nei + Y_mf_mat;
-
-    sgn1 = [-1; 1; 1; -1; -1];
-    cond1 = (Y_all_mat(:,2) - K(1,2)).*sgn1 > 0;
-
-    sgn2 = [-1 1; -1 1; 1 -1; 1 -1; 1 -1];
-    %sgn2 = [-1 -1 1 1 1; ...
-    %        1 1 -1 -1 -1];
-    cond2a = (Y_all_mat(:,1) - K(2,1)).*sgn2(:, 1) > 0;
-    cond2b = (Y_all_mat(:,2) - K(2,2)).*sgn2(:, 2) > 0;    
-    cond2 = zeros(5, 1);
-    cond2(1:2) = cond2a(1:2) & cond2b(1:2); % AND for first two conditions
-    cond2(3:5) = cond2a(3:5) | cond2b(3:5); % OR for last two conditions
-
-    cond_set = cond1 & cond2;
-end
-
-%% Plot results (old method)
+%% Save data
 %{
-h = figure;
-hold on
-%bar(K_12_all, check_results);
-plot(K_12_all, check_results(:,1), 'o', 'MarkerSize', 15);
-plot(K_12_all, check_results(:,2), 'x', 'MarkerSize', 15);
-plot(K_12_all, check_results(:,3), '+', 'MarkerSize', 15);
-%plot(K_12_all, check_results(:,4), 'o', 'MarkerSize', 25);
-%plot(K_12_all, check_results(:,5), 'o', 'MarkerSize', 25);
-
-legend({'plane', 'inw. bend', 'outw. bend'}, 'Location', 'ne');
-xlabel('$K^{(12)}$');
-ylabel('Travelling wave possible?');
-set(gca, 'FontSize', 20, 'YTick', [0 1], 'YTickLabels', {'no', 'yes'});
-set(h, 'Units', 'Inches', 'Position', [1 1 10 8]);
-ylim([-0.2 1.2]);
+save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\data';
+fname_str_data = sprintf('Trav_wave_stability_analytical_v2_%s_num_waves_%d',...
+    fname_str_default, num_waves);  
+fname = fullfile(save_folder, fname_str_data);
+save(fname, 'K_12_all', 'K_21_all', 'K_22_all', 'trav_wave_cond_met', ...
+    'num_waves', 'bandwidth', 'wave_type');
 %}
-%% Simulation data
+
+%% Load data 
 %{
-K_12_all = 4:25;
-check_results = ones(numel(K_12_all), 3);
-check_results([1:3 21:22], 1) = 0;
-check_results([1:5 20:22], 2) = 0;
-check_results([1:5 20:22], 3) = 0;
-%}
-%% Plane wave conditions (explicit example) 
-%{
-Xself = [0 0; 0 1; 1 1; 1 0; 0 0]; %[0 0 1 1 0; 0 1 1 0 0];
-Xnei = [0 2; 2 4; 4 4; 4 2; 2 0]; %[0 2 4 4 2; 2 4 4 2 0];
+trav_wave_cond_met_2 = trav_wave_cond_met;
+%
+load_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\data';
+%fname_str_data = sprintf('Trav_wave_stability_analytical_%s', fname_str_default); 
+fname_str_data = 'Trav_wave_stability_analytical_N225_a0_1p5_rcell_0p2_lambda12_1p2_Con_18_16_K_0_9_11_1';
+fname = fullfile(load_folder, fname_str_data);
+load(fname, 'K_12_all', 'K_21_all', 'K_22_all', 'trav_wave_cond_met');
 
-fnn_mat = repmat(fnn, 5, 1);
-Con_mat = repmat(Con, 5, 1);
-
-Y_self = (Con_mat-1).*Xself + 1;
-Y_nei = fnn_mat.*(Con_mat.*Xnei + (z-Xnei));
-Y_mf_mat = repmat(Y_mf, 5, 1);
-Y_all_mat = Y_self + Y_nei + Y_mf_mat;
-
-sgn1 = [-1; 1; 1; -1; -1];
-cond1 = (Y_all_mat(:,2) - K(1,2)).*sgn1 > 0;
-
-sgn2 = [-1 1; -1 1; 1 -1; 1 -1; 1 -1];
-%sgn2 = [-1 -1 1 1 1; ...
-%        1 1 -1 -1 -1];
-cond2a = (Y_all_mat(:,1) - K(2,1)).*sgn2(:, 1) > 0;
-cond2b = (Y_all_mat(:,2) - K(2,2)).*sgn2(:, 2) > 0;    
-cond2 = zeros(5, 1);
-cond2(1:2) = cond2a(1:2) & cond2b(1:2); % AND for first two conditions
-cond2(3:5) = cond2a(3:5) | cond2b(3:5); % OR for last two conditions
-
-cond_set1 = cond1 & cond2;
-disp(cond_set1);
-
-% original description
-cond_set1 = [...
-    1+2*Con(2)*fnn(2)+4*fnn(2)+Y_mf(2)<K(1,2) ...
-    Con(2)+4*Con(2)*fnn(2)+2*fnn(2)+Y_mf(2)>K(1,2)...
-    1+2*Con(1)*fnn(1)+4*fnn(1)+Y_mf(2)<K(2,1)...
-    Con(1)+4*Con(1)*fnn(1)+2*fnn(1)+Y_mf(2)>K(2,1)...
-    1+2*Con(2)*fnn(2)+4*fnn(2)+Y_mf(2)>K(2,2)...
-    1+6*fnn(2)+Y_mf(2)<K(2,2)];
-
-disp(cond_set1)
-%% Inward kink conditions
-cond_set2 = [...
-    1+3*Con(2)*fnn(2)+3*fnn(2)+Y_mf(2)<K(1,2) ...
-    Con(2)+3*Con(2)*fnn(2)+3*fnn(2)+Y_mf(2)>K(1,2)...
-    1+3*Con(1)*fnn(1)+3*fnn(1)+Y_mf(1)<K(2,1)...
-    Con(1)+5*Con(1)*fnn(1)+fnn(1)+Y_mf(1)>K(2,1)...
-    1+3*Con(2)*fnn(2)+3*fnn(2)+Y_mf(2)>K(2,2)...
-    Con(1)+3*Con(1)*fnn(1)+Y_mf(1)>K(2,1) || 1+Con(2)*fnn(2)+5*fnn(2)+Y_mf(2)<K(2,2)...
-    1+Con(1)*fnn(1)+5*fnn(1)+Y_mf(1)>K(2,1) || 1+6*fnn(2)+Y_mf(2)<K(2,2)];
-
-disp(cond_set2)
-%}
-%% Outward kink conditions
-%{
-K = [0 10; 4 2];
-cond_set3 = [...
-    1+3*Con(2)*fnn(2)+3*fnn(2)+Y_mf(2)<K(1,2) ...
-    Con(2)+3*Con(2)*fnn(2)+3*fnn(2)+Y_mf(2)>K(1,2)...
-    1+Con(1)*fnn(1)+5*fnn(1)+Y_mf(1)<K(2,1)...
-    Con(1)+3*Con(1)*fnn(1)+3*fnn(1)+Y_mf(1)>K(2,1)...
-    1+Con(2)*fnn(2)+5*fnn(2)+Y_mf(2)>K(2,2)...
-    1+3*Con(1)*fnn(1)+3*fnn(1)+Y_mf(2)>K(2,1) || 1+6*fnn(2)+Y_mf(2)<K(2,2)];
-
-disp(cond_set3)
+compare = (squeeze(trav_wave_cond_met(wave_type,:,:,:)) == trav_wave_cond_met_2);
+all(compare(:))
 %}

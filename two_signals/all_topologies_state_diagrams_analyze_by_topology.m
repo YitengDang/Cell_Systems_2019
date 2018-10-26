@@ -11,7 +11,7 @@ save_folder_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\a
 save_folder_data = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
 %save_folder_fig = 'D:\Multicellularity\figures\two_signals\all_topologies'; % for figures
 %save_folder_data = 'D:\Multicellularity\data\two_signals\all_topologies'; % for data
-mastersave = 1; % switch off all save options
+mastersave = 0; % switch off all save options
 
 % Load data
 load_path = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
@@ -60,7 +60,8 @@ end
 n_unique = numel(unique_diagrams);
 fprintf('Found number of unique diagrams: %d \n', n_unique);
 %% Get the network numbers of the list of M_int_all
-% Make a list of M_int as in batch_sim_topologies_analyze
+% (1) Make a list of M_int as in batch_sim_topologies_analyze
+
 M = [0 1 -1]; % index to interaction
 M_int_all_reduced = {}; 
 done = zeros(3,3,3,3); % keeps track of which topologies have been found already (up to symmetry)
@@ -90,22 +91,43 @@ for i=1:numel(M_int_all_reduced)
     end
 end
 %}
+%
 M_idx_all = zeros(n_data, 1);
-M_idx_count = zeros(n_networks, 1); %number of counts per network
+%M_idx_count = zeros(n_networks, 1); %number of counts per network
 for i=1:n_data
     M_int = M_int_all{i};
     M_idx = 0;
     for j=1:numel(M_int_all_reduced)
         if all(all( M_int_all_reduced{j} == M_int ))
             M_idx = j;
-            M_idx_count(M_idx) = M_idx_count(M_idx)+1;
+            %M_idx_count(M_idx) = M_idx_count(M_idx)+1;
             break
         end
     end
     M_idx_all(i) = M_idx;
 end
+%}
+
+% Reprocess data into cell array for with possible M_int for each network
+state_diagrams_reorganised = cell(n_networks, 1);
+for i=1:n_networks
+    state_diagrams_reorganised{i} = {};
+end
+for i=1:n_data
+    M_idx = M_idx_all(i);
+    if M_idx==0
+        continue
+    end
+    % add state diagram data
+    state_diagrams_reorganised{M_idx}{end+1} = state_diagrams{i};
+end
+% get number of state diagrams per network
+num_state_diagrams_all = cellfun(@length, state_diagrams_reorganised);
 
 %% (3) Crude classification
+% Classify trajectories according to whether they have steady states,
+% oscillations or both
+
 % -> Plot as pie chart
 cat_all = zeros(n_networks, 2); % col 1: steady states present?, col 2: osc. present?
 for i=1:n_data
@@ -116,6 +138,7 @@ for i=1:n_data
     
     cat_all(M_idx, 1) = cat_all(M_idx, 1) || numel(steady_states{i})>0; 
     cat_all(M_idx, 2) = cat_all(M_idx, 2) || numel(cycles_all{i})>0;
+    
     
     %{
     num_ss = numel(steady_states{i});
@@ -227,7 +250,7 @@ for i=1:n_data
         n_steady_states_max(M_idx) = num;
     end
 end
-n_steady_states_avg = n_steady_states_avg./M_idx_count;
+n_steady_states_avg = n_steady_states_avg./num_state_diagrams_all;
 
 % histogram
 close all
@@ -317,10 +340,10 @@ idx = (count_int_type~=0);
 
 % take mean over all networks
 for i=1:n_networks
-    ss_int_type(:,:,i) = ss_int_type(:,:,i)/M_idx_count(i);
+    ss_int_type(:,:,i) = ss_int_type(:,:,i)/num_state_diagrams_all(i);
     
     osc_q_temp = sum(sum(osc_q_int_type(:,:,i))); % number of oscillatory phases for given network
-    osc_q_int_type(:,:,i) = osc_q_int_type(:,:,i)/M_idx_count(i);
+    osc_q_int_type(:,:,i) = osc_q_int_type(:,:,i)/num_state_diagrams_all(i);
     if osc_q_temp~=0
         osc_period_int_type(:,:,i) = osc_period_int_type(:,:,i)/osc_q_temp;        
     end
@@ -447,7 +470,101 @@ fname_str = sprintf('act_rep_heatmap_osc_period_%s', label);
 path_out = fullfile(save_folder, fname_str);
 save_figure(h, 7, 6, path_out, '.pdf', qsave && mastersave)
 
+%% Find subnetwork (motif) among state diagrams
+subdiagrams = {};
+% anti-clockwise loop
+subdiagrams{1} = [1 2; 2 4; 3 1; 4 3]; % sets of (i,j) indices of transitions that need to be present
+% clockwise loop
+subdiagrams{2} = [2 1; 4 2; 1 3; 3 4]; % sets of (i,j) indices of transitions that need to be present
+
+% test
+%{
+A = state_diagrams{6405};
+match = check_subdiagram(A, subdiagrams{1}) || check_subdiagram(A, subdiagrams{2})
+%}
+
+% check for each network whether it contains subdiagrams of a certain form
+match_all = cell(n_networks, 1); % collect the matches 
+for i=1:n_networks
+    %disp(i);
+    match_all{i} = {};
+    for j=1:num_state_diagrams_all(i)
+        A = state_diagrams_reorganised{i}{j};
+        % either of the subdiagrams must be present
+        match = check_subdiagram(A, subdiagrams{1}) || check_subdiagram(A, subdiagrams{2});
+        if match
+            match_all{i}{end+1} = A;
+        end
+    end
+end
+
+%% Plot fraction of state diagrams containing subdiagram
+num_match = cellfun(@length, match_all);
+frac_match = num_match./num_state_diagrams_all;
+
+% Sort data by fraction of diagram with matching subdiagrams
+[frac_match_sorted, sort_idx] = sort(frac_match, 'descend');
+networks_sel = [15 19 33 34 36]; % unsorted index
+networks_neg_loop = []; % networks with a negative loop between two genes
+for i=1:n_networks
+    M_int = M_int_all_reduced{i};
+    if (M_int(1,2)==1 && M_int(2,1)==-1) || (M_int(1,2)==-1 && M_int(2,1)==1)
+        networks_neg_loop(end+1) = i;
+    end
+end
+networks_sel2 = setdiff(networks_neg_loop, networks_sel);
+[~, sort_idx2] = sort(sort_idx); % "reserve sorting"
+
+h = figure;
+hold on
+p1=barh(1:n_networks, frac_match_sorted, 'b');
+p2=barh(sort_idx2(networks_sel2), frac_match_sorted(sort_idx2(networks_sel2)), 'r');
+p3=barh(sort_idx2(networks_sel), frac_match_sorted(sort_idx2(networks_sel)), 'g');
+legend([p2 p3 p1], {['negative 2-cycle' newline 'no trav. wave'], 'trav. wave', 'other'});
+
+xlabel('Fraction state diagrams with trav. wave motif');
+ylabel('Network');
+xlim([0 1])
+set(gca, 'FontSize', 16, 'YTick', 1:n_networks, 'YTickLabels', sort_idx);
+set(h, 'Units', 'Inches', 'Position', [1 1 9 8]);
+%title(sprintf('Total: %d topologies', n_networks));
+
+qsave = 1;
+folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\all_topologies';
+fname_str = sprintf('state_diagram_trav_wave_motif_occurence_by_topology_barh_v2');
+fname = fullfile(folder, fname_str);
+save_figure(h, 8, 10, fname, '.pdf', qsave);
+%% Check matches explicitly
+network=9;
+for i=1:length(match_all{network})
+    disp(match_all{network}{i});
+end
 %% Functions
+function match = check_subdiagram(A, subdiagram)
+    % checks whether a subdiagram is present in a given state diagram
+    % A: input state diagram
+    % subdiagram: n x 2 matrix with transitions (i,j) which need to be
+    % present
+    if sum(diag(A))==0
+        % no stable state
+        match = 0;
+        return
+    elseif all(A(:)==1)
+        % disregard unconstrained diagram
+        match = 0;
+        return
+    else
+        match = 1;
+        % check all conditions
+        for i=1:size(subdiagram, 1)
+            if ~A(subdiagram(i, 1), subdiagram(i, 2))
+                match = 0;
+                return
+            end
+        end
+    end
+end
+
 function h = draw_state_diagram(A, fig_num, count)
     % A: state diagram (graph adjacency matrix)
     % fig_num: number of figure to plot

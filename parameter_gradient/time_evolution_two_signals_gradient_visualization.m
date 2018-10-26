@@ -49,7 +49,7 @@ cell_type = zeros(N,1); % all the same here
 
 %% Plot phase diagram
 %M_int = 1; lambda12 = 1;
-h = plot_phase_diagram(gz, a0, rcell, M_int, K, Con, lambda12);
+%h = plot_phase_diagram(gz, a0, rcell, M_int, K, Con, lambda12);
 
 %% K profile
 % Choose which interaction to make spatially dependent
@@ -58,21 +58,25 @@ int_wave = [2 1];
 
 % Parameters
 Lx = 1; %default size
-Ax = 0.4;
+Ax = 0.0;
 nx = 1; %number of times the wave fits into x-range
 lambda_x = 1/nx*Lx;
-Ay = 0.4;
+Ay = 0.5;
 ny = 1;
 lambda_y = 1/ny*sqrt(3)/2*Lx;
 wave_x = Ax.*square(pos(:, 1).*(2*pi/lambda_x));
 wave_y = Ay.*square(pos(:, 2).*(2*pi/lambda_y));
 
-% sinusoidal wave
-% K_func = @(x, y) K.*(1 + Ax.*sin(2.*pi.*x/lambda_x) + Ay.*sin(2.*pi.*y/lambda_y));
-% K_all = K_func(pos(:, 1), pos(:, 2));
-
 % square wave
-K_all(int_wave(1), int_wave(2), :) = K(int_wave(1),int_wave(2)).*(1 + wave_x.*wave_y);
+%K_all(int_wave(1), int_wave(2), :) = K(int_wave(1),int_wave(2)).*(1 + wave_x.*wave_y);
+
+% sinusoidal wave
+%K_func = @(x, y) K.*(1 + Ax.*sin(2.*pi.*x/lambda_x) + Ay.*sin(2.*pi.*y/lambda_y));
+%K_all = K_func(pos(:, 1), pos(:, 2));
+x = pos(:, 1);
+y = pos(:, 2);
+K_all(int_wave(1), int_wave(2), :) = K(int_wave(1),int_wave(2)).*...
+    (1 + Ax.*sin(2.*pi.*x/lambda_x) + Ay.*sin(2.*pi.*y/lambda_y));
 
 %{
 figure;
@@ -156,12 +160,13 @@ colormap(map);
 %pause(0.5);
 
 % Save map
-qsave = 0;
+qsave = 1;
 colored_background = 1;
 folder = 'H:\My Documents\Multicellular automaton\figures\parameter_gradient';
 fname_str = strrep(sprintf('gradient_profile_cells_Ax_%.1f_Ay_%.1f_nx_%d_ny_%d',...
     Ax, Ay, nx, ny), '.','p');
-save_figure(h, 0, 0, fullfile(folder, fname_str), '.pdf', qsave, colored_background)
+fname = fullfile(folder, fname_str);
+save_figure(h, 0, 0, fname, '.pdf', qsave, colored_background)
 
 %%
 % initialize ON cells

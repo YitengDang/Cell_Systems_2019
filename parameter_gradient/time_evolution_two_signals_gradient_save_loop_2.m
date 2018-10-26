@@ -36,7 +36,7 @@ iniON = round(p0*N);
 
 % simulation parameters
 tmax = 10^4;
-nruns = 199;
+nruns = 100;
 
 % Initialize parameters
 %[pos,ex,ey] = init_cellpos_hex(gridsize,gridsize);
@@ -56,23 +56,37 @@ cell_type = zeros(N,1); % all the same here
 %h = plot_phase_diagram(gz, a0, rcell, M_int, K, Con, lambda12);
 
 %% K profile
-Ax_all = 0.1:0.1:0.4;
-%Ay_all = 0.1:0.4;
+% Choose which interaction to make spatially dependent
+% int_wave = [i j] means the j->i interaction
+int_wave = [2 1];
+
+wave_type_str = 'sine_wave';
+%Ax_all = 0.1:0.1:0.5;
+Ay_all = 0.1:0.1:0.5;
 
 Ax = 0.0;
 Ay = 0.0;
 nx = 1;
 ny = 1;
-for param_idx=1:numel(Ax_all)
-    %Ay = Ay_all(param_idx);
-    %subfolder = strrep(sprintf('vertical_step_function_Ay_%.1f', Ay), '.', 'p');
-    Ax = Ax_all(param_idx);
-    subfolder = strrep(sprintf('horizontal_step_function_Ax_%.1f_nx_%d', Ax, nx), '.', 'p');
+for param_idx=1:numel(Ay_all)
+    %Ax = Ax_all(param_idx);
+    Ay = Ay_all(param_idx);
     
-    % Choose which interaction to make spatially dependent
-    % interaction = [i j] means the j->i interaction
-    int_wave = [2 1];
-
+    if strcmp(wave_type_str, 'square_wave')
+        %subfolder = strrep(sprintf('horizontal_step_function_Ax_%.1f_nx_%d',...
+        %   Ax, nx), '.', 'p');
+        %subfolder = strrep(sprintf('vertical_step_function_Ay_%.1f_ny_%d',...
+        %   Ay, ny), '.', 'p');
+        data_path = fullfile('L:\BN\HY\Shared\Yiteng\two_signals\parameter_gradient_step_function',...
+            subfolder);
+    elseif strcmp(wave_type_str, 'sine_wave')
+        subfolder = strrep(sprintf('%s_gradient_K%d%d_Ax_%.1f_nx_%d_Ay_%.1f_ny_%d',...
+            wave_type_str, int_wave(1), int_wave(2), Ax, nx, Ay, ny),...
+            '.', 'p');
+        data_path = fullfile('L:\BN\HY\Shared\Yiteng\two_signals\parameter_gradient_sinusoidal',...
+            subfolder);
+    end
+    
     % Parameters
     Lx = 1; %default size
     lambda_x = 1/1*Lx;
@@ -171,8 +185,11 @@ for param_idx=1:numel(Ax_all)
 
         % always check within first t_ac time steps
         t_ac = 10^2; 
-        [cells_out, changed] = update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell,...
-                Con, Coff, K_all, lambda, noise);
+        %[cells_out, changed] = update_cells_two_signals_multiply_v2(cells, dist, M_int, a0, Rcell,...
+        %        Con, Coff, K_all, lambda, noise);
+        [cells_out, changed] = ...
+            update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+            Rcell, Con, Coff, K, lambda, hill, noise);
         while changed && period==Inf && t<t_ac
             %disp(t);
             pause(0.01);
@@ -221,10 +238,6 @@ for param_idx=1:numel(Ax_all)
         fprintf('Final: t_out = %d, period %d \n', t_out, period);
 
         %% Save result
-        %
-        data_path = fullfile('H:\My Documents\Multicellular automaton\data\two_signals\parameter_gradient', ...
-            subfolder);
-
         % variables
         positions = pos;
         distances = dist;

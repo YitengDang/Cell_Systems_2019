@@ -1,7 +1,7 @@
 clear all
 close all
 clc
-%% Load trajectory
+% Load trajectory
 %folder = 'H:\My Documents\Multicellular automaton\data\two_signals\parameter_gradient\vertical_step_function';
 %fname_str = 'Parameter_gradient_K_2_1_square_wave_t_out_1000_period_16-v1_trav_wave_vertical';
 
