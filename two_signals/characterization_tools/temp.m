@@ -1,3 +1,2 @@
-%travelling_wave_stability_analyze_run1;
-travelling_wave_stability_analyze_run2;
-travelling_wave_stability_analyze_run2b;
+travelling_wave_stability_simulator_run_v2;
+travelling_wave_stability_simulator_run_v2_run2;

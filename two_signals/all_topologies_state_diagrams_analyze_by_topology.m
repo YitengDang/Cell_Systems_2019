@@ -21,6 +21,7 @@ label = labels{single_cell+1 + 2*sym};
 fname_str = sprintf('all_topologies_data_%s', label);
 
 load(fullfile(load_path, fname_str));
+n_networks = numel(M_int_by_topology);
 
 % general 
 n_data = numel(state_diagrams); % number of data points
@@ -59,11 +60,28 @@ for i=1:n_data
 end
 n_unique = numel(unique_diagrams);
 fprintf('Found number of unique diagrams: %d \n', n_unique);
-%% Get the network numbers of the list of M_int_all
-% (1) Make a list of M_int as in batch_sim_topologies_analyze
 
+%% Get the network numbers of the list of M_int_all
+% Get a list of indices for M_int
+M_idx_all = zeros(n_data, 1);
+%M_idx_count = zeros(n_networks, 1); %number of counts per network
+for i=1:n_data
+    M_int = M_int_all{i};
+    M_idx = 0;
+    for j=1:numel(M_int_by_topology)
+        if all(all( M_int_by_topology{j} == M_int ))
+            M_idx = j;
+            %M_idx_count(M_idx) = M_idx_count(M_idx)+1;
+            break
+        end
+    end
+    M_idx_all(i) = M_idx;
+end
+
+%{
+% (1) Make a list of M_int as in batch_sim_topologies_analyze
 M = [0 1 -1]; % index to interaction
-M_int_all_reduced = {}; 
+M_int_by_topology = {}; 
 done = zeros(3,3,3,3); % keeps track of which topologies have been found already (up to symmetry)
 for k=1:3^4
     [i11, i12, i21, i22] = ind2sub([3, 3, 3, 3], k);
@@ -74,12 +92,12 @@ for k=1:3^4
     elseif k==1
         continue
     else
-        M_int_all_reduced{end+1} = M_int;
+        M_int_by_topology{end+1} = M_int;
         done(i11,i12,i21,i22) = 1;
         done(gM(1,1),gM(1,2),gM(2,1),gM(2,2))=1;
     end
 end
-n_networks = numel(M_int_all_reduced);
+n_networks = numel(M_int_by_topology);
 
 % Classify given M_int according to the given list
 %{
@@ -91,39 +109,30 @@ for i=1:numel(M_int_all_reduced)
     end
 end
 %}
-%
-M_idx_all = zeros(n_data, 1);
-%M_idx_count = zeros(n_networks, 1); %number of counts per network
-for i=1:n_data
-    M_int = M_int_all{i};
-    M_idx = 0;
-    for j=1:numel(M_int_all_reduced)
-        if all(all( M_int_all_reduced{j} == M_int ))
-            M_idx = j;
-            %M_idx_count(M_idx) = M_idx_count(M_idx)+1;
-            break
-        end
-    end
-    M_idx_all(i) = M_idx;
-end
+
 %}
 
-% Reprocess data into cell array for with possible M_int for each network
-state_diagrams_reorganised = cell(n_networks, 1);
+% Reprocess other data into cell array for with possible M_int for each network
+%{
+state_diagrams_by_topology = cell(n_networks, 1);
+phases_by_topology = cell(n_networks, 1);
+
 for i=1:n_networks
-    state_diagrams_reorganised{i} = {};
+    state_diagrams_by_topology{i} = {};
+    phases_by_topology{i} = {};
 end
 for i=1:n_data
     M_idx = M_idx_all(i);
     if M_idx==0
         continue
     end
-    % add state diagram data
-    state_diagrams_reorganised{M_idx}{end+1} = state_diagrams{i};
+    % add data
+    state_diagrams_by_topology{M_idx}{end+1} = state_diagrams{i};
+    phases_by_topology{M_idx}{end+1} = phases_all{i};
 end
 % get number of state diagrams per network
-num_state_diagrams_all = cellfun(@length, state_diagrams_reorganised);
-
+num_state_diagrams_all = cellfun(@length, state_diagrams_by_topology);
+%}
 %% (3) Crude classification
 % Classify trajectories according to whether they have steady states,
 % oscillations or both
@@ -138,7 +147,6 @@ for i=1:n_data
     
     cat_all(M_idx, 1) = cat_all(M_idx, 1) || numel(steady_states{i})>0; 
     cat_all(M_idx, 2) = cat_all(M_idx, 2) || numel(cycles_all{i})>0;
-    
     
     %{
     num_ss = numel(steady_states{i});
@@ -250,6 +258,7 @@ for i=1:n_data
         n_steady_states_max(M_idx) = num;
     end
 end
+num_state_diagrams_all = cellfun(@length, state_diagrams_by_topology)';
 n_steady_states_avg = n_steady_states_avg./num_state_diagrams_all;
 
 % histogram
@@ -296,7 +305,7 @@ save_figure(h3, 8, 10, path_out, '.pdf', qsave && mastersave)
 % ------Calculations (process data)---------
 count_int_type = zeros(n_int+1, n_int+1); % number of topologies with given interactions
 for i=1:n_networks
-    M_int = M_int_all_reduced{i};
+    M_int = M_int_by_topology{i};
     n_act = sum(M_int(:)==1); % number of activating interactions
     n_rep = sum(M_int(:)==-1); % number of repressing interactions
     count_int_type(n_act+1, n_rep+1) = count_int_type(n_act+1, n_rep+1) + 1;
@@ -489,7 +498,7 @@ for i=1:n_networks
     %disp(i);
     match_all{i} = {};
     for j=1:num_state_diagrams_all(i)
-        A = state_diagrams_reorganised{i}{j};
+        A = state_diagrams_by_topology{i}{j};
         % either of the subdiagrams must be present
         match = check_subdiagram(A, subdiagrams{1}) || check_subdiagram(A, subdiagrams{2});
         if match
@@ -507,7 +516,7 @@ frac_match = num_match./num_state_diagrams_all;
 networks_sel = [15 19 33 34 36]; % unsorted index
 networks_neg_loop = []; % networks with a negative loop between two genes
 for i=1:n_networks
-    M_int = M_int_all_reduced{i};
+    M_int = M_int_by_topology{i};
     if (M_int(1,2)==1 && M_int(2,1)==-1) || (M_int(1,2)==-1 && M_int(2,1)==1)
         networks_neg_loop(end+1) = i;
     end
@@ -539,32 +548,8 @@ network=9;
 for i=1:length(match_all{network})
     disp(match_all{network}{i});
 end
-%% Functions
-function match = check_subdiagram(A, subdiagram)
-    % checks whether a subdiagram is present in a given state diagram
-    % A: input state diagram
-    % subdiagram: n x 2 matrix with transitions (i,j) which need to be
-    % present
-    if sum(diag(A))==0
-        % no stable state
-        match = 0;
-        return
-    elseif all(A(:)==1)
-        % disregard unconstrained diagram
-        match = 0;
-        return
-    else
-        match = 1;
-        % check all conditions
-        for i=1:size(subdiagram, 1)
-            if ~A(subdiagram(i, 1), subdiagram(i, 2))
-                match = 0;
-                return
-            end
-        end
-    end
-end
 
+%% Functions
 function h = draw_state_diagram(A, fig_num, count)
     % A: state diagram (graph adjacency matrix)
     % fig_num: number of figure to plot

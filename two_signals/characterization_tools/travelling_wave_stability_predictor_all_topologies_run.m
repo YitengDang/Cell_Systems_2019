@@ -7,7 +7,7 @@ close all
 set(0,'defaulttextinterpreter', 'latex')
 %% Parameters
 % Number of parameter sets to do
-n_pset = 10^6;
+n_pset = 10^5;
 
 % Manual input
 gz = 15;
@@ -74,8 +74,10 @@ default_states = [0 0; 0 1; 1 0; 1 1];
 
 % save folder
 %save_folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2';
-%save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2';
-save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run3_vary_a0_lambda12';
+save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2';
+%save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run3_vary_a0_lambda12';
+%save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2b_n_pset_10e6';
+
 %% do for a fixed network & wave
 %{
 trav_wave_conds_met = travelling_wave_stability_predictor_general_func(gz, a0,...
@@ -85,7 +87,8 @@ trav_wave_conds_met = travelling_wave_stability_predictor_general_func(gz, a0,..
 %% Loop over all waveforms
 P = perms(1:4);
 n_networks = 44;
-for idx_P=12:size(P, 1)
+
+for idx_P=1:12 %size(P, 1) % todo: [1:11 19:24] 
     states_perm = P(idx_P, :);
 
     % loop over all phases
@@ -98,8 +101,8 @@ for idx_P=12:size(P, 1)
     trav_wave_cond_met = zeros(n_networks, n_pset);
     Con_all = zeros(n_networks, n_pset, 2);
     K_all = zeros(n_networks, n_pset, 2, 2);
-    a0_all = zeros(n_networks, n_pset);
-    lambda2_all = zeros(n_networks, n_pset);
+    %a0_all = zeros(n_networks, n_pset);
+    %lambda2_all = zeros(n_networks, n_pset);
     
     for k=networks_all
         fprintf('Waveform %d, Network %d \n', idx_P, k);
@@ -149,8 +152,10 @@ for idx_P=12:size(P, 1)
             thisCon = zeros(1,2);
             thisK(idxK) = (K_b(2) - K_b(1))*x(idx1, 1:nK) + K_b(1);
             thisCon(idxCon) = (Con_b(2) - Con_b(1))*x(idx1, nK+1:nK+nCon) + Con_b(1); 
-            thisa0 = 10*x(idx1, nK+nCon+1);
-            thislambda = [1 2*x(idx1, nK+nCon+2);];
+            thisa0 = a0;
+            thislambda = lambda;
+            %thisa0 = 10*x(idx1, nK+nCon+1);
+            %thislambda = [1 2*x(idx1, nK+nCon+2);];
             
             Con_all(count, idx1, :) = thisCon;
             K_all(count, idx1, :, :) = thisK;

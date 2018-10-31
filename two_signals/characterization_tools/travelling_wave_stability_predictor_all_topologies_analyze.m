@@ -8,15 +8,16 @@ set(0,'defaulttextinterpreter', 'latex')
 
 %% Parameters
 % Number of parameter sets to do
-n_pset = 10^6;
+n_pset = 10^5;
 
 % Manual input
 gz = 15;
 N = gz^2;
-%a0 = 1.5;
+a0 = 1.5;
 rcell = 0.2;
-%Rcell = rcell*a0;
-%lambda = [1 1.2];
+Rcell = rcell*a0;
+lambda = [1 1.2];
+Coff = [1 1];
 %M_int = [0 1; -1 1]; % network 15 reversed
 %{
 M_int = [0 1; -1 1]; % network 15 reversed
@@ -72,14 +73,19 @@ default_states = [0 0; 0 1; 1 0; 1 1];
 %}
 
 % Data folder
-folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
+folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
+%folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
 %folder = 'L:\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
 %subfolder = 'run1_no_Con_K_info';
-%subfolder = 'run2';
-subfolder = 'run3_vary_a0_lambda12';
-    
-%% 
-%{
+subfolder = 'run2';
+%subfolder = 'run3_vary_a0_lambda12';
+%subfolder = 'run2b_n_pset_10e6';
+
+% save figure folder
+%save_folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_stability';
+save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability';
+%% Find networks capable of supporting travelling waves 
+% 
 types_waves = 24;
 num_networks = 44;
 wave_possible = zeros(types_waves, num_networks); % stores whether a wave of a certain type is possible in a given network
@@ -90,7 +96,6 @@ for i=1:types_waves
     states_perm = P(i, :);
     
     % Load data
-    
     fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
             num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
     load( fullfile(folder, subfolder, fname_str) );
@@ -117,28 +122,17 @@ for i=1:types_waves
 end
 %}
 %% Save analyzed data
-%{
+%
 fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_analysed_%s',...
     num_waves, wave_type, subfolder);
 save( fullfile(folder, fname_str) );
 %}
 %% Load analyzed data
+%
 fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_analysed_%s',...
     num_waves, wave_type, subfolder);
 load( fullfile(folder, fname_str) );
-
-%% Plot wave_possible as heatmap
-h = figure;
-imagesc(1:44, 1:24, wave_possible);
-set(gca, 'YDir', 'normal', 'FontSize', 20);
-xlabel('Network');
-ylabel('Wave type');
-
-qsave = 1;
-fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_analysed_imagesc_%s',...
-    num_waves, wave_type, subfolder);
-fname = fullfile(folder, fname_str);
-save_figure(h, 10, 8, fname, '.pdf', qsave);
+%}
 
 %% display found waves
 [x_found, y_found] = find(wave_possible);
@@ -149,7 +143,27 @@ disp('Cell states F, M, B, E');
 disp(t);
 disp(t2);
 
-%% Find properties of specific travelling wave
+% Get a list of all interaction matrices for the found networks
+[M_int_found] = get_found_M_int(y_found);
+%% Plot wave_possible as heatmap
+%
+h = figure;
+imagesc(1:44, 1:24, wave_possible);
+set(gca, 'YDir', 'normal', 'FontSize', 20);
+xlabel('Network');
+ylabel('Wave type');
+
+qsave = 1;
+fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_analysed_imagesc_%s',...
+    num_waves, wave_type, subfolder);
+fname = fullfile(save_folder, 'all_networks_analytical_Con_K_conditions', fname_str);
+save_figure(h, 10, 8, fname, '.pdf', qsave);
+%}
+%% Plots part I - Con, K values
+% (1) Calculate Q-values, the fraction of psets giving traveling waves
+% (2) Plot histograms of Con, K values for waves
+% (3) Plot correlations between Con, K for waves
+
 Qvals = zeros(numel(x_found), 1); % Q-values of circuits
 for idx_loop=1:numel(x_found)
     %wave_idx = 2;
@@ -207,9 +221,9 @@ for idx_loop=1:numel(x_found)
     qsave = 1;
     fname_str = sprintf('Trav_wave_conditions_wave_num_%d_type_%d_networks_%d_states_F%d_M%d_B%d_E%d',...
         num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
-    fname = fullfile(folder, strcat(fname_str, '_Con_hist'));
+    fname = fullfile(save_folder, 'all_networks_analytical_Con_K_conditions', strcat(fname_str, '_Con_hist'));
     save_figure(h, 10, 8, fname, '.pdf', qsave);
-    fname = fullfile(folder, strcat(fname_str, '_K_hist'));
+    fname = fullfile(save_folder, 'all_networks_analytical_Con_K_conditions', strcat(fname_str, '_K_hist'));
     save_figure(h2, 10, 8, fname, '.pdf', qsave);
     
     %% Calculate correlations
@@ -249,11 +263,11 @@ for idx_loop=1:numel(x_found)
     qsave = 1;
     fname_str = sprintf('Trav_wave_conditions_wave_num_%d_type_%d_networks_%d_states_F%d_M%d_B%d_E%d',...
         num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
-    fname = fullfile(folder, strcat(fname_str, '_Con_K_corr'));
+    fname = fullfile(save_folder, 'all_networks_analytical_Con_K_conditions', strcat(fname_str, '_Con_K_corr'));
     save_figure(h3, 10, 8, fname, '.pdf', qsave);
 end
 
-%% Plot Q values as bar graph
+% Plot Q values as bar graph
 h = figure;
 labels = {'15, [3 4 2 1]','19, [4 3 1 2]','33, [4 2 1 3]','33, [3 4 2 1]',...
     '34, [4 2 1 3]','36, 2 4 3 1]'};
@@ -264,31 +278,99 @@ ylabel('Q-value');
 set(gca, 'FontSize', 20);
 
 % save figures
-qsave = 0;
-folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
-fname_str = sprintf('Trav_wave_conditions_wave_num_%d_type_%d',...
-    num_waves, wave_type);
-fname = fullfile(folder, strcat(fname_str, '_Q_vals_by_wave'));
+qsave = 1;
+%folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
+fname_str = sprintf('Trav_wave_conditions_wave_num_%d_type_%d_%s',...
+    num_waves, wave_type, subfolder);
+fname = fullfile(save_folder, 'all_networks_analytical_Con_K_conditions',...
+    strcat(fname_str, '_Q_vals_by_wave'));
 save_figure(h, 10, 8, fname, '.pdf', qsave);
+%}
+%% Plots part II - phases
+% (1) Plot histogram of all phases with travelling waves
+% (2) Plot Con, K values for waves together with phase diagram
+% (3) Compare phases from state diagrams and phases from NNMFA theory
 
-%% Analyze waves of a specific wave_idx and network
-% Todo: *quantify by calculating fraction in each phase region
-% *Look at combined phases for all interactions together
-% *Refer back to state diagrams: do these predict the possible phases?
+% subdiagrams in state diagrams needed to travelling waves
+subdiagrams = {};
+% anti-clockwise loop
+subdiagrams{1} = [1 2; 2 4; 3 1; 4 3]; % sets of (i,j) indices of transitions that need to be present
+% clockwise loop
+subdiagrams{2} = [2 1; 4 2; 1 3; 3 4]; % sets of (i,j) indices of transitions that need to be present
 
-for idx_loop=2:6
+for idx_loop=1:numel(x_found)
     %idx_loop = 1;
     wave_idx = x_found(idx_loop);
     network = y_found(idx_loop);
     fprintf('wave_idx %d, network %d \n', wave_idx, network);
     states_perm = P(wave_idx, :);
 
+    %idx_wave = 1;
+    
     % load data
-    folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
+    %folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
     %subfolder = 'run3_vary_a0_lambda12';
     fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
             num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
     load( fullfile(folder, subfolder, fname_str) );
+    %}
+    %--------------------------------------------------------------------------
+    %% Identify unique phases of TW and get counts for each phase
+    Con_wave = squeeze(Con_all(network, squeeze(trav_wave_conds_met(network, :)), :));
+    K_wave = squeeze(K_all(network, squeeze(trav_wave_conds_met(network, :)), :, :));
+    num_wave_sims = size(Con_wave, 1);
+    state_diagram_match = zeros(num_wave_sims, 1);
+    phases_all_match = zeros(num_wave_sims, 2, 2);
+    
+    M_int = M_int_found{idx_loop}; 
+    for i=1:num_wave_sims
+        disp(i);
+        % get state diagram for this set of parameters
+        Con = Con_wave(i,:);
+        K = squeeze(K_wave(i, :, :));
+
+        show_diagram = 0;
+        [phase, A] = plot_state_diagram_multicell(gz, a0, rcell, M_int, Con, Coff, K, lambda(2), show_diagram);
+        phases_all_match(i,:,:) = phase;
+
+        % check whether state diagram is of the right structure
+        state_diagram_match(i) = check_subdiagram(A, subdiagrams{1}) || check_subdiagram(A, subdiagrams{2});
+    end
+    fprintf('Fraction waves with correct phase diagram: %d/%d \n', sum(state_diagram_match), num_wave_sims);
+
+    %% Plot histogram of phases
+    idx_temp = find(state_diagram_match);
+    phases_all_match2 = phases_all_match(idx_temp,:,:);
+    Con_wave_filtered = Con_wave(idx_temp, :);
+    K_wave_filtered = K_wave(idx_temp, :, :);
+    
+    phases_all_filtered = unique(phases_all_match2(:,:), 'rows');
+    
+    % Plot histogram of phases
+    phase_counts = zeros(size(phases_all_filtered, 1), 1);
+    for idx_temp=1:size(phases_all_filtered, 1)
+        phase_counts(idx_temp) = sum( all(phases_all_match2(:,:)==phases_all_filtered(idx_temp,:), 2) );
+    end
+    [phase_counts_sorted, sort_idx] = sort(phase_counts, 'descend');
+    
+    h = figure;
+    bar(phase_counts_sorted);
+    xlabel_str = sprintfc('[%d %d; %d %d]', phases_all_filtered(sort_idx, :) );
+    set(gca, 'XTick', 1:numel(sort_idx), 'XTickLabels', xlabel_str);
+    set(gca, 'XTickLabelRotation',45);
+    set(gca, 'FontSize', 20);
+    xlabel('Phase');
+    ylabel('Count');
+    
+    % save figures
+    qsave = 1;
+    save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_analytical_phases\phase_histogram';
+    fname_str = sprintf('Trav_wave_conditions_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d_phases_hist',...
+        num_waves, wave_type, network, states_perm(1), states_perm(2),...
+        states_perm(3), states_perm(4));
+    fname = fullfile(save_folder, fname_str);
+    save_figure(h, 10, 8, fname, '.pdf', qsave);
+    
     %% Plot phase diagram
     Con_wave = squeeze(Con_all(network, squeeze(trav_wave_conds_met(network, :)), :));
     K_wave = squeeze(K_all(network, squeeze(trav_wave_conds_met(network, :)), :, :));
@@ -305,21 +387,125 @@ for idx_loop=2:6
             h = plot_phase_diagram_local(a0, rcell, lambda, dist, idx_i, idx_j);
             %h=figure;
             %hold on
-            scatter(Con_wave(:,idx_j), K_wave(:,idx_i,idx_j), 'k', 'x');
+            scatter(K_wave_filtered(:,idx_i,idx_j), Con_wave_filtered(:,idx_j), 'k', 'x');
 
             % save figures
             qsave = 1;
-            folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\phase_diagram';
-            fname_str = sprintf('Trav_wave_conditions_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d_interaction_%d_%d_scatter',...
+            save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_analytical_phases\phase_diagram';
+            fname_str = sprintf('Trav_wave_conditions_filtered_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d_interaction_%d_%d_scatter',...
                 num_waves, wave_type, network, states_perm(1), states_perm(2),...
                 states_perm(3), states_perm(4), idx_i, idx_j);
-            fname = fullfile(folder, fname_str);
+            fname = fullfile(save_folder, fname_str);
             save_figure(h, 10, 8, fname, '.pdf', qsave);
         end
     end
+    
+    %% Compare found phases with all phases with the correct state diagram structure
+    % Check that the associated phase diagram has the correct structure
+    % For each Con, K, the associated phase diagram should allow for waves
+    % Also get information on the phases for each, and get a list of unique
+    % phases
+
+    % Load data on all phase diagrams
+    load_path = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
+    %load_path = 'D:\Multicellularity\data\two_signals\all_topologies';
+    labels = {'multi_cell', 'single_cell', 'multi_cell_all_incl', 'single_cell_all_incl'};
+    single_cell = 0; 
+    sym = 0;
+    label = labels{single_cell+1 + 2*sym};
+    fname_str = sprintf('all_topologies_data_%s', label);
+    load(fullfile(load_path, fname_str));
+    
+    %idx_loop = 1;
+    wave_idx = x_found(idx_loop);
+    network = y_found(idx_loop);
+    M_int = M_int_by_topology{network};
+
+    % get all phases from network
+    this_nphases = numel(phases_all_by_topology{network});
+    phases_from_state_diagram = []; %zeros(this_nphases, 2, 2);
+
+    % check whether they permit travelling waves by checking subdiagram
+    count = 0;
+    for i=1:this_nphases
+        phase = phases_all_by_topology{network}{i};
+
+        % construct state diagram from phase
+        A = get_state_diagram_from_phase(phase, M_int);
+
+        % check if it has the right subdiagram
+        this_match = check_subdiagram(A, subdiagrams{1}) || check_subdiagram(A, subdiagrams{2});
+        if this_match
+            count = count+1;
+            phases_from_state_diagram(count, :, :) = phases_all_by_topology{network}{i};
+        end
+    end
+
+    %% compare phases from state diagrams with phases from nearest-neighbour
+    % mean-field theory
+    A = phases_from_state_diagram(:,:);
+    B = phases_all_filtered;
+    AB_int = intersect(A, B, 'rows', 'sorted');
+    A_only = setdiff(A, AB_int, 'rows', 'sorted');
+    B_only = setdiff(B, AB_int, 'rows', 'sorted');
+
+    % plot as pie chart
+    h = figure;
+    labels = {'both', 'only state diagram', 'only NNMFA'};
+    X = [size(AB_int,1) size(A_only,1) size(B_only,1)];
+    plotHandle=pie(X);
+    legend(labels, 'Location', 'southoutside')
+    title(sprintf('Total = %d phases', sum(X))); 
+    set(plotHandle(2:2:end), 'FontSize', 14);
+    set(gca, 'FontSize', 16);
+
+    % save figures
+    qsave = 1;
+    save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_analytical_phases\phases_compare';
+    fname_str = sprintf('Trav_wave_conditions_filtered_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d_phases_compare',...
+        num_waves, wave_type, network, states_perm(1), states_perm(2),...
+        states_perm(3), states_perm(4));
+    fname = fullfile(save_folder, fname_str);
+    save_figure(h, 7, 5, fname, '.pdf', qsave);
+
+    % Save comparison data
+    save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_analytical_phases\phases_compare';
+    fname_str = sprintf('Trav_wave_conditions_filtered_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d_phases_compare_data',...
+        num_waves, wave_type, network, states_perm(1), states_perm(2),...
+        states_perm(3), states_perm(4));
+    fname = fullfile(save_folder, fname_str);
+    save(fname, 'phases_from_state_diagram', 'phases_all_filtered',...
+        'AB_int', 'A_only', 'B_only', 'Con_wave', 'K_wave');
 end
 
 %% Functions
+function [M_int_found] = get_found_M_int(y_found)
+    % Get a list of all interaction matrices for the found networks
+    M = [0 1 -1]; % index to interaction
+    M_int_all_reduced = {};
+    done = zeros(3,3,3,3); % keeps track of which topologies have been found already (up to symmetry)
+    for k=1:3^4
+        [i11, i12, i21, i22] = ind2sub([3, 3, 3, 3], k);
+        gM = [i22 i21; i12 i11];
+        M_int = [M(i11) M(i12); M(i21) M(i22)];
+        if done(i11,i12,i21,i22)
+            continue
+        elseif k==1
+            continue
+        else
+            M_int_all_reduced{end+1} = M_int;
+            done(i11,i12,i21,i22) = 1;
+            done(gM(1,1),gM(1,2),gM(2,1),gM(2,2))=1;
+        end
+    end
+
+    M_int_found = cell(numel(y_found), 1);
+    for i=1:numel(y_found)
+        M_int_found{i} = M_int_all_reduced{y_found(i)};
+        %disp(M_int_found{i})
+    end
+end
+
 function h = plot_phase_diagram_local(a0, rcell, lambda, dist, idx_gene, idx_mol)
     % idx_gene: index of gene under control
     % idx_mol: index of sensed molecule / molecule affecting the gene (1 <= i <= L)
@@ -398,4 +584,96 @@ function h = plot_phase_diagram_local(a0, rcell, lambda, dist, idx_gene, idx_mol
     %title(sprintf('$$f_N = %.3f, a_0 = %.2f$$', fN, a0), 'FontSize', 30)
     title(sprintf('Interaction $$%d \\leftarrow %d$$', idx_gene, idx_mol))
     %title(sprintf('Molecule %d', idx_mol));
+end
+
+function A = get_state_diagram_from_phase(phase, M_int)
+    % essentially second part of plot_state_diagram_multicell
+
+    % Map from phase to diagram
+    % activation/repression | state | input molecule (1/2)
+    g_map = cell(2, 6, 2);
+    % 0=OFF, 1:ON, 2:UNKNOWN
+    % activation 
+    g_map{1,1,1} = 2*ones(2);
+    g_map{1,1,2} = 2*ones(2);
+    g_map{1,2,1} = ones(2);
+    g_map{1,2,2} = ones(2);
+    g_map{1,3,1} = [2 2; 1 1];
+    g_map{1,3,2} = [2 1; 2 1];
+    g_map{1,4,1} = [0 0; 2 2];
+    g_map{1,4,2} = [0 2; 0 2];
+    g_map{1,5,1} = zeros(2);
+    g_map{1,5,2} = zeros(2);
+    g_map{1,6,1} = [0 0; 1 1];
+    g_map{1,6,2} = [0 1; 0 1];
+    % repression 
+    %(note: this is precisely NOT g_map{1,:,:} in the three-val
+    % boolean algebra with NOT 2 = 2)
+    g_map{2,1,1} = 2*ones(2);
+    g_map{2,1,2} = 2*ones(2);
+    g_map{2,2,1} = zeros(2);
+    g_map{2,2,2} = zeros(2);
+    g_map{2,3,1} = [2 2; 0 0];
+    g_map{2,3,2} = [2 0; 2 0];
+    g_map{2,4,1} = [1 1; 2 2];
+    g_map{2,4,2} = [1 2; 1 2];
+    g_map{2,5,1} = ones(2);
+    g_map{2,5,2} = ones(2);
+    g_map{2,6,1} = [1 1; 0 0];
+    g_map{2,6,2} = [1 0; 1 0];
+
+    gij = cell(2);
+    X_out = cell(2, 1);
+    for i=1:2
+        if all(M_int(i,:)==0)
+            fprintf('No input for gene %d \n', i);
+            % no input => output=initial state
+            X1_in = [0 0; 1 1]; 
+            X2_in = [0 1; 0 1];
+            X_in = (i==1).*X1_in + (i==2).*X2_in; 
+            X_out{i} = X_in;
+        else
+            % normal case
+            for j=1:2
+                if M_int(i,j)~=0
+                    idx = (M_int(i,j)==1) + (M_int(i,j)==-1)*2;
+                    gij{i,j} = g_map{idx, phase(i,j), j};
+                else
+                    gij{i,j} = ones(2); % Fixed ambiguous inputs
+                end
+            end
+            X_out{i} = and3(gij{i,1}, gij{i,2}); % three-valued logic
+        end
+    end
+
+    A = zeros(4); % graph adjacency matrix
+    for i=1:2
+        for j=1:2
+            state_in = i + 2*(j-1); 
+            X_out_this = [X_out{1}(i,j) X_out{2}(i,j)]; % tentative 
+            %disp(X_out_this)
+            if all(X_out_this~=2) % unambiguous out state
+                state_out = X_out_this(1)+1 + 2*X_out_this(2); % (i,j) -> idx
+                A(state_in, state_out) = 1;
+                %disp(state_out);
+            elseif sum(X_out_this==2)==1 % semi-definite
+                if (X_out_this(1)==2)
+                    X_out_both = [0 X_out_this(2); 1 X_out_this(2)];
+                elseif (X_out_this(2)==2)
+                    X_out_both = [X_out_this(1) 0; X_out_this(1) 1];
+                end
+                state_out = X_out_both*[1; 2]+1;
+                %[X_out_both(1,1)+1 + 2*X_out_both(1,2);...
+                %    X_out_both(2,1)+1 + 2*X_out_both(2,2)];
+                A(state_in, state_out) = 1;
+                %disp(state_out);
+            elseif sum(X_out_this==2)==2 
+                A(state_in, :) = 1;
+            end
+        end
+    end
+end
+
+function out = and3(x,y)
+    out = min(x.*y, 2);
 end

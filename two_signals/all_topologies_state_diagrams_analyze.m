@@ -10,7 +10,7 @@ save_folder_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\a
 save_folder_data = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
 %save_folder_fig = 'D:\Multicellularity\figures\two_signals\all_topologies'; % for figures
 %save_folder_data = 'D:\Multicellularity\data\two_signals\all_topologies'; % for data
-mastersave = 0; % switch off all save options
+mastersave = 1; % switch off all save options
 
 % Load data
 load_path = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
@@ -99,7 +99,7 @@ save_figure(h, 7, 6, path_out, '.pdf', qsave && mastersave)
 
 %% (2b) Common diagrams: draw
 % get most common diagrams
-num = 0; % draw 'num' number of highest scoring diagrams
+num = 16; % draw 'num' number of highest scoring diagrams
 %num = numel(unique_diagrams); % get all diagrams
 % Plot common diagrams
 close all
@@ -109,15 +109,14 @@ for i=1:num
     
     % save figure
     qsave = 1;
+    save_folder_fig = 'H:\My Documents\Multicellular automaton\latex\10_two_signals\all_topologies_state_diagrams';
     save_folder = fullfile(save_folder_fig,...
         sprintf('all_diagrams_%s', label));
     fname_str = sprintf('state_diagram_%s_rank_%d', label, i);
     path_out = fullfile(save_folder, fname_str);
-    save_figure(h, 7, 6, path_out, '.pdf', qsave && mastersave)
-    
+    save_figure(h, 7, 6, path_out, '.pdf', qsave && mastersave)    
     close all
 end
-
 %{
 % Old code
 common_diagrams = [];

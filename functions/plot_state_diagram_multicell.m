@@ -1,6 +1,20 @@
-function [phase, A] = plot_state_diagram_multicell(gz, a0, rcell, M_int, Con, Coff, K, lambda12)
+function [phase, A] = plot_state_diagram_multicell(gz, a0, rcell, M_int, Con, Coff, K, lambda12, show_diagram)
 % Plots the state diagram of the multicellular system with TWO types of
 % signalling molecules
+
+% output:
+% * phase: phases of the interactions
+% 1: U -> none (activation-deactivation)
+% 2: P1 -> all ON(+) / OFF(-)
+% 3: A1 -> ON->ON/activation (+) / ON-> OFF (-) 
+% 4: A0 -> OFF->OFF/deactivation (+) / OFF->ON (-)
+% 5: P0 -> all OFF(+) / ON(-)
+% 6: A01 -> autonomy (+) / autonomous oscillations (-)
+% * A: state diagram adjacency matrix
+
+if nargin<9
+    show_diagram = 1; % whether to show the plot
+end
 
 % Parameters
 % lattice parameters
@@ -40,12 +54,9 @@ R3 = ((Coff + repmat(fN'.*Con, 2, 1) - K) < 0 & (repmat((1+fN').*Con, 2, 1) - K)
 R4 = (repmat((1+fN').*Con, 2, 1) - K) < 0; % Everything OFF
 
 phase = 1 + R1 + 2*R2 + 3*R3 + 4*R4;
-% 1: none (activation-deactivation)
-% 2: all ON(+) / OFF(-)
-% 3: ON->ON/activation (+) / ON-> OFF (-) 
-% 4: OFF->OFF/deactivation (+) / OFF->ON (-)
-% 5: all OFF(+) / ON(-)
-% 6: autonomy (+) / autonomous oscillations (-)
+
+% set phases of non-existent interactions to 0
+phase(M_int==0) = 0;
 
 % Map from phase to diagram
 % activation/repression | state | input molecule (1/2)
@@ -171,6 +182,10 @@ for i=1:2
 end
 
 %% Draw state diagram
+if ~show_diagram
+    return
+end
+
 h10 = figure(10);
 hold on
 s = [0 1 0 1];

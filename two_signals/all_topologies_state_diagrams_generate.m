@@ -2,12 +2,12 @@
 clear variables
 close all
 clc
-% NB: recheck phase symmetries, not working properly
-%% Count # of topologies
+%% Estimate # of topologies
 % # phases per interaction
 n_phases_all = [6 2];
 
 % Single cell
+%{
 disp('Single cell:');
 n_phases = n_phases_all(2); % number of phases for each interaction
 Ts = [1 0 3 0 10];
@@ -52,13 +52,13 @@ fprintf('Excluding trivial topologies: %d \n', Ns3)
 % Convention:
 % phase 1: (Con - K) > 0
 % phase 2: (Con - K) < 0
-
+%}
 %% Loop over topologies and phases
 % N.B. some of the phases are not possible, e.g. when autonomy and
 % activation-deactivation are both present for the same gene
 
 % Settings
-single_cell = 1;
+single_cell = 0;
 draw_diagram = 0; % draw state diagram?
 sym = 0; % include symmetries? 0: symmetric diagrams are excluded, 1: everything included
 n_phases = n_phases_all(single_cell+1);
@@ -71,17 +71,24 @@ countP = zeros(3^4, 1); % count phases
 
 % main output
 M_int_all = {}; %cell(3^4, 1);
+M_int_by_topology = {}; 
 phases_all = {}; % store all phases, stored as matrix with phase of each interaction (1-6), 0 if no interaction (M_int(i,j)==0)
+phases_all_by_topology = {};
 state_diagrams = {}; % cell(Ns2, 1); % store all state diagrams (graph transition matrices)
+state_diagrams_by_topology = {};
 steady_states = {}; %cell(Ns2, 1); % store all steady states
+steady_states_by_topology = {};
 cycles_all = {}; %cell(Ns2, 1); % store all loop structures
+cycles_all_by_topology = {};
 
 for k=1:3^4
     [i11, i12, i21, i22] = ind2sub([3, 3, 3, 3], k);
     % matrix associated with indices
     M_int = [M(i11) M(i12); M(i21) M(i22)];
     
-    if done(i11,i12,i21,i22)
+    if all(M_int(:)==0) % skip the trivial network
+        continue
+    elseif done(i11,i12,i21,i22)
         continue
     %elseif (i11==1 && i12==1) || (i21==1 && i22==1) || (i12==1 && i21==1)
         % skip: no input to gene 1 || 2 || no cross-talk
@@ -96,7 +103,18 @@ for k=1:3^4
     else
         %disp(M_int);
         
+        % update loop variables
         done(i11,i12,i21,i22)=1;
+        count = count+1;
+        
+        % prepare variables
+        M_int_by_topology{count} = M_int;
+        phases_all_by_topology{count} = {};
+        state_diagrams_by_topology{count} = {};
+        steady_states_by_topology{count} = {};
+        cycles_all_by_topology{count} = {};
+
+        % get symmetric partners
         gM = g([i11 i12; i21 i22]);
         if ~sym
             done(gM(1,1),gM(1,2),gM(2,1),gM(2,2))=1;
@@ -115,25 +133,33 @@ for k=1:3^4
                 [i11b, i12b, i21b, i22b] = ind2sub([sz(1,1), sz(1,2), sz(2,1), sz(2,2)], k1);
                 if doneP(i11b,i12b,i21b,i22b)
                     continue
-                elseif (i11b==1)&&(sz(1,1)>1)&&(i12b==6) || (i11b==6)&&(i12b==1)&&(sz(1,2)>1)
-                    doneP(i11b,i12b,i21b,i22b) = 1;
-                    continue
-                elseif (i21b==1)&&(sz(2,1)>1)&&(i22b==6) || (i21b==6)&&(i22b==1)&&(sz(2,2)>1)
+                elseif (i11b==1)&&(i21b==6)&&(M_int(1,1)~=0)&&(M_int(2,1)~=0) ||...
+                        (i11b==6)&&(i21b==1)&&(M_int(1,1)~=0)&&(M_int(2,1)~=0) ||...
+                        (i21b==1)&&(i22b==6)&&(M_int(2,1)~=0)&&(M_int(2,2)~=0) ||...
+                        (i21b==1)&&(i22b==6)&&(M_int(2,1)~=0)&&(M_int(2,2)~=0)
+                    % incompatible phases
                     doneP(i11b,i12b,i21b,i22b) = 1;
                     continue
                 else
                     %disp(sum(countP));
                     P = [i11b i12b; i21b i22b]; % matrix with phases
                     
-                    %
+                    % calculate result
+                    [A, ss, cycles] = all_topologies_analyze(single_cell, P, M_int, draw_diagram);
+                    
+                    % store results
                     phases_all{end+1} = abs(M_int).*P; % store phase matrix 
                     M_int_all{end+1} = M_int; %store interaction matrix
-                    
-                    [A, ss, cycles] = all_topologies_analyze(single_cell, P, M_int, draw_diagram);
                     state_diagrams{end+1} = A;
                     steady_states{end+1} = ss;
                     cycles_all{end+1} = cycles;
+                    
+                    phases_all_by_topology{count}{end+1} = abs(M_int).*P; % store phase matrix 
+                    state_diagrams_by_topology{count}{end+1} = A;
+                    steady_states_by_topology{count}{end+1} = ss;
+                    cycles_all_by_topology{count}{end+1} = cycles;
                     %}
+                    
                     % update tracking variables: also consider P symmetries
                     doneP(i11b,i12b,i21b,i22b) = 1;
                     gP = g(P);
@@ -154,24 +180,32 @@ for k=1:3^4
                 [i11b, i12b, i21b, i22b] = ind2sub([sz(1,1), sz(1,2), sz(2,1), sz(2,2)], k1);
                 if doneP(i11b,i12b,i21b,i22b)
                     continue
-                elseif (i11b==1)&&(sz(1,1)>1)&&(i12b==6) || (i11b==6)&&(i12b==1)&&(sz(1,2)>1)
-                    doneP(i11b,i12b,i21b,i22b) = 1;
-                    continue
-                elseif (i21b==1)&&(sz(2,1)>1)&&(i22b==6) || (i21b==6)&&(i22b==1)&&(sz(2,2)>1)
+                elseif (i11b==1)&&(i21b==6)&&(M_int(1,1)~=0)&&(M_int(2,1)~=0) ||...
+                        (i11b==6)&&(i21b==1)&&(M_int(1,1)~=0)&&(M_int(2,1)~=0) ||...
+                        (i21b==1)&&(i22b==6)&&(M_int(2,1)~=0)&&(M_int(2,2)~=0) ||...
+                        (i21b==1)&&(i22b==6)&&(M_int(2,1)~=0)&&(M_int(2,2)~=0)
+                    % incompatible phases
                     doneP(i11b,i12b,i21b,i22b) = 1;
                     continue
                 else
                     %
                     disp(sum(countP));
                     P = [i11b i12b; i21b i22b]; % matrix with phases
-                    phases_all{end+1} = abs(M_int).*P; % store phase matrix
-                    M_int_all{end+1} = M_int; %store interaction matrix
                     
+                    % calculate result
                     [A, ss, cycles] = all_topologies_analyze(single_cell, P, M_int, draw_diagram);
+                    
+                    % store results
+                    phases_all{end+1} = abs(M_int).*P; % store phase matrix 
+                    M_int_all{end+1} = M_int; %store interaction matrix
                     state_diagrams{end+1} = A;
                     steady_states{end+1} = ss;
                     cycles_all{end+1} = cycles;
-                    %}
+                    
+                    phases_all_by_topology{count}{end+1} = abs(M_int).*P; % store phase matrix 
+                    state_diagrams_by_topology{count}{end+1} = A;
+                    steady_states_by_topology{count}{end+1} = ss;
+                    cycles_all_by_topology{count}{end+1} = cycles;
                     
                     % update tracking variables: no need to consider P symmetries
                     doneP(i11b,i12b,i21b,i22b) = 1;
@@ -185,7 +219,7 @@ for k=1:3^4
             end
         end
         %}
-        count = count+1;
+        
     end
 end
 
@@ -200,7 +234,9 @@ if qsave
     label = labels{single_cell+1 + 2*sym};
     fname_str = sprintf('all_topologies_data_%s', label);
     fname = fullfile(save_path, fname_str);
-    save(fname, 'M_int_all', 'phases_all', 'state_diagrams', 'steady_states', 'cycles_all', 'single_cell');
+    save(fname, 'single_cell', 'M_int_all', 'phases_all', 'state_diagrams', 'steady_states', 'cycles_all',...
+        'M_int_by_topology', 'phases_all_by_topology', 'state_diagrams_by_topology',...
+        'steady_states_by_topology', 'cycles_all_by_topology');
 end
 
 %% For given topology (M_int), loop over all phases
