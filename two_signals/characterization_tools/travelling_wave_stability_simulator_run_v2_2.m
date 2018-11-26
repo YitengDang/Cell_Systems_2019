@@ -40,7 +40,7 @@ fN(2) = sum(sinh(Rcell)*exp((Rcell-r)./lambda(2)).*(lambda(2)./r));
 
 % wave properties
 num_waves = 1;
-wave_type = 2; % because loading files may cause 
+wave_type = 3; % because loading files may cause 
 %% Load parameter sets for which travelling waves are predicted
 %load_folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
 %load_folder = 'L:\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';

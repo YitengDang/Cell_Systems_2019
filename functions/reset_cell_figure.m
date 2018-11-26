@@ -1,25 +1,39 @@
-function plot_handle = reset_cell_figure(ax, pos, rcell)
+function [h_cells, h_borders] = reset_cell_figure(ax, pos, rcell)
+    % h_cells: handle of the scatter plot of cell states
+    % h_borders: handle of the scatter plot of cell borders
+    
     % format plot
+    %ax = hin;
     cla(ax);
     
     % calculate figure dimensions
     N = size(pos,1);
     gz = sqrt(N);
-    % all sizes in units of pixels
-    Sx = 800; %ax.Position(3); %512;
-    Sy = (sqrt(3)/2*(gz-1)+2)/(3/2*(gz+1))*Sx;
-    a0 = Sx/(sqrt(N)+1); %Lx/(3/2*(gz+1));
-    Rcell = rcell*a0;
-    set(ax, 'Position', [100 100 Sx Sy]);
     
-    % set image properties
+    % all sizes in units of pixels
+    Sx = 500; %ax.Position(3); %512;
+    Sy = sqrt(3)/2*Sx; %(sqrt(3)/2*(gz-1)+2)/(3/2*(gz+1))*Sx;
+    set(ax, 'Units', 'points', 'Position', [100 100 1.2*Sx 1.2*Sy]);
+    
+    % set image properties (in terms of plot units, e.g. 0 <= x <= 1) 
+    set(gca, 'Units', 'points', 'Position', [0.1*Sx 0.1*Sy Sx Sy]);
     set(gca, 'YTick', [], 'XTick', [], 'Color', [0.8 0.8 0.8]);
     title(gca, 'Simulate dynamics', 'FontSize', 20);
     Lx = 1;
-    d = 2*rcell*Lx/(sqrt(N)+1);
     Ly = sqrt(3)/2*Lx;
+    %d = 1/a0*Lx/(gz); %rcell*Lx/(gz+1);
+    a0_px = 1/(gz); 
+    d = a0_px/2;
     xlim([-d Lx+d]);
     ylim([-d Ly+d]);
+    
+    % set a0, Rcell in terms of figure sizes
+    h_gca = gca;
+    set(h_gca, 'Units', 'points');
+    Sx_px = h_gca.Position(3);
+    Lx_px = (Lx/(Lx+2*d))*Sx_px;
+    a0_px = Lx_px/(gz); %Lx/(3/2*(gz+1));
+    Rcell_px = rcell*a0_px;
     
     %% --plot cells--
     hold on
@@ -28,8 +42,8 @@ function plot_handle = reset_cell_figure(ax, pos, rcell)
     clr_k = zeros(N, 3); % black boundaries
     %markers = {'o', 's'};
 
-    plot_handle = scatter(pos(:,1), pos(:,2), Rcell^2, c_all, 'filled', 'o');
-    scatter(pos(:,1), pos(:,2), Rcell^2, clr_k, 'o'); % plot cell boundaries
+    h_cells = scatter(pos(:,1), pos(:,2), (2*Rcell_px)^2, c_all, 'filled', 'o');
+    h_borders = scatter(pos(:,1), pos(:,2), (2*Rcell_px)^2, clr_k, 'o'); % plot cell boundaries
     
     % Plot box outline
     plot([0 Lx], [0 0], 'k--');

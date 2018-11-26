@@ -65,7 +65,6 @@ end
 % get cell state population of initial state
 cells_idx = cells_in*[1; 2];
 n_in = histcounts(cells_idx, -0.5:3.5);
-
 %% Load data
 % v1 data
 %{
@@ -76,7 +75,8 @@ fname = fullfile(load_folder, fname_str_data);
 load(fname, 'K_12_all', 'K_21_all', 'K_22_all', 'trav_wave_all', 'unmodified_all');
 %}
 % v2 data
-load_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\data';
+%load_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\data';
+load_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
 fname_str_temp = {'stability_sim_from_pred_trav_wave_single_vertical_wave_num_%d_type_%d_network_15_states_3_4_2_1',...
 'stability_sim_from_pred_trav_wave_single_vertical_wave_num_%d_type_%d_network_19_states_4_3_1_2',...
 'stability_sim_from_pred_trav_wave_single_vertical_wave_num_%d_type_%d_network_33_states_3_4_2_1',...
@@ -124,7 +124,7 @@ set(h, 'Units', 'inches', 'position', [1 1 10 6]);
 ylim([0 1]);
 %}
 
-qsave = 0;    
+qsave = 1;    
 pred_label = 'run2';
 save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
 fname_str_save = sprintf('frac_correctly_predicted_by_network_wave_num_%d_wave_type_%d_%s', num_waves, wave_type, pred_label);

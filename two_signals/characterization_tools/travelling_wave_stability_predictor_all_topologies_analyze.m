@@ -56,12 +56,12 @@ M_int = save_consts_struct.M_int;
 
 % specify wave type and characteristics
 wave_types_str = {'straight', 'inward bend', 'outward bend'};
-wave_type = 1;
+wave_type = 2;
 num_waves = 1; % number of waves
 bandwidth = 1; % width of band of cells of one type
 
 % order of states: F, M, B, E
-states_perm = [1 2 3 4];
+%states_perm = [1 2 3 4];
 %{
 states_perm = [2 4 3 1]; % network 15 reversed
 states_perm = [3 4 2 1]; % network 15 
@@ -83,9 +83,9 @@ subfolder = 'run2';
 
 % save figure folder
 %save_folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_stability';
-save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability';
+save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\temp';
 %% Find networks capable of supporting travelling waves 
-% 
+%{
 types_waves = 24;
 num_networks = 44;
 wave_possible = zeros(types_waves, num_networks); % stores whether a wave of a certain type is possible in a given network
@@ -122,7 +122,7 @@ for i=1:types_waves
 end
 %}
 %% Save analyzed data
-%
+%{
 fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_analysed_%s',...
     num_waves, wave_type, subfolder);
 save( fullfile(folder, fname_str) );
@@ -135,6 +135,7 @@ load( fullfile(folder, fname_str) );
 %}
 
 %% display found waves
+%
 [x_found, y_found] = find(wave_possible);
 t=table(P(x_found, :), y_found, 'VariableNames', {'Wave_type', 'Network'});
 t2=table(x_found, y_found, 'VariableNames', {'wave_idx', 'Network'});
@@ -145,8 +146,9 @@ disp(t2);
 
 % Get a list of all interaction matrices for the found networks
 [M_int_found] = get_found_M_int(y_found);
+%}
 %% Plot wave_possible as heatmap
-%
+%{
 h = figure;
 imagesc(1:44, 1:24, wave_possible);
 set(gca, 'YDir', 'normal', 'FontSize', 20);
@@ -159,6 +161,7 @@ fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_analysed_ima
 fname = fullfile(save_folder, 'all_networks_analytical_Con_K_conditions', fname_str);
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 %}
+
 %% Plots part I - Con, K values
 % (1) Calculate Q-values, the fraction of psets giving traveling waves
 % (2) Plot histograms of Con, K values for waves
@@ -175,12 +178,12 @@ for idx_loop=1:numel(x_found)
     states_perm = P(wave_idx, :);
     %
     % load data
-    folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
+    load_folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
     %subfolder = 'run3_vary_a0_lambda12';
     fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
             num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
-    load( fullfile(folder, subfolder, fname_str) );
-    %}
+    load( fullfile(load_folder, subfolder, fname_str) );
+    %} 
     %% Number / fraction of parameter sets giving waves
     %
     %n_pset_wave = sum(trav_wave_conds_met(networks_idx(network), :));

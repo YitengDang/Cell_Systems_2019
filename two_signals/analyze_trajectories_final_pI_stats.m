@@ -6,7 +6,8 @@ set(0, 'defaulttextinterpreter', 'latex');
 path = 'L:\BN\HY\Shared\Yiteng\two_signals\parameter set 2b';
 %path = 'L:\BN\HY\Shared\Yiteng\two_signals\sweep K12';
 %N = [5 8 10 12 13 15 20].^2;
-N = 25;
+gz = 15;
+N = gz^2;
 nN = numel(N);
 
 Ilist = 0:0.1:0.7; 
@@ -76,6 +77,10 @@ for idxN=1:nN
     end
 
 end
+
+%% Load analyzed data
+
+
 %% Plot statistics
 % p1-p2
 xdata = p1_out(periods~=Inf);

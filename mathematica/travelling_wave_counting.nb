@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     48005,       1075]
-NotebookOptionsPosition[     46369,       1039]
-NotebookOutlinePosition[     46748,       1055]
-CellTagsIndexPosition[     46705,       1052]
+NotebookDataLength[     32987,        798]
+NotebookOptionsPosition[     30592,        749]
+NotebookOutlinePosition[     30971,        765]
+CellTagsIndexPosition[     30928,        762]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -223,8 +223,9 @@ Cell[BoxData[
    3.7493784424255776`*^9}, 3.7493802779555564`*^9, {3.7493809974645567`*^9, 
    3.7493810613035564`*^9}, 3.7493832131620393`*^9, {3.7496436664745054`*^9, 
    3.749643676973305*^9}, {3.7496437870313053`*^9, 3.7496438058761053`*^9}, 
-   3.749646122572547*^9},ExpressionUUID->"b7fce095-886d-4b5b-9c6f-\
-8b8467f66478"]
+   3.749646122572547*^9, 3.7517956055996246`*^9, 
+   3.7517964403090506`*^9},ExpressionUUID->"75ccbd48-4831-4a2a-9b84-\
+a43dbb51445e"]
 }, Open  ]],
 
 Cell["\<\
@@ -338,42 +339,46 @@ Cell[BoxData[{
        RowBox[{"gz", "^", "2"}]}], "}"}]}], ";"}], 
    RowBox[{"(*", "periods", "*)"}], "*)"}]}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"nwaveDist", " ", "=", " ", 
-   RowBox[{"{", 
-    RowBox[{"1", ",", " ", 
-     RowBox[{
-      RowBox[{"(", 
-       RowBox[{"gz", "-", "6"}], ")"}], "/", "2"}], ",", " ", "gz"}], "}"}]}],
-   ";", " ", 
+  RowBox[{
+   RowBox[{"nwaveDist", " ", "=", " ", 
+    RowBox[{"{", 
+     RowBox[{"1", ",", " ", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{"gz", "-", "6"}], ")"}], "/", "2"}], ",", " ", "gz"}], 
+     "}"}]}], ";"}], " ", 
   RowBox[{"(*", 
    RowBox[{
    "number", " ", "of", " ", "possible", " ", "distances", " ", "between", 
-    " ", "waves"}], "*)"}], "\[IndentingNewLine]", 
-  RowBox[{"NwaveStates", " ", "=", " ", 
-   RowBox[{
-    RowBox[{"Sum", "[", 
-     RowBox[{
-      RowBox[{"Total", "[", 
-       RowBox[{"ndir", " ", "*", 
-        RowBox[{"gz", "^", "2"}], "*", 
-        RowBox[{"nwaveDist", "[", 
-         RowBox[{"[", "nwaves", "]"}], "]"}], "*", "DTable", "*", 
-        RowBox[{
-         RowBox[{"(", "NwfTable", ")"}], "^", "nwaves"}]}], "]"}], " ", ",", 
+    " ", "waves"}], "*)"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"NwaveStates", " ", "=", " ", 
+    RowBox[{
+     RowBox[{"Sum", "[", 
+      RowBox[{
+       RowBox[{"Total", "[", 
+        RowBox[{"ndir", " ", "*", 
+         RowBox[{"gz", "^", "2"}], "*", 
+         RowBox[{"nwaveDist", "[", 
+          RowBox[{"[", "nwaves", "]"}], "]"}], "*", "DTable", "*", 
+         RowBox[{
+          RowBox[{"(", "NwfTable", ")"}], "^", "nwaves"}]}], "]"}], " ", ",", 
+       " ", 
+       RowBox[{"{", 
+        RowBox[{"nwaves", ",", " ", "1", ",", " ", "2"}], "}"}]}], "]"}], "/.",
       " ", 
-      RowBox[{"{", 
-       RowBox[{"nwaves", ",", " ", "1", ",", " ", "2"}], "}"}]}], "]"}], "/.",
-     " ", 
-    RowBox[{"{", 
-     RowBox[{
-      RowBox[{"gz", " ", "\[Rule]", " ", "thisgz"}], ",", 
-      "\[IndentingNewLine]", 
-      RowBox[{"ndir", "\[Rule]", " ", "2"}], ",", " ", 
-      RowBox[{"nWavesMax", " ", "\[Rule]", " ", "thisnWavesMax"}]}], 
-     "}"}]}]}], ";", " ", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"gz", " ", "\[Rule]", " ", "thisgz"}], ",", 
+       "\[IndentingNewLine]", 
+       RowBox[{"ndir", "\[Rule]", " ", "2"}], ",", " ", 
+       RowBox[{"nWavesMax", " ", "\[Rule]", " ", "thisnWavesMax"}]}], 
+      "}"}]}]}], ";"}], " ", 
   RowBox[{"(*", 
    RowBox[{"total", " ", "number", " ", "of", " ", "waves", " ", "states"}], 
-   "*)"}], "\[IndentingNewLine]", 
+   "*)"}]}], "\[IndentingNewLine]", 
+ RowBox[{
   RowBox[{"NwaveDensity", " ", "=", " ", 
    RowBox[{
     RowBox[{"NwaveStates", "/", 
@@ -417,8 +422,9 @@ Cell[BoxData[
    3.7493803860035563`*^9, 3.7493804663025565`*^9, {3.7493807291995564`*^9, 
    3.7493807401615562`*^9}, 3.749380940076556*^9, 3.7493813128245564`*^9, 
    3.7493813473105564`*^9, {3.749383216922119*^9, 3.749383225518301*^9}, 
-   3.749646122681748*^9},ExpressionUUID->"e39124c1-56fa-43b6-bcd5-\
-7e751cd49623"],
+   3.749646122681748*^9, 3.751795605671632*^9, 
+   3.7517964403210497`*^9},ExpressionUUID->"62981e96-e45d-4827-91cf-\
+ea9e9156ccad"],
 
 Cell[BoxData[
  InterpretationBox[
@@ -431,18 +437,24 @@ Cell[BoxData[
    3.7493803860035563`*^9, 3.7493804663025565`*^9, {3.7493807291995564`*^9, 
    3.7493807401615562`*^9}, 3.749380940076556*^9, 3.7493813128245564`*^9, 
    3.7493813473105564`*^9, {3.749383216922119*^9, 3.749383225518301*^9}, 
-   3.749646122681748*^9},ExpressionUUID->"4dde21db-e6eb-4416-9c81-\
-07ce589a325c"]
+   3.749646122681748*^9, 3.751795605671632*^9, 
+   3.751796440322049*^9},ExpressionUUID->"e64e9345-b2ed-46ec-80b3-\
+4bbe97218cda"]
 }, Open  ]]
 }, Open  ]],
 
 Cell[BoxData[{
  RowBox[{
   RowBox[{"gzlist", "=", 
-   RowBox[{"Range", "[", 
-    RowBox[{"8", ",", " ", "50", ",", " ", "2"}], "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+    "8", ",", "10", ",", "12", ",", "14", ",", "16", ",", "18", ",", "20", 
+     ",", "25"}], "}"}]}], " ", ";", 
+  RowBox[{"(*", 
+   RowBox[{
+    RowBox[{"Range", "[", 
+     RowBox[{"8", ",", " ", "50", ",", " ", "2"}], "]"}], ";"}], "*)"}], 
+  "\[IndentingNewLine]", 
   RowBox[{"NwaveStatesList", " ", "=", " ", 
    RowBox[{"Table", "[", "\[IndentingNewLine]", 
     RowBox[{
@@ -484,8 +496,8 @@ Cell[BoxData[{
   3.7493821826395564`*^9}, {3.749382420069556*^9, 3.7493824918269815`*^9}, {
   3.749383232924458*^9, 3.749383258979001*^9}, {3.749646168748843*^9, 
   3.7496461870165606`*^9}, {3.749646251398173*^9, 3.7496462548301945`*^9}, {
-  3.7496462892128153`*^9, 
-  3.7496462896652184`*^9}},ExpressionUUID->"31610f94-e7f1-4601-9923-\
+  3.7496462892128153`*^9, 3.7496462896652184`*^9}, {3.7517963660074816`*^9, 
+  3.75179638032605*^9}},ExpressionUUID->"31610f94-e7f1-4601-9923-\
 d129f7fee3e5"],
 
 Cell[CellGroupData[{
@@ -512,18 +524,16 @@ Cell[BoxData[
 Cell[BoxData[
  GraphicsBox[{{}, {{}, 
     {RGBColor[0.368417, 0.506779, 0.709798], PointSize[0.012833333333333334`],
-      AbsoluteThickness[1.6], PointBox[CompressedData["
-1:eJxTTMoPSmViYGAQA2IQDQEKDo+7N7XPX6J3AMJXcdDqemyVF+AA5Ws4zPvy
-erXrc28oX8fhUszdo57aoVC+gQN/UMUH39OxUL6Rg9nF8PS3L5KhfBOHt8ln
-t32ZlwnlmzloiM7r2MpcAOVbOFyU93jOM7EYyrdyCI1fbJ9bXg7l2zi4Rh9p
-OrGtGsq3c3jlYMrVpd4A5Ts4fHF8cU95QROU7+jw76Ztg55rK5Tv5HC/2D5w
-uVgHlO/sUFIQqN8j0g3luzhY674IvW3XB+W7OpwXY1x68tQEKN/NgWNddWpk
-zyQo391h2bTmZJmUKVC+h8N3eW9NoaBpUL6nw+ZvGwKswmYcAAARomgh
-      "]]}, {}}, {}, {}, {}, {}},
+      AbsoluteThickness[1.6], 
+     PointBox[{{8., -15.321529617829531`}, {10., -32.628363953688975`}, {
+      12., -55.8068137075545}, {14., -84.6763777410263}, {
+      16., -119.17663203954747`}, {18., -159.27897994186213`}, {
+      20., -204.9673723231821}, {
+      25., -343.56956284461523`}}]}, {}}, {}, {}, {}, {}},
   AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
   Axes->{True, True},
   AxesLabel->{None, None},
-  AxesOrigin->{0, -1669.4933901262877`},
+  AxesOrigin->{7.734375000000001, -367.3940168691401},
   DisplayFunction->Identity,
   Frame->{{True, True}, {True, True}},
   FrameLabel->{{
@@ -532,196 +542,26 @@ zyQo391h2bTmZJmUKVC+h8N3eW9NoaBpUL6nw+ZvGwKswmYcAAARomgh
   FrameTicks->FrontEndValueCache[{{
       Charting`ScaledTicks[{Log, Exp}], 
       Charting`ScaledFrameTicks[{Log, Exp}]}, {
-     Automatic, Automatic}}, {{{{-1427.6027576563083`, 
+     Automatic, Automatic}}, {{{{-368.4136148790473, 
         FormBox[
-         TemplateBox[{"\[Times]", "\"\[Times]\"", "1.`", 
-           TemplateBox[{"10", 
-             RowBox[{"-", "620"}]}, "Superscript", SyntaxForm -> 
-            SuperscriptBox]}, "RowWithSeparators"], TraditionalForm], {0.01, 
-        0.}, {
-         AbsoluteThickness[0.1]}}, {-967.0857390574992, 
+         TemplateBox[{"10", 
+           RowBox[{"-", "160"}]}, "Superscript", SyntaxForm -> 
+          SuperscriptBox], TraditionalForm], {0.01, 0.}, {
+         AbsoluteThickness[0.1]}}, {-253.28436022934503`, 
         FormBox[
-         TemplateBox[{"\[Times]", "\"\[Times]\"", "1.`", 
-           TemplateBox[{"10", 
-             RowBox[{"-", "420"}]}, "Superscript", SyntaxForm -> 
-            SuperscriptBox]}, "RowWithSeparators"], TraditionalForm], {0.01, 
-        0.}, {
-         AbsoluteThickness[0.1]}}, {-506.56872045869005`, 
+         TemplateBox[{"10", 
+           RowBox[{"-", "110"}]}, "Superscript", SyntaxForm -> 
+          SuperscriptBox], TraditionalForm], {0.01, 0.}, {
+         AbsoluteThickness[0.1]}}, {-138.15510557964274`, 
         FormBox[
-         TemplateBox[{"\[Times]", "\"\[Times]\"", "1.`", 
-           TemplateBox[{"10", 
-             RowBox[{"-", "220"}]}, "Superscript", SyntaxForm -> 
-            SuperscriptBox]}, "RowWithSeparators"], TraditionalForm], {0.01, 
-        0.}, {
-         AbsoluteThickness[0.1]}}, {-46.051701859880914`, 
+         TemplateBox[{"10", 
+           RowBox[{"-", "60"}]}, "Superscript", SyntaxForm -> SuperscriptBox],
+          TraditionalForm], {0.01, 0.}, {
+         AbsoluteThickness[0.1]}}, {-23.025850929940457`, 
         FormBox[
-         TemplateBox[{"\[Times]", "\"\[Times]\"", "1.`", 
-           TemplateBox[{"10", 
-             RowBox[{"-", "20"}]}, "Superscript", SyntaxForm -> 
-            SuperscriptBox]}, "RowWithSeparators"], TraditionalForm], {0.01, 
-        0.}, {
-         AbsoluteThickness[0.1]}}, {-1657.8612669557128`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1634.8354160257725`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1611.8095650958319`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1588.7837141658915`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1565.7578632359512`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1542.7320123060106`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1519.7061613760702`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1496.6803104461296`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1473.6544595161893`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1450.6286085862487`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1404.576906726368, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1381.5510557964274`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1358.525204866487, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1335.4993539365464`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1312.473503006606, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1289.4476520766657`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1266.421801146725, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1243.3959502167847`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1220.3700992868442`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1197.3442483569038`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1174.3183974269632`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1151.2925464970228`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1128.2666955670825`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1105.240844637142, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1082.2149937072015`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1059.189142777261, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1036.1632918473206`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1013.1374409173801`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-990.1115899874396, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-944.0598881275587, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-921.0340371976183, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-898.0081862676778, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-874.9823353377374, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-851.9564844077969, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-828.9306334778564, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-805.9047825479159, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-782.8789316179756, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-759.8530806880351, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-736.8272297580946, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-713.8013788281542, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-690.7755278982137, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-667.7496769682732, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-644.7238260383328, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-621.6979751083924, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-598.6721241784519, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-575.6462732485114, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-552.620422318571, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-529.5945713886305, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-483.5428695287496, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-460.51701859880916`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-437.4911676688687, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-414.4653167389282, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-391.4394658089878, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-368.4136148790473, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
+         TemplateBox[{"10", 
+           RowBox[{"-", "10"}]}, "Superscript", SyntaxForm -> SuperscriptBox],
+          TraditionalForm], {0.01, 0.}, {
          AbsoluteThickness[0.1]}}, {-345.38776394910684`, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
@@ -732,9 +572,6 @@ zyQo391h2bTmZJmUKVC+h8N3eW9NoaBpUL6nw+ZvGwKswmYcAAARomgh
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
          AbsoluteThickness[0.1]}}, {-276.3102111592855, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-253.28436022934503`, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
          AbsoluteThickness[0.1]}}, {-230.25850929940458`, 
@@ -749,9 +586,6 @@ zyQo391h2bTmZJmUKVC+h8N3eW9NoaBpUL6nw+ZvGwKswmYcAAARomgh
          AbsoluteThickness[0.1]}}, {-161.1809565095832, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-138.15510557964274`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
          AbsoluteThickness[0.1]}}, {-115.12925464970229`, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
@@ -761,195 +595,24 @@ zyQo391h2bTmZJmUKVC+h8N3eW9NoaBpUL6nw+ZvGwKswmYcAAARomgh
          AbsoluteThickness[0.1]}}, {-69.07755278982137, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-23.025850929940457`, 
+         AbsoluteThickness[0.1]}}, {-46.051701859880914`, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
          AbsoluteThickness[0.1]}}, {0., 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {23.025850929940457`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {46.051701859880914`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {69.07755278982137, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}}, {{-1427.6027576563083`, 
+         AbsoluteThickness[0.1]}}}, {{-368.4136148790473, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.01, 0.}, {
-         AbsoluteThickness[0.1]}}, {-967.0857390574992, 
+         AbsoluteThickness[0.1]}}, {-253.28436022934503`, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.01, 0.}, {
-         AbsoluteThickness[0.1]}}, {-506.56872045869005`, 
+         AbsoluteThickness[0.1]}}, {-138.15510557964274`, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.01, 0.}, {
-         AbsoluteThickness[0.1]}}, {-46.051701859880914`, 
+         AbsoluteThickness[0.1]}}, {-23.025850929940457`, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.01, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1657.8612669557128`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1634.8354160257725`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1611.8095650958319`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1588.7837141658915`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1565.7578632359512`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1542.7320123060106`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1519.7061613760702`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1496.6803104461296`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1473.6544595161893`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1450.6286085862487`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1404.576906726368, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1381.5510557964274`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1358.525204866487, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1335.4993539365464`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1312.473503006606, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1289.4476520766657`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1266.421801146725, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1243.3959502167847`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1220.3700992868442`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1197.3442483569038`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1174.3183974269632`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1151.2925464970228`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1128.2666955670825`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1105.240844637142, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1082.2149937072015`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1059.189142777261, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1036.1632918473206`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-1013.1374409173801`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-990.1115899874396, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-944.0598881275587, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-921.0340371976183, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-898.0081862676778, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-874.9823353377374, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-851.9564844077969, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-828.9306334778564, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-805.9047825479159, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-782.8789316179756, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-759.8530806880351, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-736.8272297580946, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-713.8013788281542, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-690.7755278982137, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-667.7496769682732, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-644.7238260383328, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-621.6979751083924, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-598.6721241784519, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-575.6462732485114, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-552.620422318571, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-529.5945713886305, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-483.5428695287496, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-460.51701859880916`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-437.4911676688687, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-414.4653167389282, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-391.4394658089878, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-368.4136148790473, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
          AbsoluteThickness[0.1]}}, {-345.38776394910684`, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
@@ -960,9 +623,6 @@ zyQo391h2bTmZJmUKVC+h8N3eW9NoaBpUL6nw+ZvGwKswmYcAAARomgh
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
          AbsoluteThickness[0.1]}}, {-276.3102111592855, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-253.28436022934503`, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
          AbsoluteThickness[0.1]}}, {-230.25850929940458`, 
@@ -977,9 +637,6 @@ zyQo391h2bTmZJmUKVC+h8N3eW9NoaBpUL6nw+ZvGwKswmYcAAARomgh
          AbsoluteThickness[0.1]}}, {-161.1809565095832, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-138.15510557964274`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
          AbsoluteThickness[0.1]}}, {-115.12925464970229`, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
@@ -989,19 +646,10 @@ zyQo391h2bTmZJmUKVC+h8N3eW9NoaBpUL6nw+ZvGwKswmYcAAARomgh
          AbsoluteThickness[0.1]}}, {-69.07755278982137, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {-23.025850929940457`, 
+         AbsoluteThickness[0.1]}}, {-46.051701859880914`, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
          AbsoluteThickness[0.1]}}, {0., 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {23.025850929940457`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {46.051701859880914`, 
-        FormBox[
-         TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
-         AbsoluteThickness[0.1]}}, {69.07755278982137, 
         FormBox[
          TemplateBox[{0., 0.}, "Spacer2"], TraditionalForm], {0.005, 0.}, {
          AbsoluteThickness[0.1]}}}}, {Automatic, Automatic}}],
@@ -1018,7 +666,7 @@ zyQo391h2bTmZJmUKVC+h8N3eW9NoaBpUL6nw+ZvGwKswmYcAAARomgh
          Part[#, 1]], 
         (Exp[#]& )[
          Part[#, 2]]}& )}},
-  PlotRange->{{0, 50.}, {-1643.2366939277406`, -15.321529617829531`}},
+  PlotRange->{{8., 25.}, {-361.80556469054784`, -15.321529617829531`}},
   PlotRangeClipping->True,
   PlotRangePadding->{{
      Scaled[0.02], 
@@ -1031,9 +679,71 @@ zyQo391h2bTmZJmUKVC+h8N3eW9NoaBpUL6nw+ZvGwKswmYcAAARomgh
   3.7493824788986516`*^9, {3.749382513893956*^9, 3.7493825213262987`*^9}, 
    3.749382705622508*^9, 3.7493830442910423`*^9, 3.749383078432157*^9, {
    3.7493832439736867`*^9, 3.749383260841039*^9}, 3.7496461234461527`*^9, {
-   3.7496461709484572`*^9, 3.749646256359005*^9}, 
-   3.7496462910848274`*^9},ExpressionUUID->"0f77adf4-3440-49d2-a43b-\
-a057a854ec28"]
+   3.7496461709484572`*^9, 3.749646256359005*^9}, 3.7496462910848274`*^9, 
+   3.7517956065217166`*^9, 
+   3.7517964403600454`*^9},ExpressionUUID->"fb9752cf-f8fc-4be1-8f05-\
+8856d9dfa3cb"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Export", "[", 
+  RowBox[{"\"\<NwaveDensity.xlsx\>\"", ",", " ", 
+   RowBox[{"{", 
+    RowBox[{"gzlist", ",", " ", "NwaveDensityList"}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.751795618527917*^9, 3.75179562075914*^9}, {
+  3.751795756740737*^9, 3.7517957722772903`*^9}, {3.751796030305091*^9, 
+  3.751796033825443*^9}},ExpressionUUID->"82e0b255-c5ac-4b06-98c8-\
+44c834cc9d27"],
+
+Cell[BoxData["\<\"NwaveDensity.xlsx\"\>"], "Output",
+ CellChangeTimes->{3.7517956107181363`*^9, 3.7517957789659595`*^9, 
+  3.751796035334594*^9, 
+  3.7517964404470367`*^9},ExpressionUUID->"ffe9d4bc-b38a-46f4-aaf3-\
+435a8aa8f14e"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"SystemOpen", "[", 
+  RowBox[{"DirectoryName", "[", 
+   RowBox[{"AbsoluteFileName", "[", "\"\<NwaveDensity.xlsx\>\"", "]"}], "]"}],
+   "]"}]], "Input",
+ NumberMarks->False,ExpressionUUID->"8177cacb-50a9-497e-a3ff-be2affd4b955"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData["gzlist"], "Input",ExpressionUUID->"19630076-924b-4a5b-a010-3a70c6bd6758"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "8", ",", "10", ",", "12", ",", "14", ",", "16", ",", "18", ",", "20", ",", 
+   "25"}], "}"}]], "Output",
+ CellChangeTimes->{3.7517958041434765`*^9, 
+  3.7517964407320085`*^9},ExpressionUUID->"950ff175-97e1-4a0c-8c35-\
+08d53ea2b0b0"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"N", "[", "NwaveDensityList", "]"}]], "Input",
+ CellChangeTimes->{{3.7517958066007223`*^9, 
+  3.751795808254888*^9}},ExpressionUUID->"a04d5d34-a265-4d83-bda3-\
+1d2495e508e9"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "2.2179116015985656`*^-7", ",", "6.755874625181032`*^-15", ",", 
+   "5.799743064207993`*^-25", ",", "1.6808013937278925`*^-37", ",", 
+   "1.7468126704835792`*^-52", ",", "6.699122634322389`*^-70", ",", 
+   "9.633879942552904`*^-90", ",", "6.160765901598508`*^-150"}], 
+  "}"}]], "Output",
+ CellChangeTimes->{3.7517958087999425`*^9, 
+  3.7517964408000016`*^9},ExpressionUUID->"73fad475-116a-4ac6-a655-\
+4612a620784f"]
 }, Open  ]]
 }, Open  ]]
 },
@@ -1061,20 +771,33 @@ Cell[971, 33, 199, 3, 48, "Text",ExpressionUUID->"b3462b0b-c9b9-4dd4-8995-419a3f
 Cell[1173, 38, 3081, 53, 349, "Input",ExpressionUUID->"4c17f5f8-3903-4e7e-8f2a-39b66601fe8e"],
 Cell[CellGroupData[{
 Cell[4279, 95, 1663, 31, 40, "Input",ExpressionUUID->"f4f744e1-0174-403e-9f8d-df2d8c0617d2"],
-Cell[5945, 128, 4151, 98, 187, "Output",ExpressionUUID->"b7fce095-886d-4b5b-9c6f-8b8467f66478"]
+Cell[5945, 128, 4203, 99, 187, "Output",ExpressionUUID->"75ccbd48-4831-4a2a-9b84-a43dbb51445e"]
 }, Open  ]],
-Cell[10111, 229, 272, 7, 80, "Text",ExpressionUUID->"2cc518d2-e072-4376-943d-8ceee4ceb175"],
+Cell[10163, 230, 272, 7, 80, "Text",ExpressionUUID->"2cc518d2-e072-4376-943d-8ceee4ceb175"],
 Cell[CellGroupData[{
-Cell[10408, 240, 5952, 164, 489, "Input",ExpressionUUID->"366de429-bfce-4232-a443-ce0f62296781"],
+Cell[10460, 241, 6033, 168, 489, "Input",ExpressionUUID->"366de429-bfce-4232-a443-ce0f62296781"],
 Cell[CellGroupData[{
-Cell[16385, 408, 681, 12, 32, "Print",ExpressionUUID->"e39124c1-56fa-43b6-bcd5-7e751cd49623"],
-Cell[17069, 422, 682, 12, 32, "Print",ExpressionUUID->"4dde21db-e6eb-4416-9c81-07ce589a325c"]
+Cell[16518, 413, 731, 13, 32, "Print",ExpressionUUID->"62981e96-e45d-4827-91cf-ea9e9156ccad"],
+Cell[17252, 428, 730, 13, 32, "Print",ExpressionUUID->"e64e9345-b2ed-46ec-80b3-4bbe97218cda"]
 }, Open  ]]
 }, Open  ]],
-Cell[17778, 438, 2038, 50, 181, "Input",ExpressionUUID->"31610f94-e7f1-4601-9923-d129f7fee3e5"],
+Cell[18009, 445, 2256, 55, 181, "Input",ExpressionUUID->"31610f94-e7f1-4601-9923-d129f7fee3e5"],
 Cell[CellGroupData[{
-Cell[19841, 492, 748, 17, 69, "Input",ExpressionUUID->"afba0366-dfa7-40e6-8c2d-0b5ada90a65b"],
-Cell[20592, 511, 25749, 524, 317, "Output",ExpressionUUID->"0f77adf4-3440-49d2-a43b-a057a854ec28"]
+Cell[20290, 504, 748, 17, 69, "Input",ExpressionUUID->"afba0366-dfa7-40e6-8c2d-0b5ada90a65b"],
+Cell[21041, 523, 7497, 161, 331, "Output",ExpressionUUID->"fb9752cf-f8fc-4be1-8f05-8856d9dfa3cb"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[28575, 689, 407, 8, 40, "Input",ExpressionUUID->"82e0b255-c5ac-4b06-98c8-44c834cc9d27"],
+Cell[28985, 699, 229, 4, 46, "Output",ExpressionUUID->"ffe9d4bc-b38a-46f4-aaf3-435a8aa8f14e"]
+}, Open  ]],
+Cell[29229, 706, 250, 5, 40, "Input",ExpressionUUID->"8177cacb-50a9-497e-a3ff-be2affd4b955"],
+Cell[CellGroupData[{
+Cell[29504, 715, 87, 0, 40, "Input",ExpressionUUID->"19630076-924b-4a5b-a010-3a70c6bd6758"],
+Cell[29594, 717, 275, 7, 46, "Output",ExpressionUUID->"950ff175-97e1-4a0c-8c35-08d53ea2b0b0"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[29906, 729, 197, 4, 40, "Input",ExpressionUUID->"a04d5d34-a265-4d83-bda3-1d2495e508e9"],
+Cell[30106, 735, 458, 10, 79, "Output",ExpressionUUID->"73fad475-116a-4ac6-a655-4612a620784f"]
 }, Open  ]]
 }, Open  ]]
 }

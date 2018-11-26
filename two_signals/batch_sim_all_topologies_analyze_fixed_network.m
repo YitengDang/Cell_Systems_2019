@@ -2,7 +2,7 @@
 clear variables
 close all
 clc
-
+set(0, 'defaulttextinterpreter', 'latex');
 %% Parameters and settings
 % Note: increasing nsim at n_pset is always possible. However, increasing
 % n_pset leads to data sets that do not form a perfect LHS sample
@@ -26,10 +26,11 @@ mcsteps = 0;
 [pos, dist] = initial_cells_random_markov_periodic(gz, mcsteps, rcell);
 
 % network to examine
-network_selected = [19 20 32 33 34 36 43 14];
+network_selected = [15 16 19 20 32 33 34 36 43]; % 14];
 
+%%
 for loop_idx=1:numel(network_selected)
-    network = network_selected(loop_idx);
+    network = network_selected; %(loop_idx);
     disp(network);
 
     % folders
@@ -56,6 +57,11 @@ for loop_idx=1:numel(network_selected)
     K_all_temp = squeeze(K_all(network_orig, :, :));
 
     disp(M_int);
+    % Clear variables for memory
+    clear Con_all
+    clear K_all
+    clear t_out_all
+    clear period_all
     %% Load raw data
     %{
     subfolder1 = sprintf('Network_%d', network_orig);
@@ -143,6 +149,7 @@ for loop_idx=1:numel(network_selected)
     %}
     %% find long-lived dynamics in phase space
     % probably PCA would be better for visualization
+    %{
     t_out_class = zeros(n_pset);
     for i=1:n_pset
         if mean(t_out_all_temp(i,:)) < 10
@@ -189,9 +196,16 @@ for loop_idx=1:numel(network_selected)
     xlabel('Parameter set');
     ylabel('Found periods');
     set(gca, 'FontSize', 20);
-
-
+    %}
+    %% Plot histogram of periods
+    h2b = figure;
+    C = categorical(period_all_temp);
+    C_uniq = unique(C);
+    idx = find(C~='Inf');
+    histogram(C(idx), C_uniq(1:end-1))
+    
     %% Plot t_out values per parameter set
+    %{
     h3 = figure;
     hold on
     for i=1:n_pset
@@ -201,9 +215,10 @@ for loop_idx=1:numel(network_selected)
     xlabel('Parameter set');
     ylabel('$t_{out}$');
     set(gca, 'FontSize', 20);
+    %}
     %% Find fraction of simulations with "complex dynamics" 
     % defined as either period>4 or t_out = tmax
-
+    %{
     frac_complex_all = zeros(n_pset, 1);
     for i=1:n_pset
         idx1 = find(period_all_temp(i,:)>4 & period_all_temp(i,:)<Inf);
@@ -216,7 +231,7 @@ for loop_idx=1:numel(network_selected)
         end
     end
 
-    %%
+    % Plot fraction of parameter sets giving complex dynamics
     n_complex_psets = numel(find(frac_complex_all>0));
    
     h4 = figure;
@@ -226,8 +241,48 @@ for loop_idx=1:numel(network_selected)
     ylabel('Fraction complex');
     title(sprintf('Complex dynamics in %d parameter sets', n_complex_psets));
     set(gca, 'FontSize', 20);
+    %}
+    %% Plot spider graph of parameter sets giving complex dynamics
+    %{
+    idx_complex = find(frac_complex_all>0);
+    K_idx = 1:3;
+    P_complex = log10([Con_all_temp(idx_complex,:) K_all_temp(idx_complex,K_idx)]);
+    P_labels = {'$C_{ON}^{(1)}$', '$C_{ON}^{(2)}$', '$K^{(11)}$',...
+        '$K^{(12)}$', '$K^{(21)}$'};
+    axes_interval = 2;
+    %axes_precision = 1;
+    %
+    
+    spider_plot(P_complex, P_labels, axes_interval,...
+        'Marker', 'o',...
+        'LineStyle', '-',...
+        'Color', [1 0 0],...
+        'LineWidth', 0.5,...
+        'MarkerSize', 2);
+    %}
+    %{
+    hold on
+    spider_plot([1 2 1 1 1 1; 1 2 1 1 1 2], P_labels, 1, 1,...
+        'Marker', 'o',...
+        'LineStyle', '-',...
+        'LineWidth', 2,...
+        'MarkerSize', 5);
+    %
+    % Title properties
+    title(sprintf('Network %d', network),...
+        'Fontweight', 'bold',...
+        'FontSize', 16);
+    set(gcf, 'Units', 'Inches', 'Position', [2 2 10 8]);
+    h5 = gcf;
+    
+    % Save figure
+    qsave = 0;
+    save_figure(h5, 10, 8, fullfile(save_folder_fig, ...
+        strcat(fname_root, 'parameters_complex_dynamics_spider')), '.pdf', qsave);
+    %}
     %% Save figures
-    qsave = 1;
+    %{
+    qsave = 0;
     save_figure(h1, 10, 8, fullfile(save_folder_fig, ...
         strcat(fname_root, 'osc_freq_vs_param')), '.pdf', qsave);
     save_figure(h2, 10, 8, fullfile(save_folder_fig, ...
@@ -238,5 +293,5 @@ for loop_idx=1:numel(network_selected)
         strcat(fname_root, 'frac_complex_vs_param')), '.pdf', qsave);
     %}
     %%
-    close all
+    %close all
 end

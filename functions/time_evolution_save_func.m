@@ -6,7 +6,16 @@ function [cells_hist, period, t_onset] = time_evolution_save_func(...
 
     % generate initial lattice
     if p0==Inf % special option: generate random lattice
-        cells = randi(2, N, 2)-1; 
+        if hill==Inf
+            cells = randi(2, N, 2)-1; % binary cells
+        else
+            % cells = rand(N, 2); % continuous cells, uniformly sampled
+            sigma = 1/4; 
+            cells = (randn(N, 2))*sigma + 1/2; % continuous cells, normal distribution
+            cells(cells>1) = 1;
+            cells(cells<0) = 0;           
+        end
+        
     else
         iniON = round(p0*N);
         cells = zeros(N, 2);

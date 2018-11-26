@@ -1,6 +1,7 @@
 % Tests whether a travelling wave can propagate by performing explicit
 % simulations
-% v2: run for parameter sets for which predictor predicts travelling wave
+% v3: run for ALL parameter sets that the predictor tested
+% Needed to obtain precision and recall scores
 clear all
 close all
 set(0,'defaulttextinterpreter', 'latex')
@@ -40,10 +41,8 @@ fN(2) = sum(sinh(Rcell)*exp((Rcell-r)./lambda(2)).*(lambda(2)./r));
 
 % wave properties
 num_waves = 1;
-wave_type = 2; % because loading files may cause 
+wave_type = 1; % because loading files may cause 
 %% Load parameter sets for which travelling waves are predicted
-%load_folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
-%load_folder = 'L:\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
 load_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
 fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_analysed_run2',...
     num_waves, wave_type);
@@ -60,6 +59,7 @@ disp(t2);
 % get list of all interaction matrices
 M_int_found = get_found_M_int(y_found);
 %% Run single simulation (test) for specific network/wave
+% (Skip if testing for all types of waves)
 %{
 loop_idx = 1;
     
@@ -74,20 +74,21 @@ orig_perm = [2 4 3 1]; % default permutation F=(0,1)=2, M=(1,1)=4, B=(1,0)=3, E=
 load_folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
 folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
 subfolder = 'run2'; %'run3_vary_a0_lambda12';
-num_waves = 1;
-wave_type = 1;
 fname_str_pred = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
         num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
 load( fullfile(load_folder, subfolder, fname_str_pred) );
-Con_wave = squeeze(Con_all(network, squeeze(trav_wave_conds_met(network, :)), :));
-K_wave = squeeze(K_all(network, squeeze(trav_wave_conds_met(network, :)), :, :));
+
+%Con_wave = squeeze(Con_all(network, squeeze(trav_wave_conds_met(network, :)), :));
+%K_wave = squeeze(K_all(network, squeeze(trav_wave_conds_met(network, :)), :, :));
+Con_wave = squeeze( Con_all(network, :, :) );
+K_wave = squeeze( K_all(network, :, :, :) );
 
 %% ==============================================================================
 % Load initial conditions with correct ordering
 load_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\travelling_wave_snapshots';
-%wave_type_str = 'trav_wave_single_horizontal_inward_bend';
-%wave_type_str = 'trav_wave_single_horizontal_outward_bend'; 
-wave_type_str = 'trav_wave_single_vertical'; 
+wave_type_all_str = {'trav_wave_single_vertical',...
+    'trav_wave_single_horizontal_inward_bend', 'trav_wave_single_horizontal_outward_bend'}; 
+wave_type_str = wave_type_all_str{wave_type};
 
 % load a default wave with default ordering
 fname = fullfile(load_folder, wave_type_str);
@@ -105,7 +106,7 @@ end
 
 % get cell state population of initial state
 cells_idx_temp = cells_in_temp*[2; 1];
-n_in = histcounts(cells_idx, -0.5:3.5);
+%n_in = histcounts(cells_idx, -0.5:3.5);
 
 % re-order cells according to states_perm for this wave
 cells_in = zeros(N, 2);
@@ -113,7 +114,7 @@ cells_in = zeros(N, 2);
 states_default = {[0 0], [0 1], [1 0], [1 1]};
 % adjust cells to have new permutation
 for i=1:4
-    idx_temp = find(cells_idx==orig_perm(i)-1);
+    idx_temp = find(cells_idx_temp==orig_perm(i)-1);
     perm = states_perm(i);
     cells_in(idx_temp, :) = repmat(states_default{perm}, numel(idx_temp), 1);    
 end
@@ -123,7 +124,9 @@ plot_handle = reset_cell_figure(hin, pos, rcell);
 update_figure_periodic_scatter(plot_handle, cells_in, 0, 12, 0, a0, dist);
 %% ==============================================================================
 % Set parameters from predictor data
-idx = 12;
+idx = 1;
+fprintf('Theoretical prediction: trav. wave possible? %d \n',...
+    trav_wave_conds_met(network, idx) );
 Con = Con_wave(idx,:);
 K = squeeze(K_wave(idx, :, :));
 M_int = M_int_found{loop_idx};
@@ -139,7 +142,7 @@ n_in = histcounts(cells_idx, -0.5:3.5);
 
 % Run tester
 display = 1;
-[trav_wave, trav_wave_2, cellsOut] = trav_wave_sim_tester(cells_in_new, pos, dist, rcell, a0, M_int, Con,...
+[trav_wave, trav_wave_2, cellsOut] = trav_wave_sim_tester(cells_in, pos, dist, rcell, a0, M_int, Con,...
     Coff, K, lambda, hill, noise, tmax, display);
 fprintf('Travelling wave? Method 1: %d (1=Yes, 0=No) \n', trav_wave);
 fprintf('Travelling wave? Method 2: %d (1=Yes, 0=No) \n', trav_wave_2);
@@ -218,8 +221,8 @@ for loop_idx=1:numel(x_found)
     fname_str_pred = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
             num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
     load( fullfile(load_folder, subfolder, fname_str_pred) );
-    Con_wave = squeeze(Con_all(network, squeeze(trav_wave_conds_met(network, :)), :));
-    K_wave = squeeze(K_all(network, squeeze(trav_wave_conds_met(network, :)), :, :));
+    Con_wave = squeeze(Con_all(network, :, :));
+    K_wave = squeeze(K_all(network, :, :, :));
     fprintf('Sims to do = %d \n', size(Con_wave, 1));
     %}
     %-----New predictor set (testing also wave_type=1 for wave_type=2 and 3
@@ -319,8 +322,8 @@ for loop_idx=1:numel(x_found)
     %% Save data
     %
     %save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\data';
-    save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
-    fname_str_data = sprintf('stability_sim_from_pred_%s_wave_num_%d_type_%d_network_%d_states_%d_%d_%d_%d', wave_type_str, ...
+    save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2_stability_sim';
+    fname_str_data = sprintf('stability_sim_from_pred_all_wave_num_%d_type_%d_network_%d_states_%d_%d_%d_%d',...
          num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4));  
     fname = fullfile(save_folder, fname_str_data);
     save(fname, 'trav_wave_all', 'trav_wave_all_strict', 'unmodified_all',...

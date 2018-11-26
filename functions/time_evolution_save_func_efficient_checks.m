@@ -5,13 +5,21 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
     % implements an efficient periodicity test by checking only every
     % t_check time steps whether trajectory has become periodic (after a
     % transient phase of t_ac steps when it checks every step).
-
+%%
     % Simulate
     cells_hist = {};
     
     % generate initial lattice
     if p0==Inf % special option: generate random lattice
-        cells = randi(2, N, 2)-1; 
+        if hill==Inf
+            cells = randi(2, N, 2)-1; % binary cells
+        else
+            % cells = rand(N, 2); % continuous cells, uniformly sampled
+            sigma = 1/4; 
+            cells = (randn(N, 2))*sigma + 1/2; % continuous cells, normal distribution
+            cells(cells>1) = 1;
+            cells(cells<0) = 0;           
+        end
     else
         iniON = round(p0*N);
         cells = zeros(N, 2);
@@ -34,7 +42,7 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
     t_onset = Inf; 
     [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, distances, M_int, a0,...
             Rcell, Con, Coff, K, lambda, hill, noise);
-    
+%%
     t_ac = 10^2; 
     while changed && period==Inf && t<t_ac
         t = t+1;
@@ -81,8 +89,17 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
         I_ini_str = sprintf('_I_ini_%.2f_%.2f', I0(1), I0(2));
     end
     
-    fname_str = strrep(sprintf('%s_N%d_noise_%.2f_K12_%d_t_out_%d_period_%s',...
-                sim_ID, N, noise, K(1,2), t_out, num2str(period)), '.', 'p');
+    % Format of output filename
+    fname_str = sprintf('two_signal_mult_N%d_t_out_%d_period_%d',...
+            N, t_out, period);
+    %fname_str = sprintf('two_signal_mult_N%d_K12_%d_t_out_%d_period_%d',...
+    %        N, K(1,2), t_out, period);
+    %fname_str = strrep(sprintf('%s_N%d_initiateI0_randpos_mcsteps0_K12_%d_t_out_%d_period_%d',...
+    %    sim_ID, N, K(1,2), t_out, period), '.', 'p');
+    %fname_str = strrep(sprintf('%s_N%d_t_out_%d_period_%s',...
+    %            sim_ID, N, t_out, num2str(period)), '.', 'p');
+    %fname_str = strrep(sprintf('%s_N%d_noise_%.2f_K12_%d_t_out_%d_period_%s',...
+    %            sim_ID, N, noise, K(1,2), t_out, num2str(period)), '.', 'p');
     %fname_str = strrep(sprintf(...
     %    'N%d_initiateI%d%s_K12_%.2f_K21_%.2f_Con1_%.2f_Con2_%.2f_t_out_%d_period_%s',...
     %    N, InitiateI, I_ini_str, K(1,2), K(2,1), Con(1), Con(2),...

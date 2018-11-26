@@ -11,6 +11,7 @@ set(0, 'defaulttextinterpreter', 'latex');
 folder = 'K:\bn\hy\Shared\Yiteng\Multicellularity\videos\selected\data';
 %folder = 'K:\bn\hy\Shared\Yiteng\Multicellularity\videos\synchronization';
 load_fname = 'plane_wave_formation_period_15';
+load_fname = 'Chaos_in_growing_domain';
 load(fullfile(folder, load_fname), 'cells_hist', 'positions', 'distances', 'save_consts_struct');
 
 % Process loaded data
@@ -48,14 +49,17 @@ save_figure(h, 0, 0, fname, '.pdf', qsave, colored_background);
 
 %% Plot the spatial power spectrum (2D discrete Fourier transform)
 % 2D Fourier transform, calculate power spectrum
-cells_norm = (cells - mean(cells, 1)); % normalise cells
-cells_fft1 = fft2(reshape(cells_norm(:,1), gz, gz));
-%cells_fft1(1,1) = 0;
-cells_fft2 = fft2(reshape(cells_norm(:,2), gz, gz));
-%cells_fft2(1,1) = 0;
 
-power1 = abs(fftshift(cells_fft1)).^2/N;
-power2 = abs(fftshift(cells_fft2)).^2/N;
+% normalise cells
+cells_norm = zeros(size(cells));
+cells_norm(:, 1) = (cells(:, 1) - mean(cells(:, 1)))./std(cells(:, 1))/gz; 
+cells_norm(:, 2) = (cells(:, 2) - mean(cells(:, 2)))./std(cells(:, 2))/gz; 
+
+cells_fft1 = fft2(reshape(cells_norm(:,1), gz, gz));
+cells_fft2 = fft2(reshape(cells_norm(:,2), gz, gz));
+
+power1 = abs(fftshift(cells_fft1)).^2/(N-1);
+power2 = abs(fftshift(cells_fft2)).^2/(N-1);
 
 % Plot power spectrum
 h = figure;
@@ -78,22 +82,47 @@ fname_str = sprintf('%s_spatial_spectrum_t%d', load_fname, time);
 fname = fullfile(save_folder, fname_str);
 colored_background = 0;
 save_figure(h, 0, 0, fname, '.pdf', qsave, colored_background);
+%% Check normalisation snapshot
+%{
+cells_norm = zeros(size(cells));
+cells_norm(:, 1) = (cells(:, 1) - mean(cells(:, 1)))./std(cells(:, 1))/gz; % normalise cells
+cells_norm(:, 2) = (cells(:, 2) - mean(cells(:, 2)))./std(cells(:, 2))/gz; % normalise cells
+mean(cells_norm)
+var(cells_norm)
+
+cells_fft1 = fft2(reshape(cells_norm(:,1), gz, gz));
+%cells_fft2 = fft2(reshape(cells_norm(:,2), gz, gz));
+mean(cells_fft1(:))
+sum(sum(abs(cells_fft1).^2))/N
+%}
 %% Take long time averages
 t1 = 0;
 t2 = t_out;
 
 cells_fft1 = zeros(gz, gz);
+cells_fft2 = zeros(gz, gz);
+cells_norm_all = {};
+cells_fft1_all = {};
+cells_fft2_all = {};
 for t=t1:t2
     cells = cells_hist{t+1};
-    cells_norm = (cells - mean(cells, 1)); % normalise cells
     
+    % normalise cells
+    cells_norm = zeros(size(cells));
+    cells_norm(:, 1) = (cells(:, 1) - mean(cells(:, 1)))./std(cells(:, 1))/gz; 
+    cells_norm(:, 2) = (cells(:, 2) - mean(cells(:, 2)))./std(cells(:, 2))/gz; 
+
     cells_fft1 = cells_fft1 + fft2(reshape(cells_norm(:,1), gz, gz));
     cells_fft2 = cells_fft1 + fft2(reshape(cells_norm(:,2), gz, gz));
+    
+    cells_norm_all{end+1} = cells_norm;
+    cells_fft1_all{end+1} = fft2(reshape(cells_norm(:,1), gz, gz));
+    cells_fft2_all{end+1} = fft2(reshape(cells_norm(:,2), gz, gz));
 end
 cells_fft1 = fftshift(cells_fft1);
 cells_fft2 = fftshift(cells_fft2);
-power_lt1 = abs(cells_fft1/(t2-t1+1)).^2/N; % check normalization
-power_lt2 = abs(cells_fft2/(t2-t1+1)).^2/N;
+power_lt1 = abs(cells_fft1/(t2-t1+1)).^2/(N-1); % check normalization
+power_lt2 = abs(cells_fft2/(t2-t1+1)).^2/(N-1);
 
 h=figure;
 x = fftshift(0:gz-1);
@@ -114,3 +143,20 @@ fname_str = sprintf('%s_spatial_spectrum_avg_t%d_to_%d', load_fname, t1, t2);
 fname = fullfile(save_folder, fname_str);
 colored_background = 0;
 save_figure(h, 0, 0, fname, '.pdf', qsave, colored_background);
+
+%% Check normalisation over time
+nsteps = numel(cells_fft1_all);
+fft_sum2 = zeros(nsteps, 2); 
+cells_sum2 = zeros(nsteps, 2);
+for i=1:nsteps
+    fft_sum2(i, 1) = sum(abs(cells_fft1_all{i}(:)).^2);
+    fft_sum2(i, 2) = sum(abs(cells_fft2_all{i}(:)).^2);
+    cells_sum2(i,1) = sum(cells_norm_all{i}(:,1).^2);
+    cells_sum2(i,2) = sum(cells_norm_all{i}(:,2).^2);  
+end
+
+figure;
+hold on
+plot(1:nsteps, fft_sum2/(N-1));  % spectrum normalisation
+plot(1:nsteps, cells_sum2*N/(N-1)); % cell state normalisation
+ylim([0.8 1.2]);

@@ -101,6 +101,7 @@ for idx_P=1:12 %size(P, 1) % todo: [1:11 19:24]
     trav_wave_cond_met = zeros(n_networks, n_pset);
     Con_all = zeros(n_networks, n_pset, 2);
     K_all = zeros(n_networks, n_pset, 2, 2);
+    M_int_all = {};
     %a0_all = zeros(n_networks, n_pset);
     %lambda2_all = zeros(n_networks, n_pset);
     
@@ -136,7 +137,8 @@ for idx_P=1:12 %size(P, 1) % todo: [1:11 19:24]
         % update network count
         count = count+1;
         networks_idx(count) = k;
-
+        M_int_all{count} = M_int;
+        
         % Latin hypercube
         x = lhsdesign(n_pset, nK+nCon+2);
         
@@ -172,6 +174,6 @@ for idx_P=1:12 %size(P, 1) % todo: [1:11 19:24]
     fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
         num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
     fname = fullfile(save_folder, fname_str);
-    save(fname, 'gz', 'a0', 'rcell', 'lambda', 'M_int',...
+    save(fname, 'gz', 'a0', 'rcell', 'lambda', 'M_int_all',...
         'trav_wave_conds_met', 'Con_all', 'K_all', 'networks_idx');
 end

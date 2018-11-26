@@ -9,18 +9,19 @@ a0 = 1.5;
 nruns = 100;
 tmax = 10000;
 
-p1 = 0:0.1:1;
-p2 = 0:0.1:1;
-N1 = round(p1*N);
-N2 = round(p2*N);
+p1_all = 0:0.1:1;
+p2_all = 0:0.1:1;
+N1 = round(p1_all*N);
+N2 = round(p2_all*N);
+
+K12 = 22;
 
 % folder for saving figures
 save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trajectories_vs_pin\trav_wave';
 %% Get all filenames
 %
-%path = 'H:\My Documents\Multicellular automaton\data\two_signals\time_evolution\vs_p_ini_batch3';
-%path = 'D:\Multicellularity\data\two_signals\time_evolution\vs_pini_batch3';
-parent_folder = 'L:\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis\vs_p0_set2';
+parent_folder = fullfile('N:\tnw\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis',...
+    sprintf('vs_p0_K12_%d', K12));
 
 names = cell(numel(p1), numel(p2), nruns);
 for i1=1:numel(p1)
@@ -99,20 +100,17 @@ end
 %% Save the loaded raw data
 %
 fname_str = sprintf('trav_wave_occur_vs_p_ini_set2_K12_9_nruns%d', nruns);
-%fname_str = sprintf('III_chaotic_scan_p_ini_batch2_data_nruns%d', nruns);
-%fname_str = sprintf('vs_p_ini_batch3_data_nruns%d', nruns);
-save_path = 'L:\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis\vs_p0';
-%save_path = 'H:\My Documents\Multicellular automaton\data\two_signals\time_evolution';
-%save_path = 'D:\Multicellularity\data\two_signals\time_evolution';
+save_path = fullfile('N:\tnw\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis',...
+    sprintf('vs_p0_K12_%d', K12));
 
 save(fullfile(save_path, strcat(fname_str, '.mat') ), 'p1', 'p2', 'filecount',...
     't_out_all', 'period_all', 't_onset_all', 'trav_wave_all', 'trav_wave_2_all') %, save_vars);
 %}
 %% Load processed data
-%fname_str = 'III_chaotic_scan_p_ini_data';
-fname_str = sprintf('trav_wave_occur_vs_p_ini_nruns%d', nruns);
-load_path = 'L:\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis\vs_p0';
-load(fullfile(load_path, strcat(fname_str, '.mat')));
+fname_str = sprintf('trav_wave_occur_vs_p_ini_set2_K12_%d_nruns%d', K12, nruns);
+load_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis';
+subfolder = sprintf('vs_p0_K12_%d', K12);
+load( fullfile(load_path, subfolder, strcat(fname_str, '.mat')) );
 
 %% Processing: classify trajectories
 % class 1: non-periodic
@@ -126,28 +124,30 @@ class_all_2 = zeros(size(period_all)); % based on less stringent trav. wave crit
 n_classes = 4;
 
 % set period of non-periodic trajectories to 0
-idx_class1 = ((period_all==Inf) + (t_out_all<tmax))==2;
-idx_class2 = ((period_all<Inf) + (trav_wave_all==0))==2;
-idx_class3 = ((period_all<Inf) + (trav_wave_all==1))==2;
-idx_class4 = ((period_all==Inf) + (t_out_all==tmax))==2;
+idx_class = {};
+idx_class{1} = ((period_all==Inf) + (t_out_all<tmax))==2;
+idx_class{2} = ((period_all<Inf) + (trav_wave_all==0))==2;
+idx_class{3} = ((period_all<Inf) + (trav_wave_all==1))==2;
+idx_class{4} = ((period_all==Inf) + (t_out_all==tmax))==2;
 
-idx_class2_2 = ((period_all<Inf) + (trav_wave_2_all==0))==2;
-idx_class3_2 = ((period_all<Inf) + (trav_wave_2_all==1))==2;
+idx_class_2 = {}; 
+idx_class_2{2} = ((period_all<Inf) + (trav_wave_2_all==0))==2;
+idx_class_2{3} = ((period_all<Inf) + (trav_wave_2_all==1))==2;
 
-class_all(idx_class1) = 1;
-class_all(idx_class2) = 2;
-class_all(idx_class3) = 3;
-class_all(idx_class4) = 4;
+class_all(idx_class{1}) = 1;
+class_all(idx_class{2}) = 2;
+class_all(idx_class{3}) = 3;
+class_all(idx_class{4}) = 4;
 
-class_all_2(idx_class1) = 1;
-class_all_2(idx_class2_2) = 2;
-class_all_2(idx_class3_2) = 3;
-class_all_2(idx_class4) = 4;
+class_all_2(idx_class{1}) = 1;
+class_all_2(idx_class_2{2}) = 2;
+class_all_2(idx_class_2{3}) = 3;
+class_all_2(idx_class{4}) = 4;
 
 % Classify trajectories
 %C = categorical(class_all, 1:n_classes); %, {'non-periodic', 'periodic, non-trav. wave', 'trav. wave', 'unknown'});
-X = [sum(idx_class1(:)) sum(idx_class2(:)) sum(idx_class3(:)) sum(idx_class4(:))]; 
-X2 = [sum(idx_class1(:)) sum(idx_class2_2(:)) sum(idx_class3_2(:)) sum(idx_class4(:))]; 
+X = [sum(idx_class{1}(:)) sum(idx_class{2}(:)) sum(idx_class{3}(:)) sum(idx_class{4}(:))]; 
+X2 = [sum(idx_class{1}(:)) sum(idx_class_2{2}(:)) sum(idx_class_2{3}(:)) sum(idx_class{4}(:))]; 
 
 % Fractions
 %frac_regular = zeros(numel(p1), numel(p2));
@@ -155,6 +155,28 @@ frac_regular = sum(class_all == 1, 3)/nruns;
 frac_periodic = sum(((class_all == 2) + (class_all == 3)), 3)/nruns;
 frac_trav_wave = sum(class_all == 3, 3)/nruns;
 frac_trav_wave_2 = sum(class_all_2 == 3, 3)/nruns;
+
+%% calculated weighted estimate of total fraction of each class
+% N.B. weighted average is not over entire distribution (p1, p2 values), but
+% over only a part of it. This shouldn't affect the results.
+density_states = zeros(numel(p1_all), numel(p2_all));
+sum1 = 0;
+for i=1:numel(p1_all)
+    for j=1:numel(p2_all)
+        n1 = round(p1_all(i)*N);
+        n2 = round(p2_all(j)*N);
+        density_states(i,j) = (nchoosek(N, n1)/2^N)*(nchoosek(N, n2)/2^N);
+    end
+end
+density_states = density_states/(sum(sum(density_states)));
+
+X_count_by_p = zeros(4, numel(p1_all), numel(p2_all));
+X_weighted = zeros(1, 4);
+for i=1:4
+    class_count = sum(idx_class{i}, 3);
+    X_count_by_p(i,:,:) = class_count;
+    X_weighted(i) = sum(sum( class_count/nruns.*density_states ));
+end
 
 %% Pie chart
 h1=figure(1);
@@ -175,12 +197,37 @@ legend({'non-periodic', 'periodic, non-trav. wave', 'trav. wave', 'unknown'},...
 %ax.Children(1).String = sprintf('periodic: %d', sum(class_all(:)==2));
 %ax.Children(3).String = sprintf('regular: %d', sum(class_all(:)==1));
 
-qsave = 1;
+qsave = 0;
 if qsave
     fname = fullfile(save_path_fig, strcat(fname_str, '_class_pie_chart_class_2'));
     save_figure(h1, 10, 8, fname, '.pdf');
 end
 
+%% Stacked bar chart for fractions of each type (regular, periodic, TW, ...)
+% class 1: non-periodic
+% class 2: periodic, not travelling wave
+% class 3: periodic travelling wave
+% class 4: tmax reached, inconclusive
+% calculate fractions of simulations belonging to each class
+class_frac = zeros(2, 4);
+class_frac(1,:) = X/sum(X); % unweighted / raw
+class_frac(2,:) = X_weighted;
+
+h=figure;
+bar(class_frac, 'stacked');
+xlabel('');
+ylabel('Fraction');
+legend({'non-periodic', 'periodic, non-TW', 'travelling wave', 'inconclusive'}, ...
+    'Location', 'eo');
+set(gca, 'XTick', 1:2, 'XTickLabels', {'Unweighted', 'Weighted'})
+set(gca, 'FontSize', 20);
+%xlim([0 4]);
+
+qsave = 1;
+fname = fullfile(save_path_fig, strcat(fname_str, '_class_frac_overall'));
+save_figure(h, 10, 8, fname, '.pdf', qsave);
+
+%}
 %% Classification vs p_ini
 % Plot fraction "regular"
 h21=figure(21);

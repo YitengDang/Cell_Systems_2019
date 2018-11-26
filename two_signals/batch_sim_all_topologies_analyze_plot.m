@@ -1,6 +1,4 @@
 %% Obtain statistics on all possible topologies by simulation
-% Perform raw analysis here -> save analyzed result as .mat files -> Reload
-% in other scripts to use
 clear variables
 close all
 clc
@@ -33,202 +31,8 @@ mcsteps = 0;
 %parent_folder = 'L:\BN\HY\Shared\Yiteng\two_signals\batch_sim_all_topologies';
 parent_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\batch_sim_all_topologies_run2';
 
-%% Load trajectories, loop over all topologies
-%
-M_int_all = {};
-M_int_all_reduced = {};
-
-p_final_all = zeros(3^4, n_pset, nsim, 2);
-I_final_all = zeros(3^4, n_pset, nsim, 2);
-%{
-K_all = zeros(3^4, n_pset, 2, 2); % costly, could also make first dim. 45
-Con_all = zeros(3^4, n_pset, 2); 
-
-t_out_all = zeros(3^4, n_pset, nsim);
-period_all = zeros(3^4, n_pset, nsim);
-non_uniform_all = zeros(3^4, n_pset, nsim);
-%}
-
-% Troubleshooting
-corrupt_files = {};
-missing_file_count = zeros(3^4, n_pset);
-
-% Get all networks
-done = zeros(3,3,3,3); % keeps track of which topologies have been found already (up to symmetry)
-network_all = [];
-for network=1:3^4 % network 1 = [0 0; 0 0]
-    subfolder1 = sprintf('Network_%d', network);
-    [i11, i12, i21, i22] = ind2sub([3, 3, 3, 3], network);
-    gM = [i22 i21; i12 i11];
-    if done(i11,i12,i21,i22)
-    	continue
-    elseif network==1
-        continue
-    else
-        network_all(end+1) = network;
-        done(i11,i12,i21,i22) = 1;
-        done(gM(1,1),gM(1,2),gM(2,1),gM(2,2))=1;
-    end
-end
-
-% Now, run over topologies
-done = zeros(3,3,3,3); % keeps track of which topologies have been found already (up to symmetry)
-%network_all = [];
-count = 38;
-for network=network_all(count+1:end) % network 1 = [0 0; 0 0]
-    subfolder1 = sprintf('Network_%d', network);
-    count = count+1;
-    
-    [i11, i12, i21, i22] = ind2sub([3, 3, 3, 3], network);
-    M = [0 1 -1];
-    M_int = [M(i11) M(i12); M(i21) M(i22)];
-    disp(M_int);
-    M_int_all{end+1} = M_int;
-
-    gM = [i22 i21; i12 i11];
-    if done(i11,i12,i21,i22)
-    	continue
-    elseif network==1
-        continue
-    else
-        M_int_all_reduced{end+1} = M_int;
-        %network_all(end+1) = network;
-        done(i11,i12,i21,i22) = 1;
-        done(gM(1,1),gM(1,2),gM(2,1),gM(2,2))=1;
-    end
-    
-    %disp(network);
-    %
-    for idx1=1:n_pset
-        subfolder2=sprintf('Param_%d', idx1);
-
-        % get parameters
-        fname = fullfile(parent_folder, subfolder1, subfolder2, 'parameters.mat');
-        load(fname);
-        disp(fname);
-
-        K_all(network, idx1,:,:) = thisK;
-        Con_all(network, idx1, :) = thisCon;
-
-        for idx2=1:nsim
-            % load file
-            %disp(idx2);
-            fname_str = sprintf('all_topologies_simulate-v%d.mat', idx2);
-            fname = fullfile(parent_folder, subfolder1, subfolder2, fname_str);
-            if exist(fname, 'file')~=2
-                fname_str = sprintf('all_topologies_simulate-v%d_tmax_reached.mat', idx2);
-                fname = fullfile(parent_folder, subfolder1, subfolder2, fname_str);
-            end
-            if exist(fname, 'file')~=2
-                warning('Could not find file %s', fname);
-                missing_file_count(network, idx1) = missing_file_count(network, idx1) + 1;
-                continue
-            end
-            
-            % try loading file
-            try 
-                load(fname);
-            catch ME
-                warning('Unable to load file %s', fname);
-                %if strcmp(ME.identifier, 'MATLAB:load:unableToReadMatFile')
-                corrupt_files{end+1} = fname; % store corrupt files for deletion
-                continue
-                %end
-            end
-            %disp(fname);
-            
-            % store variables
-            %
-            %t_out_all(network, idx1, idx2) = t_out;
-            period_all(network, idx1, idx2) = period;
-            %non_uniform_all(network, idx1, idx2) = size(unique(cells_hist{end}, 'rows'), 1);
-            %}
-            if period<Inf
-                %disp('found');
-                % average over one period
-                p_avg = zeros(1,2);
-                I_avg = zeros(1,2);
-                for t1=numel(cells_hist):-1:numel(cells_hist)-period+1
-                    p_avg = p_avg + mean(cells_hist{t1}, 1);
-                    I_avg(1) = I_avg(1) + moranI(cells_hist{t1}(:,1), a0*dist);
-                    I_avg(2) = I_avg(2) + moranI(cells_hist{t1}(:,2), a0*dist);
-                end
-                p_final_all(network, idx1, idx2, :) = p_avg/period;
-                I_final_all(network, idx1, idx2, :) = I_avg/period;
-            else
-                % take final value
-                p_final_all(network, idx1, idx2, 1) = mean(cells_hist{end}(:,1));
-                p_final_all(network, idx1, idx2, 2) = mean(cells_hist{end}(:,2));
-                I_final_all(network, idx1, idx2, 1) = moranI(cells_hist{end}(:,1), a0*dist);
-                I_final_all(network, idx1, idx2, 2) = moranI(cells_hist{end}(:,2), a0*dist);
-            end
-        end
-    end
-    %%
-    % Save results
-    %network = network_all(i);
-    folder = 'H:\My Documents\Multicellular automaton\data\two_signals\batch_sim_all_topologies\analysis_initial_p_I';
-
-    fname_str = sprintf('batch_sim_analyzed_data_batch2_p_I_final_network_%d_old%d', count, network);
-    K_network = squeeze(K_all(network, :, :, :));
-    Con_network = squeeze(Con_all(network, :, :, :));
-    
-    p_final_network = squeeze(p_final_all(network, :, :, :));
-    I_final_network = squeeze(I_final_all(network, :, :, :));
-    save(fullfile(folder, fname_str), 'M_int', 'M_int_all_reduced', 'K_network',...
-        'Con_network', 'p_final_network', 'I_final_network', 'network_all', ...
-        'n_pset', 'nsim', 'tmax', 'gz', 'N', 'a0', 'rcell', 'lambda', 'hill',...
-        'noise', 'Coff', 'InitiateI', 'mcsteps'); 
-    
-end
-n_networks = numel(M_int_all_reduced);
-%}
-
-%% Save data 
-%{
-folder = 'H:\My Documents\Multicellular automaton\data\two_signals\batch_sim_all_topologies\analysis_initial_p_I';
-idx_network = 1:23;
-for i=idx_network
-    network = network_all(i);
-    fname_str = sprintf('batch_sim_analyzed_data_batch2_p_I_final_network_%d', network);
-    K_network = squeeze(K_all(network, :, :, :));
-    Con_network = squeeze(Con_all(network, :, :, :));
-    
-    p_final_network = squeeze(p_final_all(network, :, :, :));
-    I_final_network = squeeze(I_final_all(network, :, :, :));
-    save(fullfile(folder, fname_str), 'M_int_all', 'M_int_all_reduced', 'K_network',...
-        'Con_network', 'p_final_network', 'I_final_network', 'network_all', ...
-        'n_pset', 'nsim', 'tmax', 'gz', 'N', 'a0', 'rcell', 'lambda', 'hill',...
-        'noise', 'Coff', 'InitiateI', 'mcsteps'); 
-end
-%}
-%% Delete corrupt files
-%
-for i=1:numel(corrupt_files)
-    disp(i);
-    fname = corrupt_files{i};
-    delete(fname);
-end
-%}
-%% Save loaded data 
-%{
-folder = 'H:\My Documents\Multicellular automaton\data\two_signals\batch_sim_all_topologies';
-%{
-fname_str = sprintf('batch_sim_analyzed_data_batch2.mat');
-save(fullfile(folder, fname_str), 'M_int_all', 'M_int_all_reduced', 'K_all',...
-    'Con_all', 't_out_all', 'period_all', 'non_uniform_all', 'network_all', ...
-    'n_pset', 'nsim', 'tmax', 'gz', 'N', 'a0', 'rcell', 'lambda', 'hill',...
-    'noise', 'Coff', 'InitiateI', 'mcsteps'); 
-%}
-% save new files for I_final
-fname_str = sprintf('batch_sim_analyzed_data_batch2_I_final.mat');
-save(fullfile(folder, fname_str), 'M_int_all', 'M_int_all_reduced', 'K_all',...
-    'Con_all', 'I_final_all', 'network_all', ...
-    'n_pset', 'nsim', 'tmax', 'gz', 'N', 'a0', 'rcell', 'lambda', 'hill',...
-    'noise', 'Coff', 'InitiateI', 'mcsteps'); 
-%}
 %% Load saved data
-%{
+%
 folder = 'H:\My Documents\Multicellular automaton\data\two_signals\batch_sim_all_topologies';
 fname_str = sprintf('batch_sim_analyzed_data_batch2.mat');
 load(fullfile(folder, fname_str));
@@ -432,14 +236,19 @@ topologies_non_osc = setdiff(1:n_networks, unique(idx1));
 % default
 %network_sel_orig = network_all;
 %network_sel = 1:numel(network_all);
+% subset
+% network_sel_orig = network_set1_orig; %original index
+% network_sel = network_set1; %reduced index
 % custom
-network_sel_orig = network_set1_orig; %original index
-network_sel = network_set1; %reduced index
+network_sel = [15 19 36 33 34 16 20 43]; %reduced index
+network_sel_orig = network_all(network_sel); %original index
 
 period_all_net = period_all(network_sel_orig, :, :);
 
 h=figure;
 hold on
+% sort networks by number of different periods
+%{
 period_count = zeros(numel(network_sel), 1);
 for i=1:numel(network_sel)
     period_count(i) = numel(unique(period_all_net(i,:)));
@@ -450,11 +259,21 @@ for i=1:numel(network_sel)
         repmat(i, period_count(idx_sort(i)), 1), 35, 'kd', 'filled' );
 end
 set(gca, 'YTick', 1:numel(network_sel), 'YTickLabels', network_sel(idx_sort));
+
+%}
+% don't sort networks
+for i=1:numel(network_sel)
+    scatter( unique(period_all_net(i,:)), ...
+        repmat(i, numel(unique(period_all_net(i,:))), 1), 35, 'kd', 'filled' );
+end
+set(gca, 'YTick', 1:numel(network_sel), 'YTickLabels', network_sel);
+
+% set other properties
 set(gca, 'XScale', 'log');
 xlim([1 10^4]);
 ylim([0 numel(network_sel)+1]);
 colors = parula(4);
-plot([2 2], [0 numel(network_sel)+1], '--', 'Color', colors(1,:) );
+plot([2 2], [0 numel(network_sel)+1], '--', 'Color',  colors(1,:) );
 plot([3 3], [0 numel(network_sel)+1], '--', 'Color', colors(2,:));
 plot([4 4], [0 numel(network_sel)+1], '--', 'Color', colors(3,:));
 set(gca, 'FontSize', 13);
@@ -462,38 +281,47 @@ ylabel('Network', 'FontSize', 20);
 xlabel('Period', 'FontSize', 20);
 
 % Same topologies as those with high tmax!
-qsave = 1;
-fname_str = 'oscillations_all_scatter_subset3_v2';
+qsave = 0;
+fname_str = 'oscillations_all_scatter_subset3_v2_reorganised';
 save_figure(h, 10, 5, fullfile(save_folder, fname_str),'.pdf', qsave);
 
 %% Oscillations frequency per class (I, II, III)
 frac_osc = zeros(3, 1); % Fraction of parameter sets which are capable of generating oscillations 
+frac_osc_std = zeros(3, 1); % error of the mean across networks of same class
 %frac_osc_2 = zeros(3, 1); % Net fraction of simulations which generate oscillations
 for i=1:3
     period_temp = squeeze(period_all(network_sets{i}, :, :));
     n_network_temp = numel(network_sets{i});
-    n_osc_psets = 0;
+    n_osc_psets = zeros(n_network_temp, 1);
     for j=1:n_network_temp
         [idx1, idx2] = find(squeeze(period_temp(j,:,:)~=Inf));
-        n_osc_psets = n_osc_psets + numel(unique(idx1));
+        n_osc_psets(j) = numel(unique(idx1));
     end
-    frac_osc(i) = n_osc_psets/(n_pset*n_network_temp); % count parameter sets
+    
+    frac_osc(i) = mean(n_osc_psets/n_pset); % count parameter sets
+    frac_osc_std(i) = std(n_osc_psets/(n_pset) );
     %frac_osc_2(i) = numel(idx1)/(n_network_temp*n_pset*nsim); % count simulations
 end
 
 % Plot 
 h = figure;
-bar([frac_osc([3 2 1]) 1-frac_osc([3 2 1])], 'stacked');
-labels = {'Simple\newlinenetworks', 'Oscillatory\newlinenetworks', 'Complex\newlinenetworks'};
-set(gca, 'XTickLabel', labels);
+hold on
+%bar([frac_osc([3 2 1]) 1-frac_osc([3 2 1])], 'stacked');
+labels = {'Non-periodic\newline(n=9)', 'Oscillatory\newline(n=25)',...
+    'Complex\newline(n=10)'};
+set(gca, 'XTick', 1:3, 'XTickLabel', labels);
+errorbar(frac_osc([3 2 1]), frac_osc_std([3 2 1]), 'LineWidth', 3);
 %xlabel('Network class');
 ylabel('Frequency');
-legend({'Oscillatory', 'Non-oscillatory'}, 'location', 'no');
+%legend({'Oscillatory', 'Non-oscillatory'}, 'location', 'no');
 set(gca, 'FontSize', 20);
+set(gca, 'YTick', 0:0.2:1);
+xlim([0.5 3.5]);
+ylim([0 1]);
 
 qsave = 1;
-fname_str = 'oscillation_fraction_by_network_class_bar_v2';
-save_figure(h, 10, 6, fullfile(save_folder, fname_str),'.pdf', qsave);
+fname_str = 'oscillation_fraction_by_network_class_v4_errorbar_std';
+save_figure(h, 10, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 
 %% Categorize periodic trajectories
 % Subdivide periodic trajectories into classes 
