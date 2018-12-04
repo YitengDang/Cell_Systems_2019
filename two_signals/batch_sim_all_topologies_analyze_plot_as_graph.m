@@ -50,8 +50,10 @@ class{3} = [1	3	4	6	7	9	17	24	26	28]; % no oscillations
 
 % Networks by number of repressive interactions
 num_repressors = zeros(n_networks, 1);
+num_repr_self = zeros(n_networks, 1); % self-interactions
 for ii=1:n_networks
     num_repressors(ii) = sum(M_int_all_reduced{ii}(:)==-1);
+    num_repr_self(ii) = sum(M_int_all_reduced{ii}([1 4])==-1);
 end
 
 %% Calculate network distances (Hamming distance)
@@ -107,10 +109,46 @@ for ii=1:n_networks
     count(this_num_int) = count(this_num_int) + 1;
 end
 %}
-%% (1) Plot max(t_out)
+
+%% Calculate data for later usage
+% tmax
 t_out_max = max(t_out_all_net(:,:), [], 2);
 t_out_max_log10 = log10(t_out_max);
 
+% t_mean
+t_out_mean = mean(t_out_all_net(:,:), 2);
+
+% Fraction oscillators
+frac_osc = zeros(n_networks, 1); % Fraction of parameter sets which are capable of generating oscillations
+frac_osc_2 = zeros(n_networks, 1); % Net fraction of simulations which generate oscillations
+for ii=1:n_networks
+    period_temp = squeeze(period_all_net(ii,:,:));
+    [idx1, idx2] = find(period_temp~=Inf);
+    frac_osc(ii) = numel(unique(idx1))/n_pset;
+    frac_osc_2(ii) = numel(idx1)/(n_pset*nsim);
+end
+
+I_min = 0.3;
+
+% Fraction spatially ordered
+networks_sel = 1:44;
+num_ordered = zeros( numel(networks_sel), 1 );
+for network=networks_sel
+    %network = 1;
+    % Load files, find fraction of networks giving spatial order
+    load_folder = 'H:\My Documents\Multicellular automaton\data\two_signals\batch_sim_all_topologies\analysis_initial_p_I';
+    fname_str = sprintf('batch_sim_analyzed_data_batch2_p_I_final_network_%d_old%d',...
+        network, network_all(network) );
+    fname = fullfile(load_folder, fname_str);
+    disp(fname);
+    load(fname, 'I_final_network');
+    
+    num_ordered(network) = sum(sum(I_final_network(:,:,1)>I_min & I_final_network(:,:,2)>I_min));
+end
+frac_spatially_ordered = zeros(n_networks, 1);
+frac_spatially_ordered(networks_sel) = num_ordered(networks_sel)/(n_pset*nsim);
+
+%% (1) Plot max(t_out)
 % find x and y positions, order by value of output variable
 x_graph = num_int;
 y_graph = zeros(n_networks, 1);
@@ -162,8 +200,6 @@ fname_str = 'graph_plot_t_out_max_log_rearranged_marked_v3_jet_size_12_8';
 save_figure(h1, 12, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 
 %% (2) Plot t_out mean
-t_out_mean = mean(t_out_all_net(:,:), 2);
-
 % find x and y positions, order by value of output variable
 x_graph = num_int;
 y_graph = zeros(n_networks, 1);
@@ -211,14 +247,6 @@ fname_str = 'graph_plot_t_out_mean_rearranged_marked_v2_jet';
 save_figure(h2, 15, 10, fullfile(save_folder, fname_str),'.pdf', qsave);
 
 %% (3) Oscillation prevalence
-frac_osc = zeros(n_networks, 1); % Fraction of parameter sets which are capable of generating oscillations
-frac_osc_2 = zeros(n_networks, 1); % Net fraction of simulations which generate oscillations
-for ii=1:n_networks
-    period_temp = squeeze(period_all_net(ii,:,:));
-    [idx1, idx2] = find(period_temp~=Inf);
-    frac_osc(ii) = numel(unique(idx1))/n_pset;
-    frac_osc_2(ii) = numel(idx1)/(n_pset*nsim);
-end
 
 % find x and y positions, order by value of output variable
 x_graph = num_int;
@@ -268,26 +296,6 @@ fname_str = 'graph_plot_osc_prevalence_rearranged_marked_v2_jet';
 save_figure(h3, 15, 10, fullfile(save_folder, fname_str),'.pdf', qsave);
 
 %% (4) Final spatial order
-I_min = 0.3;
-
-% Load files, find fraction of networks giving spatial order
-networks_sel = 1:44;
-num_ordered = zeros( numel(networks_sel), 1 );
-for network=networks_sel
-    %network = 1;
-    load_folder = 'H:\My Documents\Multicellular automaton\data\two_signals\batch_sim_all_topologies\analysis_initial_p_I';
-    fname_str = sprintf('batch_sim_analyzed_data_batch2_p_I_final_network_%d_old%d',...
-        network, network_all(network) );
-    fname = fullfile(load_folder, fname_str);
-    disp(fname);
-    load(fname, 'I_final_network');
-    
-    num_ordered(network) = sum(sum(I_final_network(:,:,1)>I_min & I_final_network(:,:,2)>I_min));
-end
-
-frac_spatially_ordered = zeros(n_networks, 1);
-frac_spatially_ordered(networks_sel) = num_ordered(networks_sel)/(n_pset*nsim);
-
 % find x and y positions, order by value of output variable
 x_graph = num_int;
 y_graph = zeros(n_networks, 1);
@@ -334,11 +342,13 @@ save_figure(h2, 15, 10, fullfile(save_folder, fname_str),'.pdf', qsave);
 %% Correlation between final spatial order and oscillation prevalence
 h = figure;
 hold on
-%{
+%
 % Plot for different "classes" -> no clear trend
-scatter(frac_osc(class{1}), frac_spatially_ordered(class{1}), 100, 'filled', 'ko');
-scatter(frac_osc(class{2}), frac_spatially_ordered(class{2}), 100, 'filled', 'k^');
-scatter(frac_osc(class{3}), frac_spatially_ordered(class{3}), 100, 'filled', 'ks');
+p = cell(3,1);
+p{1} = scatter(frac_osc(class{1}), frac_spatially_ordered(class{1}), 100, 'filled', 'ko');
+p{2} = scatter(frac_osc(class{2}), frac_spatially_ordered(class{2}), 100, 'filled', 'k^');
+p{3} = scatter(frac_osc(class{3}), frac_spatially_ordered(class{3}), 100, 'filled', 'ks');
+legend([p{1} p{2} p{3}], {'Complex', 'Oscillatory', 'Non-periodic'}, 'Location', 'nw');
 %}
 %{
 % Plot against number of interactions -> no trend
@@ -347,20 +357,27 @@ scatter(frac_osc(x_graph==2), frac_spatially_ordered(x_graph==2), 100, 'filled',
 scatter(frac_osc(x_graph==3), frac_spatially_ordered(x_graph==3), 100, 'filled', 'o');
 scatter(frac_osc(x_graph==4), frac_spatially_ordered(x_graph==4), 100, 'filled', 'o');
 %}
-
 % Plot against number of repressive interactions 
 %{
 p = cell(5, 1);
 cmap = get(gca, 'colororder'); %viridis(5);
-for ii=0:4
+for ii=0:4 %4
+    % total # repressive interactions
     p{ii+1} = scatter(frac_osc(num_repressors==ii),...
         frac_spatially_ordered(num_repressors==ii), 100, cmap(ii+1,:), 'filled', 'o');
+    % # repressive self-interactions
+    %p{ii+1} = scatter(frac_osc(num_repr_self==ii),...
+    %    frac_spatially_ordered(num_repr_self==ii), 100, cmap(ii+1,:), 'filled', 'o');
 end
-legend([p{1} p{2} p{3} p{4} p{5}], sprintfc('%d', 0:4), 'Location', 'nw');
+leg = legend([p{1} p{2} p{3}], sprintfc('%d', 0:2), 'Location', 'nw');
+%title(leg,'# self-repressions')
+title(leg,'# repressions')
+leg.Title.Visible = 'on';
+%legend([p{1} p{2} p{3} p{4} p{5}], sprintfc('%d', 0:4), 'Location', 'nw');
 %}
 
 % Plot averages over number of repressors
-%
+%{
 frac_osc_by_numR_mean = zeros(5, 1);
 frac_osc_by_numR_std = zeros(5, 1);
 frac_spatially_ordered_by_numR_mean = zeros(5, 1);
@@ -397,24 +414,245 @@ set(gca, 'FontSize', 20, 'XTick', 0:0.2:1, 'YTick', 0:0.02:0.1);
 %title(sprintf('$I>%.1f$', I_min ))
 
 % label networks
-%{
+%
 for ii=1:n_networks
     % gate data
-    if frac_osc(ii)>0.1 && frac_spatially_ordered(ii)>0.007
+    cond = frac_osc(ii)>0.1 && frac_spatially_ordered(ii)>0.007;
+    if cond || ismember(ii, class{1})
         text(frac_osc(ii)+0.01, frac_spatially_ordered(ii)-0.002, num2str(ii), 'fontsize', 16, 'Color', 'k');
     end
 end
 %}
 
-qsave = 1;
+qsave = 0;
 save_folder2 = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2';
 % networks, by class
-%fname_str = strrep(sprintf('frac_osc_vs_frac_ordered_by_network_class_I_min_%.1f', I_min), '.', 'p');
+fname_str = strrep(sprintf('frac_osc_vs_frac_ordered_by_network_class_I_min_%.1f', I_min), '.', 'p');
 % networks, by # repressors
 %fname_str = strrep(sprintf('frac_osc_vs_frac_ordered_by_network_num_repressors_I_min_%.1f', I_min), '.', 'p');
 % averages, by # repressors
-fname_str = strrep(sprintf('frac_osc_vs_frac_ordered_by_num_repressors_mean_I_min_%.1f_errorbars', I_min), '.', 'p');
+%fname_str = strrep(sprintf('frac_osc_vs_frac_ordered_by_num_repressors_mean_I_min_%.1f_errorbars', I_min), '.', 'p');
+% averages, by # repressive self-interactions
+%fname_str = strrep(sprintf('frac_osc_vs_frac_ordered_by_num_repressive_self_int_I_min_%.1f', I_min), '.', 'p');
 save_figure(h, 10, 8, fullfile(save_folder2, fname_str),'.pdf', qsave);
+%% Correlation part 2: testing hypotheses
+% Is the positive correlation due to a direct relation between periodicity
+% and spatial order? 
+
+% Reload trajectories, get indices of spatially ordered and non-ordered
+% trajectories
+I_min = 0.3;
+networks_sel = 1:44;
+
+% output
+count_periodic = zeros( numel(networks_sel), 1 ); % #periodic trajectories
+count_non_periodic = zeros( numel(networks_sel), 1 ); % #non-periodic trajectories, not reaching tmax
+num_ordered_p = zeros( numel(networks_sel), 1 ); % #ordered, periodic trajectories
+num_ordered_non_p = zeros( numel(networks_sel), 1 ); % #ordered, non-periodic trajectories
+% filter by period
+% periods_chosen = [2, 3, 4, Inf, multiple of gz, other]
+count_by_period = zeros( numel(networks_sel), 6 ); % #spatially ordered trajectories, by period
+num_by_period = zeros( numel(networks_sel), 6 ); % total # number of trajectories, by period
+
+for network=networks_sel
+    % filter out trajectories that reached tmax
+    %disp(sum(sum(t_out_all_net==tmax, 3), 2)); % # trajectories reached tmax per network
+    idx_tmax_reached = t_out_all_net(network,:,:)==tmax;
+    
+    % check periodicity of ordered and disordered trajectories
+    this_periods = period_all_net(network, :, :);
+    periodic_idx = (this_periods<Inf);
+    count_periodic(network) = sum(periodic_idx(:));
+    count_non_periodic(network) = sum(sum(~periodic_idx & ~idx_tmax_reached));
+    
+    % Get final I of networks
+    %network = 1;
+    load_folder = 'H:\My Documents\Multicellular automaton\data\two_signals\batch_sim_all_topologies\analysis_initial_p_I';
+    fname_str = sprintf('batch_sim_analyzed_data_batch2_p_I_final_network_%d_old%d',...
+        network, network_all(network) );
+    fname = fullfile(load_folder, fname_str);
+    disp(fname);
+    load(fname, 'I_final_network');
+    
+    % Separate into I_final for periodic and non-periodic trajectories
+    I_final_network = reshape(I_final_network, size(I_final_network, 1)*size(I_final_network, 2), 2);
+    %I_final_periodic = I_final_network(periodic_idx, :);
+    %I_final_non_periodic = I_final_network(~periodic_idx & ~idx_tmax_reached, :);
+    
+    % Find fraction of spatially ordered among each of the two 
+    num_ordered_p(network) = sum(...
+        I_final_network(periodic_idx,1)>I_min &...
+        I_final_network(periodic_idx,2)>I_min);
+    num_ordered_non_p(network) = sum(...
+        I_final_network(~periodic_idx & ~idx_tmax_reached, 1)>I_min &...
+        I_final_network(~periodic_idx & ~idx_tmax_reached, 2)>I_min);
+    
+    % #spatially ordered trajectories per period  
+    % clear periodic_idx   % clear variables for memory
+    idx_I = (I_final_network(:,1) > I_min & I_final_network(:,2) > I_min & ~idx_tmax_reached(:));
+    periods_ordered = this_periods(idx_I);
+    count_by_period_temp = histcounts( categorical(periods_ordered), {'2', '3', '4', 'Inf'} );
+    count_by_period_temp(5) = sum( mod(periods_ordered, gz)==0 );
+    count_by_period_temp(6) = numel(periods_ordered) - sum(count_by_period_temp(1:5));
+    count_by_period(network, :) = count_by_period_temp;
+    
+    % Total # number of trajectories, by period 
+    num_by_period_temp = histcounts( categorical(this_periods), {'2', '3', '4', 'Inf'} );
+    num_by_period_temp(5) = sum( mod(this_periods(:), gz)==0 );
+    num_by_period_temp(6) = numel(this_periods) - sum(num_by_period_temp(1:5));
+    num_by_period(network, :) = num_by_period_temp;    
+    
+    % other method (reverse): check periods of spatially ordered trajectories
+    %{
+    % get indices of ordered trajectories
+    this_indices = (I_final_network(:,:,1)>I_min & I_final_network(:,:,2)>I_min);
+    
+    %this_periods = period_all_net(network, :, :);
+    %temp = this_periods(this_indices);
+    %temp2 = this_periods(~this_indices);
+    %}
+end
+frac_ordered_p = num_ordered_p./count_periodic;
+frac_ordered_non_p = num_ordered_non_p./(count_non_periodic);
+
+
+%% Plot fraction spatially ordered, averaged over periodic/non-periodic only
+% Ordered by network
+h=figure;
+hold on
+barwidth = 1;
+bar(1:n_networks, [frac_ordered_p frac_ordered_non_p], barwidth); %, 'bo-');
+legend({'X = Periodic', 'X = Non-periodic'});
+%bar(40:44, [frac_ordered_p(40:44) frac_ordered_non_p(40:44)], 1); %, 'bo-');
+%barh(1:n_networks, ); %, 'ro-');
+set(gca, 'XTick', 1:n_networks);
+set(gca, 'FontSize', 20);
+xlabel('Network');
+%ylabel('Fraction spatially ordered');
+ylabel('$P($ordered$|$X$)$', 'Interpreter', 'latex');
+
+qsave = 1;
+save_folder2 = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2';
+fname_str = strrep(sprintf('frac_ordered_network_bar_I_min_%.1f', I_min), '.', 'p');
+save_figure(h, 24, 6, fullfile(save_folder2, fname_str),'.pdf', qsave);
+
+% Ordered by frequency
+frac_ordered_p(isnan(frac_ordered_p)) = 0;
+[~, sort_idx] = sort(frac_ordered_p, 'ascend');
+h=figure;
+bar( 1:n_networks, [frac_ordered_p(sort_idx) frac_ordered_non_p(sort_idx)]);
+legend({'X = Periodic', 'X = Non-periodic'}, 'Location', 'nw');
+set(gca, 'XTick', 1:n_networks, 'XTickLabel', sort_idx );
+set(gca, 'FontSize', 20);
+xlabel('Network');
+%ylabel('Fraction spatially ordered');
+ylabel('$P($ordered$|$X$)$', 'Interpreter', 'latex');
+
+qsave = 1;
+save_folder2 = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2';
+fname_str = strrep(sprintf('frac_ordered_network_bar_I_min_%.1f_v2_sorted', I_min), '.', 'p');
+save_figure(h, 24, 6, fullfile(save_folder2, fname_str),'.pdf', qsave);
+
+%% Plot mean|Complex and mean|Oscillatory per class 
+%{
+h = figure;
+hold on
+bar([1 2], [mean(frac_ordered_p(class{1})) mean(frac_ordered_p(class{2}))]);
+errorbar( 1, mean(frac_ordered_p(class{1})), std(frac_ordered_p(class{1})) );
+errorbar( 2, mean(frac_ordered_p(class{2})), std(frac_ordered_p(class{2})) );
+set(gca, 'XTick', [1 2], 'XTickLabels', {'Complex', 'Oscillatory'});
+% -> Not statistically significant
+%}
+%% Plot fraction spatially ordered, averaged over all trajectories
+% Sort by frequency
+frac1 = num_ordered_p./(count_periodic+count_non_periodic);
+frac2 = num_ordered_non_p./(count_periodic+count_non_periodic);
+frac1(isnan(frac1)) = 0;
+[~, sort_idx] = sort(frac1+frac2, 'ascend');
+
+h = figure;
+barwidth = 1;
+bar(1:n_networks, [frac1(sort_idx) frac2(sort_idx)], barwidth, 'stacked'); %, 'bo-');
+legend({'Periodic', 'Non-periodic'}, 'Location', 'nw');
+%bar(40:44, [frac_ordered_p(40:44) frac_ordered_non_p(40:44)], 1); %, 'bo-');
+%barh(1:n_networks, ); %, 'ro-');
+set(gca, 'XTick', 1:n_networks,  'XTickLabel', sort_idx );
+set(gca, 'FontSize', 20);
+xlabel('Network');
+ylabel('Fraction spatially ordered');
+
+qsave = 0;
+save_folder2 = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2';
+fname_str = strrep(sprintf('frac_ordered_network_bar_I_min_%.1f_v3', I_min), '.', 'p');
+save_figure(h, 24, 6, fullfile(save_folder2, fname_str),'.pdf', qsave);
+
+%% Analyze spatially ordered periodic trajectories by period
+
+% Which periods most likely lead to spatial order?
+frac_by_period = count_by_period./num_by_period; % fraction of spatially ordered trajectories per period
+idx_nan = isnan(frac_by_period);
+frac_by_period(idx_nan) = 0;
+%
+% sort data
+sort_idx_final = 1:n_networks;
+for ii=[4 1 2 3 6 5] %sort data one by one
+    [~, sort_idx] = sort( frac_by_period(:,ii), 'ascend' );
+    frac_by_period = frac_by_period(sort_idx, :);
+    sort_idx_final = sort_idx_final(sort_idx);
+end
+%}
+frac_by_period(idx_nan(sort_idx_final,:)) = NaN; % set the non-existing fractions to NaN again
+h=figure;
+hold on
+plot(frac_by_period, 'o', 'LineWidth', 2, 'MarkerSize', 10);
+%scatter(repmat((1:n_networks)', 1, 6), frac_by_period, 'filled');
+legend({'2', '3', '4', 'Inf', 'mult. gz', 'other'}, 'Location', 'nw');
+xlabel('Network');
+%ylabel('Fraction spatially ordered');
+ylabel('$P($ordered$|$period$)$', 'Interpreter', 'latex');
+set(gca, 'XTick', 1:n_networks, 'XTickLabel', sort_idx_final );
+set(gca, 'FontSize', 20);
+%set(h, 'Units', 'Inches', 'Position', [1 1 24 6]);
+
+qsave = 1;
+save_folder2 = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2';
+fname_str = strrep(sprintf('frac_ordered_by_period_network_I_min_%.1f_plot', I_min), '.', 'p');
+save_figure(h, 24, 6, fullfile(save_folder2, fname_str),'.pdf', qsave);
+
+% How do the spatially ordered trajectories break down by period?
+
+%% Select complex class networks only, examine effects
+frac_period_above_4 = sum(count_by_period(class{1}, 5:6), 2)./sum(num_by_period(class{1}, 5:6), 2);
+frac_period_mult_gz = count_by_period(class{1}, 5)./num_by_period(class{1}, 5);
+
+h=figure;
+hold on
+bar(1:numel(class{1}), [frac_period_mult_gz frac_period_above_4]);
+P_max = max(frac_spatially_ordered); % maximumm fraction of spatially ordered trajectories, over all networks and trajectories
+plot([0 numel(class{1})+1], [P_max P_max], 'k--');
+legend({'Mult. gz', 'Period>4'}, 'Location', 'se');
+xlabel('Network');
+%ylabel('Fraction spatially ordered');
+ylabel('$P($ordered$|$period$)$', 'Interpreter', 'latex');
+set(gca, 'XTick', 1:numel(class{1}), 'XTickLabel', class{1});
+set(gca, 'FontSize', 20);
+%set(h, 'Units', 'Inches', 'Position', [1 1 24 6]);
+
+for ii=1:numel(class{1})
+    % Label number of period mult. gz trajectories
+    text( ii-0.3, frac_period_mult_gz(ii) + 0.02,...
+        sprintf('%d', count_by_period(class{1}(ii), 5)), 'fontsize', 16);
+    % Label number of period mult. gz trajectories
+    text( ii, frac_period_above_4(ii) + 0.02,...
+        sprintf('%d', sum(count_by_period(class{1}(ii), 5:6), 2) ) , 'fontsize', 16);
+end
+set(h, 'Units', 'Inches', 'Position', [1 1 10 8]);
+
+qsave = 1;
+save_folder2 = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2';
+fname_str = strrep(sprintf('frac_ordered_by_period_complex_network_I_min_%.1f_bar_v2_with_counts', I_min), '.', 'p');
+save_figure(h, 10, 8, fullfile(save_folder2, fname_str),'.pdf', qsave);
+
 
 %% Plot periods as heat map (not as graph)
 uniq_periods = unique(period_all_net);
@@ -447,7 +685,7 @@ set(gca, 'XTick', 1:nbins, 'XTickLabel', xlabels);
 set(gca, 'YTick', 1:44, 'YTickLabel', [class{1} class{2} class{3}]);
 
 % Save figure
-qsave = 1;
+qsave = 0;
 fname_str = 'periods_density_by_network_imagesc';
 save_figure(h, 15, 10, fullfile(save_folder, fname_str),'.pdf', qsave);
 

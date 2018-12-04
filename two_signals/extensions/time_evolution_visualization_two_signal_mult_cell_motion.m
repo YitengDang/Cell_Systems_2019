@@ -163,7 +163,7 @@ t_onset = Inf;
 [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
 	Rcell, Con, Coff, K, lambda, hill, noise);
 % update positions
-[pos, dist, rejections] = update_cell_positions(gz, rcell, pos, sigma_D);
+[pos, dist, rejections] = update_cell_positions(gz, rcell, pos, dist, sigma_D);
 
 % always check within first t_ac time steps
 t_ac = 10^2;
@@ -184,7 +184,7 @@ while changed && period==Inf && t<t_ac
     [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
         Rcell, Con, Coff, K, lambda, hill, noise);
     % update positions
-    [pos, dist, rejections] = update_cell_positions(gz, rcell, pos, sigma_D);
+    [pos, dist, rejections] = update_cell_positions(gz, rcell, pos, dist, sigma_D);
 end
 
 % check periodically after t_ac time steps, with period t_check
@@ -206,7 +206,7 @@ while changed && period==Inf && t<tmax
     [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
         Rcell, Con, Coff, K, lambda, hill, noise);
     % update positions
-    [pos, dist, rejections] = update_cell_positions(gz, rcell, pos, sigma_D);
+    [pos, dist, rejections] = update_cell_positions(gz, rcell, pos, dist, sigma_D);
 end
 %pause(1);
 

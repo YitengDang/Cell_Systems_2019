@@ -1,5 +1,5 @@
 function [pos_new, dist_new, rejections] = update_cell_positions(...
-    n, rcell, pos, sigma_D)
+    n, rcell, pos, dist, sigma_D)
 % Updates the positions of the cells according to Brownian motion
 % sigma_D: width of the Gaussian for Brownian motion in units of a0
 % * Move the cells after cell states have been updated
@@ -45,6 +45,12 @@ if ~nodisplay
 end
 %}
 %---------main code---------------
+if sigma_D==0 % if cells are not moved, return
+    pos_new = pos;
+    dist_new = dist;
+    rejections = 0;
+    return
+end
 Lx = 1;
 N = n^2;
 R = rcell*Lx/n;

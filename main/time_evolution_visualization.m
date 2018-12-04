@@ -29,7 +29,6 @@ fN = sum(sinh(Rcell)*sum(exp(Rcell-r)./r)); % calculate signaling strength
 cell_type = zeros(N,1); % all the same here
 
 % initialize ON cells
-
 cells = zeros(N,1);
 cells(randperm(N,iniON)) = 1;
 %cells(1:2:N) = 1;

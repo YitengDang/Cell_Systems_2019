@@ -47,8 +47,8 @@ if ~all(K(idx)==0)
     fprintf('K has wrong entries! \n');
     warning('K has wrong entries!');
 end
-
 %}
+
 %{
 % TO DO: vectorize
 dist_vec = a0*dist(1,:);

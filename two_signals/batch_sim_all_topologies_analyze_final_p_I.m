@@ -9,8 +9,8 @@ set(0, 'defaulttextinterpreter', 'latex');
 % Settings
 % Note: increasing nsim at n_pset is always possible. However, increasing
 % n_pset leads to data sets that do not form a perfect LHS sample
-n_pset = 10000; % number of parameter sets to do
-nsim = 10; % number of simulations per parameter set
+%n_pset = 10000; % number of parameter sets to do
+%nsim = 10; % number of simulations per parameter set
 tmax = 10000;
 
 % Fixed parameters
@@ -35,6 +35,20 @@ save_folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch
 subfolder1 = 'final_p';
 subfolder2 = 'final_I';
 
+%% Load saved data (first set: periodicity & t_out data)
+folder = 'H:\My Documents\Multicellular automaton\data\two_signals\batch_sim_all_topologies';
+fname_str = sprintf('batch_sim_analyzed_data_batch2.mat');
+load(fullfile(folder, fname_str), 't_out_all', 'period_all', 'M_int_all_reduced', 'network_all');
+n_networks = numel(M_int_all_reduced);
+n_pset = size(period_all, 2); % number of parameter sets
+nsim = size(period_all, 3); % number of simulations per parameter set
+
+% filtered data
+t_out_all_net = t_out_all(network_all, :, :);
+period_all_net = period_all(network_all, :, :);
+
+clear t_out_all
+clear period_all
 %% 
 % divide into subsets
 %{
@@ -50,16 +64,18 @@ folder = 'H:\My Documents\Multicellular automaton\data\two_signals\batch_sim_all
 load(fullfile(folder, fname_str), 'network_all');
 
 % 
-networks_sel = 24:44;
+networks_sel = 1:44;
 for network=networks_sel
     %network = 1;
     fname_str = sprintf('batch_sim_analyzed_data_batch2_p_I_final_network_%d_old%d',...
         network, network_all(network) );
     fname = fullfile(load_folder, fname_str);
     disp(fname);
-    load(fname);
-
+    load(fname, 'p_final_network', 'I_final_network');
+    
+    this_periods = period_all_net(network,:);
     %% Analyze final p
+    %{
     % Scatter plot
     h = figure;
     X = reshape(p_final_network(:, :, 1), n_pset*nsim, 1);
@@ -71,7 +87,7 @@ for network=networks_sel
     ylabel('Final $p^{(2)}$');
     set(gca, 'FontSize', 24);
 
-    qsave = 1;
+    qsave = 0;
     fname_str = sprintf('Final_p_scatter_network_%d', network);
     fname = fullfile(save_folder, subfolder1, fname_str);
     save_figure(h, 10, 8, fname, '.pdf', qsave);
@@ -97,7 +113,7 @@ for network=networks_sel
     ylabel(c, 'Probability');
     scale = '_log'; % '_linear';
 
-    qsave = 1;
+    qsave = 0;
     fname_str = sprintf('Final_p_density_map_network_%d%s', network, scale);
     fname = fullfile(save_folder, subfolder1, fname_str);
     save_figure(h, 10, 8, fname, '.pdf', qsave);
@@ -118,7 +134,7 @@ for network=networks_sel
     ylabel('Final $I^{(2)}$');
     set(gca, 'FontSize', 24);
 
-    qsave = 1;
+    qsave = 0;
     fname_str = sprintf('Final_I_scatter_network_%d', network);
     fname = fullfile(save_folder, subfolder2, fname_str);
     save_figure(h, 10, 8, fname, '.pdf', qsave);
@@ -144,10 +160,68 @@ for network=networks_sel
     ylabel(c, 'Probability');
     scale = '_log'; % '_linear';
 
-    qsave = 1;
+    qsave = 0;
     fname_str = sprintf('Final_I_density_map_network_%d%s', network, scale);
     fname = fullfile(save_folder, subfolder2, fname_str);
     save_figure(h, 10, 8, fname, '.pdf', qsave);
+    %}
+    %% Plot subset of points
+    I_min = 0.3;
+    I_1_final = I_final_network(:,:,1);
+    I_2_final = I_final_network(:,:,2);
+    p_1_final = p_final_network(:,:,1);
+    p_2_final = p_final_network(:,:,2);
+    
+    % Scatter plot
+    % select only periodic points
+    idx_subset = this_periods<Inf & this_periods>4;
+    % select spatially ordered points
+    idx_subset2 = (I_1_final(:)>I_min & I_2_final(:)>I_min)';
+    
+    if sum(idx_subset)~=0
+        num_in_gate = sum(idx_subset & idx_subset2);
+        % Plot final p
+        h = figure;
+        hold on
+        X = p_1_final(idx_subset);
+        Y = p_2_final(idx_subset);
+        scatter(X, Y, 'x');
+        xlim([0 1]);
+        ylim([0 1]);
+        xlabel('Final $p^{(1)}$');
+        ylabel('Final $p^{(2)}$');
+        title(sprintf('$n_{ord} = %d, n_{tot}=%d$', num_in_gate, numel(X)));
+        set(gca, 'FontSize', 24);
+
+        qsave = 1;
+        fname_str = strrep(sprintf(...
+            'Final_p_scatter_complex_periods_network_%d_I_min_%.1f',...
+            network, I_min), '.', 'p');
+        fname = fullfile(save_folder, subfolder1, fname_str);
+        save_figure(h, 10, 8, fname, '.pdf', qsave);  
+        
+        % Plot final I
+        h = figure;
+        hold on
+        X = I_1_final(idx_subset);
+        Y = I_2_final(idx_subset);
+        scatter(X, Y, 'x');
+        plot([0.3 1], [0.3 0.3], 'k--');
+        plot([0.3 0.3], [0.3 1], 'k--');
+        xlim([-0.2 0.8]);
+        ylim([-0.2 0.8]);
+        xlabel('Final $I^{(1)}$');
+        ylabel('Final $I^{(2)}$');
+        title(sprintf('$n_{ord} = %d, n_{tot}=%d$', num_in_gate, numel(X)));
+        set(gca, 'FontSize', 24);
+
+        qsave = 1;
+        fname_str = strrep(sprintf(...
+            'Final_I_scatter_complex_periods_network_%d_I_min_%.1f',...
+            network, I_min), '.', 'p');
+        fname = fullfile(save_folder, subfolder2, fname_str);
+        save_figure(h, 10, 8, fname, '.pdf', qsave);   
+    end
     %%
     close all
 end
