@@ -21,7 +21,7 @@ close all
 clear all
 %% Simulation parameters
 % variable to loop over
-sigma_D_all = 10.^[-3 -2 -1];
+sigma_D_all = [0.02 0.05];
 
 % number of simulations to do 
 sim_count = 20;
