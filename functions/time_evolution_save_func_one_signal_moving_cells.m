@@ -25,14 +25,13 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_one_signal_mov
     
     % update positions
     [positions, distances, ~] = update_cell_positions(gz, rcell, positions, distances, sigma_D);
-    positions_all{end+1} = positions;
     
     % create figure
     if display_fig
         hin = figure;
         %set(hin, 'Position', [100 100 800 800]);
         [h_cells, h_borders] = reset_cell_figure(hin, positions, rcell);
-        disp_mol = 12;
+        disp_mol = 1;
         showI = 0; 
         disp(size(cells));
         update_figure_periodic_scatter(h_cells, cells, t, disp_mol, showI, a0, distances);
@@ -68,6 +67,7 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_one_signal_mov
         disp(t);
         cells = cellsOut;
         cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
+        positions_all{end+1} = positions;
         %{
         if mod(t, t_check)==0
             [period, t_onset] = periodicity_test_short(cells_hist); 
@@ -85,7 +85,6 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_one_signal_mov
     
         % update positions
         [positions, distances, ~] = update_cell_positions(gz, rcell, positions, distances, sigma_D);
-        positions_all{end+1} = positions;
     end
     t_out = t; %default t_out
     
