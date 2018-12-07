@@ -21,12 +21,13 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
     period = Inf; %default values
     t_onset = Inf; 
     cells = cells_ini;
+    
+    % update cells
     [cellsOut, ~] = update_cells_two_signals_multiply_finite_Hill(cells, distances, M_int, a0,...
     	Rcell, Con, Coff, K, lambda, hill, noise);
     
     % update positions
     [positions, distances, ~] = update_cell_positions(gz, rcell, positions, distances, sigma_D);
-    positions_all{end+1} = positions;
     
     % create figure
     if display_fig
@@ -62,13 +63,14 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
     end
     %}
     % check periodically after t_ac time steps, with period t_check
-    t_check = 10^3; 
+    %t_check = 10^3; 
     while t<tmax % changed && period==Inf 
         pause(0.01);
         t = t+1; 
         disp(t);
         cells = cellsOut;
         cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
+        positions_all{end+1} = positions;
         %{
         if mod(t, t_check)==0
             [period, t_onset] = periodicity_test_short(cells_hist); 
@@ -84,7 +86,7 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
         
         % update positions
         [positions, distances, ~] = update_cell_positions(gz, rcell, positions, distances, sigma_D);
-        positions_all{end+1} = positions;
+        
     end
 
     t_out = t; %default t_out
@@ -101,26 +103,26 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
     %----------------------------------------------------------------------
     % Save result       
     % Format of output filename
-    fname_str = strrep(sprintf('%s_sigma_D_%.3f_t_out_%d_period_%d',...
-    	sim_ID, sigma_D, t_out, period), '.','p');
+    fname_str = strrep(sprintf('%s_sigma_D_%.3f_t_out_%d',...
+    	sim_ID, sigma_D, t_out), '.','p');
     ext = '.mat';
     
     % check if filename already exists
-    i=1;
-    fname = fullfile(save_folder, strcat(fname_str, '-v', num2str(i), ext));
+    v=1; 
+    fname = fullfile(save_folder, strcat(fname_str, '-v', num2str(v), ext));
     while exist(fname, 'file') == 2
-        i=i+1;
-        fname = fullfile(save_folder, strcat(fname_str, '-v', num2str(i), ext));
+        v=v+1;
+        fname = fullfile(save_folder, strcat(fname_str, '-v', num2str(v), ext));
     end
     
     % variables to save
     rcell = Rcell/a0;
     lambda12 = lambda(2);
     save_vars = {N, a0, K, Con, Coff, M_int, hill,...
-        noise, cells_ini, rcell, Rcell, lambda12, lambda,...
+        noise, rcell, Rcell, lambda12, lambda,...
         sim_ID, tmax, sigma_D, growth_rate, R_division};
     save_vars_lbl = {'N', 'a0', 'K', 'Con', 'Coff', 'M_int', 'hill',...
-        'noise', 'cells_ini', 'rcell', 'Rcell',  'lambda12', 'lambda', ...
+        'noise', 'rcell', 'Rcell',  'lambda12', 'lambda', ...
         'sim_ID', 'tmax', 'sigma_D', 'growth_rate', 'R_division'};
     save_consts_struct = cell2struct(save_vars, save_vars_lbl, 2);
     

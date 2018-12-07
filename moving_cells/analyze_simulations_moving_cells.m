@@ -4,6 +4,16 @@ clear all
 % maxNumCompThreads(4);
 % warning off
 set(0, 'defaulttextinterpreter', 'latex');
+
+%% Set folders
+%parent_folder = 'W:\staff-bulk\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells';
+parent_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells';
+
+% Save data folder
+save_folder = parent_folder;
+
+% Save figures folder
+save_fig_folder = parent_folder;
 %% One signal
 %
 sigma_D_all = 0.01; %[0.001 0.01 0.02 0.05 0.1];
@@ -13,7 +23,7 @@ gz = 15;
 N = gz^2;
 num_cells_reached_all = cell(numel(sigma_D_all), nruns); 
 p_final_all = zeros(numel(sigma_D_all), nruns);
-parent_folder = 'W:\staff-bulk\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells';
+
 subfolder = 'one_signal_temp';
 folder = fullfile(parent_folder, subfolder);
 
@@ -51,14 +61,13 @@ for ii=1:numel(sigma_D_all)
 end
 
 %% Save analyzed data
-save_folder = parent_folder;
 save_fname_str = sprintf('analyzed_data_%s_t_max_%d_nruns_%d',...
     subfolder, t_max, nruns);
 save_file = fullfile(parent_folder, save_fname_str);
 save(save_file, 'subfolder', 'sigma_D_all', 'p_final_all', 'num_cells_reached_all');
 
 %% Display all p_final
-%
+%{
 h=figure;
 x_data = repmat(sigma_D_all', 1, nruns);
 scatter(x_data(:), p_final_all(:))
@@ -108,11 +117,10 @@ set(gca, 'FontSize', 24);
 
 % Save figure
 qsave = 1;
-%nruns = 5;
 % save_folder = 'W:\staff-bulk\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells';
 fname_str = sprintf('analyzed_data_%s_t_max_%d_nruns_%d_p_vs_t',...
     subfolder, t_max, nruns);
-fname = fullfile(parent_folder, fname_str);
+fname = fullfile(save_fig_folder, fname_str);
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 
 % plot average trajectory only
@@ -125,17 +133,20 @@ plot(1:t_max+1, avg_trajectories_all);
 % Subdomain oscillations -> Determine how many of the cells the signal has reached
 % Period 4 oscillations -> Look at I(t) or Theta(t)
 %sigma_D_all = [0.001 0.01 0.1];
-sigma_D_all = [0.01 0.1 1];
+%sigma_D_all = [0.01 0.1 1];
+sigma_D_all = 0.001;
 nruns = 20;
-t_max = 1000;
+t_max = 2000;
 
-parent_folder = 'W:\staff-bulk\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells';
-%subfolder = 'subdomain_oscillations';
-subfolder = 'period_4_oscillations';
+%parent_folder = 'W:\staff-bulk\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells';
+subfolder = 'subdomain_oscillations';
+%subfolder = 'period_4_oscillations';
 
 % load test file to get parameters
-sigma_D = 0.01; jj = 1;
-fname_str = strrep(sprintf('two_signal_mult_sigma_D_%.3f_t_out_%d_period_Inf-v%d',...
+sigma_D = 0.001; jj = 1;
+%fname_str = strrep(sprintf('two_signal_mult_sigma_D_%.3f_t_out_%d_period_Inf-v%d',...
+%	sigma_D, t_max, jj), '.' ,'p');
+fname_str = strrep(sprintf('two_signal_mult_sigma_D_%.3f_t_out_%d-v%d',...
 	sigma_D, t_max, jj), '.' ,'p');
 fname = fullfile(parent_folder, subfolder, strcat(fname_str, '.mat'));
 load(fname, 'save_consts_struct')
@@ -154,8 +165,11 @@ for ii=1:numel(sigma_D_all)
     sigma_D = sigma_D_all(ii);
     for jj=1:nruns
         %fname_str = 'one_signal_sigma_D_0p001_t_out_1000-v1';
-        fname_str = strrep(sprintf('two_signal_mult_sigma_D_%.3f_t_out_%d_period_Inf-v%d',...
+        %fname_str = strrep(sprintf('two_signal_mult_sigma_D_%.3f_t_out_%d_period_Inf-v%d',...
+        %    sigma_D, t_max, jj), '.' ,'p');
+        fname_str = strrep(sprintf('two_signal_mult_sigma_D_%.3f_t_out_%d-v%d',...
             sigma_D, t_max, jj), '.' ,'p');
+        
         fname = fullfile(parent_folder, subfolder, strcat(fname_str, '.mat'));
         if exist(fname, 'file')==2
             disp(fname);
@@ -203,9 +217,9 @@ end
 %% Save analyzed data
 
 %save_folder = parent_folder;
-save_fname_str = sprintf('analyzed_data_%s_t_max_%d_nruns_%d',...
+save_fname_str = sprintf('analyzed_data_%s_t_max_%d_nruns_%d_sigma_D_0p001',...
     subfolder, t_max, nruns);
-save_file = fullfile(parent_folder, save_fname_str);
+save_file = fullfile(save_folder, save_fname_str);
 %{
 % Save period 4 osc. data
 % save(save_file, 'subfolder', 'sigma_D_all', 'theta_all', 'I_all');
@@ -225,7 +239,7 @@ load(save_file, 'subfolder', 'sigma_D_all', 'num_cells_reached_all');
 %}
 % Load period 4 oscillations
 fname_str = 'analyzed_data_period_4_oscillations_t_max_20_nruns_incomplete';
-save_file = fullfile(parent_folder, fname_str);
+save_file = fullfile(save_folder, fname_str);
 load(save_file, 'subfolder', 'sigma_D_all', 'theta_all', 'I_all');
 %}
 %% Plot fractions over time
@@ -246,7 +260,7 @@ for ii=1 %:numel(sigma_D_all)
     end
 end
 legend([p_temp{:}], sprintfc('$\\sigma_D = %.3f$', sigma_D_all),...
-    'Interpreter', 'latex', 'Location', 'eo');
+    'Interpreter', 'latex', 'Location', 'se');
 
 ylim([0.4 1]);
 xlabel('Time');
@@ -254,11 +268,11 @@ ylabel('Fraction cells reached');
 set(gca, 'FontSize', 24);
 
 % Save figure
-qsave = 0;
+qsave = 1;
 % save_folder = 'W:\staff-bulk\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells';
-fname_str = sprintf('analyzed_data_%s_t_max_%d_nruns_%d_frac_reached_vs_t',...
+fname_str = sprintf('analyzed_data_%s_t_max_%d_nruns_%d_frac_reached_vs_t_sigma_D_0p001',...
     subfolder, t_max, nruns);
-fname = fullfile(parent_folder, fname_str);
+fname = fullfile(save_fig_folder, fname_str);
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 %}
 % Plot fractions at end
@@ -319,12 +333,12 @@ qsave = 1;
 % save_folder = 'W:\staff-bulk\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells';
 fname_str = sprintf('analyzed_data_%s_t_max_%d_nruns_%d_theta1_vs_t',...
     subfolder, t_max, nruns);
-fname = fullfile(parent_folder, fname_str);
+fname = fullfile(save_fig_folder, fname_str);
 save_figure(h1, 10, 8, fname, '.pdf', qsave);
 
 fname_str = sprintf('analyzed_data_%s_t_max_%d_nruns_%d_theta2_vs_t',...
     subfolder, t_max, nruns);
-fname = fullfile(parent_folder, fname_str);
+fname = fullfile(save_fig_folder, fname_str);
 save_figure(h2, 10, 8, fname, '.pdf', qsave);
 %%
 %{

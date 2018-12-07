@@ -21,14 +21,14 @@ close all
 clear all
 %% Simulation parameters
 % variable to loop over
-sigma_D_all = 0.001; %[0.01 0.1 1];
+sigma_D_all = [0.01 0.1 1];
 
 % number of simulations to do 
-sim_count = 50;
+sim_count = 3; %20;
 
 % other settings
 % InitiateI = 0; % generate lattice with input I?
-tmax = 2*10^3; % max. number of time steps 
+tmax = 10; %10^3; % max. number of time steps 
 
 % folder to save simulations in
 parent_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells';
@@ -43,9 +43,6 @@ save_folder = fullfile(parent_folder, subfolder);
 sim_ID = 'two_signal_mult';
 
 %% (1) Input parameters
-
-% Period 4 oscillations
-%{
 gz = 15;
 a0 = 1.5;
 lambda = [1 1.2];
@@ -81,10 +78,9 @@ for i=1:2
         fprintf('Generated initial I%d: %.2f; in range (Y=1/N=0)? %d; \n', i, I_ini, test);
     end
 end
-%}
-%% (2) Load parameters from saved trajectory 
-% Subdomain oscillations
-%
+
+%% (2) Load parameters from saved trajectory
+%{
 % with parameters saved as structure array 
 % load data
 data_folder = 'H:\My Documents\Multicellular automaton\app\data\time_evolution\moving_cells';
@@ -111,8 +107,6 @@ p0 = s.p_ini;
 gz = sqrt(N);
 Rcell = rcell*a0;
 
-% cell 
-cells_ini = cells_hist{1};
 cell_type = zeros(N,1);
 
 % Initial I
@@ -127,7 +121,7 @@ for i=1:numel(s_fields)
         end
     end
 end
-%}
+%
 
 I_ini_str = '';
 if InitiateI
@@ -181,7 +175,7 @@ for idx_loop=1:numel(sigma_D_all)
         end
     end
 
-    fprintf('N=%d, sigma_D = %.3f sim to do: %d \n', N, sigma_D, sim_count-filecount);
+    fprintf('N=%d, sigma_D = %.2f sim to do: %d \n', N, sigma_D, sim_count-filecount);
     sim_to_do(idx_loop) = sim_count-filecount;
 end
 

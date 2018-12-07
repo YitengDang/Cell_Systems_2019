@@ -4,18 +4,18 @@ clear all
 
 %% Simulation parameters
 % variable to loop over
-sigma_D_all = 10.^[-2 -3 -1];
+sigma_D_all = [0.02 0.05];
 
 % number of simulations to do 
 sim_count = 20;
 
 % other settings
 % InitiateI = 0; % generate lattice with input I?
-tmax_new = 2*10^3; % max. number of time steps 
+tmax_new = 10^4; % max. number of time steps 
 
 % folder to save simulations in
-parent_folder = 'W:\staff-bulk\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells'; 
-%'N:\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells';
+%parent_folder = 'W:\staff-bulk\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells'; 
+parent_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells';
 subfolder = 'one_signal_temp';
 save_folder = fullfile(parent_folder, subfolder);
             
@@ -24,7 +24,8 @@ sim_ID = 'one_signal';
 %%
 % Load trajectory
 t_max_old = 1000;
-folder = 'W:\staff-bulk\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells\one_signal';
+%folder = 'W:\staff-bulk\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells\one_signal';
+folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells\one_signal';
 %ii = 1;
 %jj = 1;
 nruns = 20;
