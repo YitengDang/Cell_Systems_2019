@@ -12,9 +12,10 @@ function [h_cells, h_borders, a0_px] = reset_cell_figure_cell_growth(ax, pos, rc
     gz = sqrt(N);
     
     % all sizes in units of pixels
-    Sx = 500; %ax.Position(3); %512;
+    Sx = 350;
+    %Sx = 500; %ax.Position(3); %512;
     Sy = sqrt(3)/2*Sx; %(sqrt(3)/2*(gz-1)+2)/(3/2*(gz+1))*Sx;
-    set(ax, 'Units', 'points', 'Position', [100 100 1.2*Sx 1.2*Sy]);
+    set(ax, 'Units', 'points', 'Position', [50 20 1.2*Sx 1.2*Sy]);
     
     % set image properties (in terms of plot units, e.g. 0 <= x <= 1) 
     set(gca, 'Units', 'points', 'Position', [0.1*Sx 0.1*Sy Sx Sy]);
