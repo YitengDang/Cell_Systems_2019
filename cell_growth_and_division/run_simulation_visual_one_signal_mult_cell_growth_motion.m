@@ -1,5 +1,6 @@
 % Simulates the two gene system with cell motility, as modelled by Brownian
 % motion of each cell
+% ---> TO BE UPDATED WITH NEW CODE FROM TWO_SIGNALS
 close all
 clear all
 % maxNumCompThreads(4);
@@ -15,24 +16,21 @@ a0 = 1.5;
 sigma_D = 0.1;
 
 % circuit parameters 
-M_int = [1 1; -1 0];
-Con = [16 18];
-Coff = [1 1];
-K = [5 5; 5 0];% K(i,j): sensitivity of type i to type j molecules
-lambda = [1 1.2]; % diffusion length (normalize first to 1)
-lambda12 = lambda(2)/lambda(1);
+M_int = 1;
+Con = 15;
+Coff = 1;
+K = 18;
 hill = Inf;
 noise = 0;
 
 % growth parameters
-sigma_rcell = 0.1; % initial spread in cell radii
+sigma_rcell = 0.1; % initial variation in cell sizes
 rcell = 0.2;
 Rcell = rcell*a0;
-c_growth = 2; %1.2; % logistic growth rate
-%K_growth = 0.15; % carrying capacity (in terms of area covered)
+c_growth = 2; % max. growth rate
 ini_density = 2*pi/sqrt(3)*rcell^2;
 k_growth = 1.5; % max. fold-change of density
-K_growth = k_growth*ini_density;
+K_growth = k_growth*ini_density; % carrying capacity (in terms of area covered)
 
 % division parameters
 r_div_mean = 0.3; % units of 1/a0
@@ -42,18 +40,19 @@ sigma = 0.1*r_div_mean;
 % p_div = cdf('Normal',[0.2 0.25 0.28],r_div_mu,sigma)
 
 % initial conditions
-p0 = [0.5 0.5];
+p0 = 0.5;
 iniON = round(p0*N);
-I0 = [0.2 0.2];
+I0 = 0.4;
 dI = 0.01;
-InitiateI = 1; % 0: no, 1: yes
+InitiateI = 0; % 0: no, 1: yes
 
 % generate cell_type (0 case type 1, 1 case type 2)
 cell_type = zeros(N,1);
 
 % simulation parameters
-tmax = 1000;
+tmax = 50;
 mcsteps = 0;
+%prec = 8;
 
 %{
 fname_lbl = strrep(sprintf('N%d_iniON_%d_%d_M_int_%d_%d_%d_%d_a0_%.1f_Con_%d_%d_K_%d_%d_%d_%d_lambda_%.1f_%.1f_mcsteps_%d', ...
@@ -90,25 +89,20 @@ ylim([0 1]);
 xlabel('$r_{cell}$');
 ylabel('fraction area covered');
 %}
-
-% Plot growth rate vs. rcell
 %{
+% Plot growth rate vs. rcell
 h = figure;
 density_all = 0.01:0.01:K_growth;
 rcell_all = sqrt(density_all/(2*pi/sqrt(3)) );
-plot(density_all, c_growth.*density_all.*(1-density_all/K_growth) );
-%plot(rcell_all, c_growth.*density_all.*(K_growth-density_all) );
+plot(rcell_all, mu_max.*density_all.*(K_growth-density_all) );
 %ylim([0 1]);
-%xlabel('$r_{cell}$');
-xlabel('Density');
+xlabel('$r_{cell}$');
 ylabel('logistic growth rate');
-
-%fprintf('max(mu) = %.3f at rho = %.3f \n', K_growth^2/2*(1-1/(2*c_growth)), K_growth/(2*c_growth) );
 %}
 %% ----------- simulation ------------------------------------
 % settings
 t = 0;
-disp_mol = 12;
+disp_mol = 1;
 showI = 0;
 cells_hist = {};
 positions_all = {};
@@ -117,7 +111,7 @@ rcell_hist = {};
 % (1) generate initial state
 %
 %iniON = round(p0*N);
-cells = zeros(N, 2);
+cells = zeros(N, 1);
 for i=1:numel(iniON)
     cells(randperm(N,iniON(i)), i) = 1;
     if InitiateI && hill==Inf
@@ -156,11 +150,9 @@ update_figure_periodic_cell_motion_cell_sizes(h_cells, h_borders,...
     cells, t, disp_mol, showI, a0, a0_px, dist, pos, rcell_all);
 
 % Update cells
-%[cells_out, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
-%    Rcell, Con, Coff, K, lambda, hill, noise);
 [cells_out, changed] = ...
-    update_cells_two_signals_multiply_finite_Hill_w_cell_sizes(cells,...
-        dist, M_int, a0, a0*rcell_all, Con, Coff, K, lambda, hill, noise);
+    update_cells_noise_hill_diff_cell_sizes(cells, dist, M_int, Con, K, a0,...
+    rcell_all*a0, noise, hill);
 
 % update positions
 %[pos, dist, rejections] = update_cell_positions(gz, rcell_all, pos, dist, sigma_D);
@@ -215,12 +207,11 @@ while t<tmax && cont_sim
         cells, t, disp_mol, showI, a0, a0_px, dist, pos, rcell_all);
     
     % Update cell states
-    %[cells_out, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
-    %    Rcell, Con, Coff, K, lambda, hill, noise);
+    % Update cells
     [cells_out, changed] = ...
-        update_cells_two_signals_multiply_finite_Hill_w_cell_sizes(cells,...
-            dist, M_int, a0, a0*rcell_all, Con, Coff, K, lambda, hill, noise);
-    
+        update_cells_noise_hill_diff_cell_sizes(cells, dist, M_int, Con, K, a0,...
+        rcell_all*a0, noise, hill);
+
     % update positions
     %[pos, dist, rejections] = update_cell_positions(gz, rcell_all, pos, dist, sigma_D);
     [pos, dist, rejections] = update_cell_positions_diff_cell_sizes(...
@@ -253,35 +244,22 @@ if period_ub<Inf
         period_ub, decimals);
     t_out = t_onset + period; 
 end
+
 %% Save trajectory
 %save_folder = 'H:\My Documents\Multicellular automaton\temp';
-%save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp';
-%save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp';
-save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp\sustained_inhomogeneity';
+% save_folder = 'H:\My Documents\Multicellular automaton\temp';
+save_folder = 'D:\temp2';
 
 % default file name
 if InitiateI
-    I_ini_str = sprintf('_I_ini_%.2f_%.2f', I0(1), I0(2));
+    I_ini_str = sprintf('_I_ini_%.2f', I0);
 else
     I_ini_str = '';
     I0 = Inf;
 end
 
-%fname_str = strrep(sprintf('two_signals_growing_cells_t_out_%d',...
-%    t_out), '.', 'p');
-fname_str = strrep(sprintf('two_signals_rcell_sigma_%.1f_K_growth_%.1f_sigma_D_%.3f_t_out_%d',...
-    sigma_rcell, k_growth, sigma_D, t_out), '.', 'p');
-%fname_str = strrep(sprintf('two_signals_horiz_TW_initial_sigma_rcell_%.1f_K_growth_1p5_ini_density_remains_wave',...
-%    sigma_rcell), '.', 'p');
-if ~cont_sim
-    survival_str = 'SURVIVED';
-else
-    survival_str = 'destroyed';
-end
-%fname_str = sprintf('%s_rcell_0p3_sigma_rcell_0_no_growth_%s', ini_state_fname,...
-%    survival_str);
-%fname_str = sprintf('%s_sigma_rcell_0p1_K_growth_1p5_%s', ini_state_fname,...
-%    survival_str);
+fname_str = strrep(sprintf('one_signal_growing_cells_M_int_%d_t_out_%d',...
+    M_int, t_out), '.', 'p');
 ext = '.mat';
 label = '';
 
@@ -293,49 +271,36 @@ while exist(fname, 'file') == 2
     fname = fullfile(save_folder, strcat(fname_str, '-v', num2str(i), label, ext));
 end
 
-save_vars = {N, a0, K, Con, Coff, M_int, hill, noise,...
-    p0, I0, rcell, sigma_rcell, ...
-    lambda12, I_ini_str, mcsteps, c_growth, K_growth, r_div_mean};
+save_vars = {N, a0, K, Con, Coff, M_int, hill, noise, p0, I0, rcell,...
+    sigma_rcell, I_ini_str, mcsteps, c_growth, K_growth, r_div_mean};
 save_vars_lbl = {'N', 'a0', 'K', 'Con', 'Coff', 'M_int', 'hill', 'noise',...
-    'p_ini', 'I_ini', 'rcell', 'sigma_rcell',....
-    'lambda12','I_ini_str', 'mcsteps', 'c_growth', 'K_growth', 'r_div_mean'};
+    'p_ini', 'I_ini', 'rcell', 'sigma_rcell', 'I_ini_str', 'mcsteps',...
+    'c_growth', 'K_growth', 'r_div_mean'};
 
 save_consts_struct = cell2struct(save_vars, save_vars_lbl, 2);
 positions = pos;
-%positions_all = pos_hist;
 distances = dist;
-t_out = t;
 
 qsave = 1;
 if qsave
     save(fname, 'save_consts_struct', 'cells_hist', 't_out',...
-        'changed', 'positions', 'distances', 'positions_all', 'rcell_hist');
-    fprintf('Saved simulation: %s ; \n', fname);
+        'changed', 'positions_all', 'positions', 'distances', 'rcell_hist');
+        fprintf('Saved simulation: %s ; \n', fname);
 end
 %}
 %% Load simulation
 %{
-%folder = 'H:\My Documents\Multicellular automaton\temp';
-folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp';
+folder = 'H:\My Documents\Multicellular automaton\temp';
 version = 1;
 t_out = 247;
 fname_str = strrep(sprintf('two_signals_growing_cells_t_out_%d-v%d',...
     t_out, version), '.', 'p');
-fname_str = 'two_signals_growing_cells_moving_sigma_D_0p100_t_out_121-v1';
-
+%fname_str = 'one_signal_growing_cells_t_out_247_trav_wave-v1';
 ext = '.mat';
 fname = fullfile(folder, strcat(fname_str, ext));
 load(fname);
 %}
 
-%% Plot I or Theta vs t
-%{
-t0 = 0;
-option = 1;
-fig_pos = [1 1 10 8];
-msg = plot_I_vs_t_moving_cells(cells_hist, t0, a0, positions_all,...
-    option, fig_pos);
-%}
 %% Save as movie
 [folder, file] = fileparts(fname);
 fname_out = fullfile(folder, strcat(file, '.avi'));

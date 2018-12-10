@@ -52,8 +52,9 @@ InitiateI = 1; % 0: no, 1: yes
 cell_type = zeros(N,1);
 
 % simulation parameters
-tmax = 1000;
+tmax = 3;
 mcsteps = 0;
+nruns = 20;
 
 %{
 fname_lbl = strrep(sprintf('N%d_iniON_%d_%d_M_int_%d_%d_%d_%d_a0_%.1f_Con_%d_%d_K_%d_%d_%d_%d_lambda_%.1f_%.1f_mcsteps_%d', ...
@@ -68,6 +69,12 @@ nodisplay = 1;
 [pos, dist] = initial_cells_random_markov_periodic(gz, mcsteps, rcell, nodisplay);
 
 %}
+
+save_folder = 'H:\My Documents\Multicellular automaton\temp\sustained_inhomogeneity';
+%save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp';
+%save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp\sustained_inhomogeneity';
+
+
 %{
 % TO DO: vectorize
 dist_vec = a0*dist(1,:);
@@ -106,6 +113,8 @@ ylabel('logistic growth rate');
 %fprintf('max(mu) = %.3f at rho = %.3f \n', K_growth^2/2*(1-1/(2*c_growth)), K_growth/(2*c_growth) );
 %}
 %% ----------- simulation ------------------------------------
+for irun=1:nruns
+    
 % settings
 t = 0;
 disp_mol = 12;
@@ -148,13 +157,14 @@ rcell_hist{end+1} = rcell_all;
 %Rcell_all = rcell_all*a0;
 
 % Plot lattice
+%{
 hin = figure;
 %set(hin, 'Position', [100 100 800 800]);
 [h_cells, h_borders, a0_px] = reset_cell_figure_cell_growth(hin, pos, rcell); %reset_cell_figure_cell_growth(hin, pos, rcell_all);
 %update_figure_periodic_scatter_cell_growth(h_cells, h_borders, cells, t, disp_mol, showI, a0, dist, rcell_all, a0_px);
 update_figure_periodic_cell_motion_cell_sizes(h_cells, h_borders,...
     cells, t, disp_mol, showI, a0, a0_px, dist, pos, rcell_all);
-
+%}
 % Update cells
 %[cells_out, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
 %    Rcell, Con, Coff, K, lambda, hill, noise);
@@ -209,10 +219,12 @@ while t<tmax && cont_sim
     end
     
     % Update figure
-    %update_figure_periodic_scatter_cell_growth(h_cells, h_borders, cells, t,...
-    %    disp_mol, showI, a0, dist, rcell_all, a0_px);
+    %{
+    update_figure_periodic_scatter_cell_growth(h_cells, h_borders, cells, t,...
+        disp_mol, showI, a0, dist, rcell_all, a0_px);
     update_figure_periodic_cell_motion_cell_sizes(h_cells, h_borders,...
         cells, t, disp_mol, showI, a0, a0_px, dist, pos, rcell_all);
+    %}
     
     % Update cell states
     %[cells_out, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
@@ -225,7 +237,7 @@ while t<tmax && cont_sim
     %[pos, dist, rejections] = update_cell_positions(gz, rcell_all, pos, dist, sigma_D);
     [pos, dist, rejections] = update_cell_positions_diff_cell_sizes(...
         gz, rcell_all, pos, dist, sigma_D);
-    fprintf('Update position rejections = %d \n', rejections);
+    %fprintf('Update position rejections = %d \n', rejections);
     
     % continue if cells are still growing and cell states changed
     if round(mu_cells, 4)>0
@@ -254,10 +266,6 @@ if period_ub<Inf
     t_out = t_onset + period; 
 end
 %% Save trajectory
-%save_folder = 'H:\My Documents\Multicellular automaton\temp';
-%save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp';
-%save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp';
-save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp\sustained_inhomogeneity';
 
 % default file name
 if InitiateI
@@ -273,11 +281,13 @@ fname_str = strrep(sprintf('two_signals_rcell_sigma_%.1f_K_growth_%.1f_sigma_D_%
     sigma_rcell, k_growth, sigma_D, t_out), '.', 'p');
 %fname_str = strrep(sprintf('two_signals_horiz_TW_initial_sigma_rcell_%.1f_K_growth_1p5_ini_density_remains_wave',...
 %    sigma_rcell), '.', 'p');
+%{
 if ~cont_sim
     survival_str = 'SURVIVED';
 else
     survival_str = 'destroyed';
 end
+%}
 %fname_str = sprintf('%s_rcell_0p3_sigma_rcell_0_no_growth_%s', ini_state_fname,...
 %    survival_str);
 %fname_str = sprintf('%s_sigma_rcell_0p1_K_growth_1p5_%s', ini_state_fname,...
@@ -287,10 +297,12 @@ label = '';
 
 % check if filename already exists
 i=1;
-fname = fullfile(save_folder, strcat(fname_str, '-v', num2str(i), label, ext));
+fname = fullfile(save_folder, strcat(fname_str, '-v', num2str(i),...
+    label, ext));
 while exist(fname, 'file') == 2
     i=i+1;
-    fname = fullfile(save_folder, strcat(fname_str, '-v', num2str(i), label, ext));
+    fname = fullfile(save_folder, strcat(fname_str, '-v', num2str(i),...
+        label, ext));
 end
 
 save_vars = {N, a0, K, Con, Coff, M_int, hill, noise,...
@@ -312,6 +324,8 @@ if qsave
         'changed', 'positions', 'distances', 'positions_all', 'rcell_hist');
     fprintf('Saved simulation: %s ; \n', fname);
 end
+
+end
 %}
 %% Load simulation
 %{
@@ -327,16 +341,8 @@ ext = '.mat';
 fname = fullfile(folder, strcat(fname_str, ext));
 load(fname);
 %}
-
-%% Plot I or Theta vs t
-%{
-t0 = 0;
-option = 1;
-fig_pos = [1 1 10 8];
-msg = plot_I_vs_t_moving_cells(cells_hist, t0, a0, positions_all,...
-    option, fig_pos);
-%}
 %% Save as movie
+%{
 [folder, file] = fileparts(fname);
 fname_out = fullfile(folder, strcat(file, '.avi'));
 frame_rate = 4;
@@ -366,13 +372,13 @@ clf(h, 'reset');
 if isempty(positions_all)
     % same positions every time step
     for tt=1:length(cells_hist)
-        pause(1);
+        pause(0.01);
         cells = cells_hist{tt};
         rcell_all = rcell_hist{tt};
         %update_figure_periodic_scatter_cell_growth(h_cells, h_borders,...
         %    cells, tt, disp_mol, showI, a0, dist, rcell_all, a0_px);
         update_figure_periodic_cell_motion_cell_sizes(h_cells, h_borders,...
-            cells, tt-1, disp_mol, showI, a0, a0_px, dist, pos, rcell_all);
+            cells, tt, disp_mol, showI, a0, a0_px, dist, pos, rcell_all);
         %update_cell_figure_external(h, pos, cells, cell_type, tt-1, disp_mol, rcell)                
         %frames(t) = getframe(h);
         frame = getframe(h);
@@ -383,14 +389,14 @@ if isempty(positions_all)
 else
     % new positions every time step
     for tt=1:length(cells_hist)
-        pause(0.1);
+        pause(0.01);
         cells = cells_hist{tt};
         pos = positions_all{tt};
         rcell_all = rcell_hist{tt};
         %update_figure_periodic_scatter_cell_growth(h_cells, h_borders,...
         %    cells, tt, disp_mol, showI, a0, dist, rcell_all, a0_px);   
         update_figure_periodic_cell_motion_cell_sizes(h_cells, h_borders,...
-            cells, tt-1, disp_mol, showI, a0, a0_px, dist, pos, rcell_all);
+            cells, tt, disp_mol, showI, a0, a0_px, dist, pos, rcell_all);
         %frames(t) = getframe(h);
         frame = getframe(h);
         if save_movie
@@ -398,6 +404,7 @@ else
         end
     end
 end
+%
 
 % add final state to show equilibrium (not applicable if not in
 % equilibrium)
@@ -412,7 +419,7 @@ writeVideo(myVideo, frame);
 if save_movie
     close(myVideo);
 end
-
+%}
 %% Simulate growth only
 %{
 % Initiate cells on a lattice, with random cell sizes

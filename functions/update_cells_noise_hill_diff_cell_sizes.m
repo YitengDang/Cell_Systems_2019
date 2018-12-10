@@ -1,8 +1,12 @@
 function [cells_out, changed] = ...
-    update_cells_noise_hill_diff_cell_sizes(cells, dist, M_int, Con, K, a0, Rcell_all, noise, hill, prec)
+    update_cells_noise_hill_diff_cell_sizes(cells, dist, M_int,...
+    Con, K, a0, Rcell_all, noise, hill, prec)
 % Update cells using noise in a positive feedback loop with finite hill
 % coefficient
-%%
+if nargin<10
+    prec = Inf;
+end
+
 % check input parameters
 if (abs(M_int)~=1)
     error('M_int has the wrong form');
