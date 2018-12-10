@@ -12,23 +12,23 @@ N = gz^2;
 a0 = 1.5;
 
 % movement parameters
-sigma_D = 0.1; %0.1;
+sigma_D = 0;
 
 % circuit parameters 
-M_int = [0 1; -1 1];
-Con = [18 16];
+M_int = [1 1; -1 0];
+Con = [16 18];
 Coff = [1 1];
-K = [0 9; 11 4];% K(i,j): sensitivity of type i to type j molecules
+K = [5 5; 5 0];% K(i,j): sensitivity of type i to type j molecules
 lambda = [1 1.2]; % diffusion length (normalize first to 1)
 lambda12 = lambda(2)/lambda(1);
 hill = Inf;
 noise = 0;
 
 % growth parameters
-sigma_rcell = 0.1; %0.1; % initial spread in cell radii
+sigma_rcell = 0; % initial spread in cell radii
 rcell = 0.2;
 Rcell = rcell*a0;
-c_growth = 2; %2; %1.2; % logistic growth rate
+c_growth = 0; % logistic growth rate
 %K_growth = 0.15; % carrying capacity (in terms of area covered)
 ini_density = 2*pi/sqrt(3)*rcell^2;
 k_growth = 1.5; % max. fold-change of density
@@ -54,12 +54,7 @@ cell_type = zeros(N,1);
 % simulation parameters
 tmax = 1000;
 mcsteps = 0;
-nruns = 10;
-
-save_folder = 'H:\My Documents\Multicellular automaton\temp\Network_15';
-%save_folder = 'H:\My Documents\Multicellular automaton\temp\sustained_oscillations';
-%save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp';
-%save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp';
+nruns = 50;
 
 %{
 fname_lbl = strrep(sprintf('N%d_iniON_%d_%d_M_int_%d_%d_%d_%d_a0_%.1f_Con_%d_%d_K_%d_%d_%d_%d_lambda_%.1f_%.1f_mcsteps_%d', ...
@@ -69,6 +64,12 @@ fname_lbl = strrep(sprintf('N%d_iniON_%d_%d_M_int_%d_%d_%d_%d_a0_%.1f_Con_%d_%d_
 %}
 
 %}
+
+save_folder = 'H:\My Documents\Multicellular automaton\temp\sustained_inhomogeneity';
+%save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp';
+%save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp\sustained_inhomogeneity';
+
+
 %{
 % TO DO: vectorize
 dist_vec = a0*dist(1,:);
@@ -107,7 +108,8 @@ ylabel('logistic growth rate');
 %fprintf('max(mu) = %.3f at rho = %.3f \n', K_growth^2/2*(1-1/(2*c_growth)), K_growth/(2*c_growth) );
 %}
 %% ----------- simulation ------------------------------------
-for irun=1:nruns    
+for irun=1:nruns
+    
 % settings
 t = 0;
 disp_mol = 12;
@@ -173,6 +175,7 @@ update_figure_periodic_cell_motion_cell_sizes(h_cells, h_borders,...
 
 % update positions
 %[pos, dist, rejections] = update_cell_positions(gz, rcell_all, pos, dist, sigma_D);
+disp('Updating cell positions...');
 [pos, dist, rejections] = update_cell_positions_diff_cell_sizes(...
     gz, rcell_all, pos, dist, sigma_D);
 %fprintf('Update position rejections = %d \n', rejections);
@@ -199,7 +202,7 @@ while t<tmax && cont_sim
     if t_growth_stop<Inf
         % growth has ceased, don't update cell radii
         rcell_hist{end+1} = rcell_all;
-    else    
+    else
         % Check that distances are within range
         rcell_mat = repmat(rcell_all_new, 1, N) + repmat(rcell_all_new', N, 1); % sum of radii of pairs of cells
         cond_mat = (dist > rcell_mat);
@@ -233,11 +236,13 @@ while t<tmax && cont_sim
             dist, M_int, a0, a0*rcell_all, Con, Coff, K, lambda, hill, noise);
     
     % update positions
+    disp('Updating cell positions...');
     %[pos, dist, rejections] = update_cell_positions(gz, rcell_all, pos, dist, sigma_D);
     [pos, dist, rejections] = update_cell_positions_diff_cell_sizes(...
         gz, rcell_all, pos, dist, sigma_D);
+    
     %fprintf('Update position rejections = %d \n', rejections);
-    if rejections>=10^6 
+    if rejections >= 10^6
         % some cells are not being updated because the max. number of
         % MC rejections has been reached
         max_rejections_reached = 1;
@@ -271,13 +276,7 @@ if period_ub<Inf
 end
 %% Save trajectory
 ext = '.mat';
-
-if max_rejections_reached
-    label = '_max_rejections_reached';
-else
-    label = '';
-end
-
+label = '';
 % default file name
 if InitiateI
     I_ini_str = sprintf('_I_ini_%.2f_%.2f', I0(1), I0(2));
@@ -285,10 +284,12 @@ else
     I_ini_str = '';
     I0 = Inf;
 end
-
+if max_rejections_reached
+    label = '_max_rejections_reached';
+end
 %fname_str = strrep(sprintf('two_signals_growing_cells_t_out_%d',...
 %    t_out), '.', 'p');
-fname_str = strrep(sprintf('two_signals_rcell_sigma_%.1f_K_growth_%.1f_sigma_D_%.3f_t_out_%d',...
+fname_str = strrep(sprintf('two_signals_rcell_sigma_%.1f_K_growth_%.1f_sigma_D_%.3f_t_out_%d_neg_control',...
     sigma_rcell, k_growth, sigma_D, t_out), '.', 'p');
 %fname_str = strrep(sprintf('two_signals_horiz_TW_initial_sigma_rcell_%.1f_K_growth_1p5_ini_density_remains_wave',...
 %    sigma_rcell), '.', 'p');
@@ -304,7 +305,6 @@ end
 %fname_str = sprintf('%s_sigma_rcell_0p1_K_growth_1p5_%s', ini_state_fname,...
 %    survival_str);
 
-
 % check if filename already exists
 i=1;
 fname = fullfile(save_folder, strcat(fname_str, '-v', num2str(i),...
@@ -316,10 +316,10 @@ while exist(fname, 'file') == 2
 end
 
 save_vars = {N, a0, K, Con, Coff, M_int, hill, noise,...
-    p0, I0, rcell, sigma_rcell, sigma_D...
+    p0, I0, rcell, sigma_rcell, sigma_D,...
     lambda12, I_ini_str, mcsteps, c_growth, K_growth, r_div_mean};
 save_vars_lbl = {'N', 'a0', 'K', 'Con', 'Coff', 'M_int', 'hill', 'noise',...
-    'p_ini', 'I_ini', 'rcell', 'sigma_rcell', 'sigma_D',....
+    'p_ini', 'I_ini', 'rcell', 'sigma_rcell', 'sigma_D'....
     'lambda12','I_ini_str', 'mcsteps', 'c_growth', 'K_growth', 'r_div_mean'};
 
 save_consts_struct = cell2struct(save_vars, save_vars_lbl, 2);

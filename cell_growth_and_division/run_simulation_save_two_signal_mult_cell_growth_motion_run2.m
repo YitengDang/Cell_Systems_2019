@@ -12,7 +12,7 @@ N = gz^2;
 a0 = 1.5;
 
 % movement parameters
-sigma_D = 0.1;
+sigma_D = 0; %0.1;
 
 % circuit parameters 
 M_int = [1 1; -1 0];
@@ -25,10 +25,10 @@ hill = Inf;
 noise = 0;
 
 % growth parameters
-sigma_rcell = 0.1; % initial spread in cell radii
+sigma_rcell = 0; %0.1; % initial spread in cell radii
 rcell = 0.2;
 Rcell = rcell*a0;
-c_growth = 2; %1.2; % logistic growth rate
+c_growth = 0; %2; %1.2; % logistic growth rate
 %K_growth = 0.15; % carrying capacity (in terms of area covered)
 ini_density = 2*pi/sqrt(3)*rcell^2;
 k_growth = 1.5; % max. fold-change of density
@@ -54,7 +54,7 @@ cell_type = zeros(N,1);
 % simulation parameters
 tmax = 1000;
 mcsteps = 0;
-nruns = 23;
+nruns = 35;
 
 save_folder = 'H:\My Documents\Multicellular automaton\temp\Network_19';
 %save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp';
@@ -289,7 +289,7 @@ else
 end
 %fname_str = strrep(sprintf('two_signals_growing_cells_t_out_%d',...
 %    t_out), '.', 'p');
-fname_str = strrep(sprintf('two_signals_rcell_sigma_%.1f_K_growth_%.1f_sigma_D_%.3f_t_out_%d',...
+fname_str = strrep(sprintf('two_signals_rcell_sigma_%.1f_K_growth_%.1f_sigma_D_%.3f_t_out_%d_neg_control',...
     sigma_rcell, k_growth, sigma_D, t_out), '.', 'p');
 %fname_str = strrep(sprintf('two_signals_horiz_TW_initial_sigma_rcell_%.1f_K_growth_1p5_ini_density_remains_wave',...
 %    sigma_rcell), '.', 'p');
@@ -316,10 +316,10 @@ while exist(fname, 'file') == 2
 end
 
 save_vars = {N, a0, K, Con, Coff, M_int, hill, noise,...
-    p0, I0, rcell, sigma_rcell, ...
+    p0, I0, rcell, sigma_rcell, sigma_D, ...
     lambda12, I_ini_str, mcsteps, c_growth, K_growth, r_div_mean};
 save_vars_lbl = {'N', 'a0', 'K', 'Con', 'Coff', 'M_int', 'hill', 'noise',...
-    'p_ini', 'I_ini', 'rcell', 'sigma_rcell',....
+    'p_ini', 'I_ini', 'rcell', 'sigma_rcell', 'sigma_D',....
     'lambda12','I_ini_str', 'mcsteps', 'c_growth', 'K_growth', 'r_div_mean'};
 
 save_consts_struct = cell2struct(save_vars, save_vars_lbl, 2);

@@ -1,6 +1,5 @@
 % Simulates the two gene system with cell motility, as modelled by Brownian
 % motion of each cell
-% ---> TO BE UPDATED WITH NEW CODE FROM TWO_SIGNALS
 close all
 clear all
 % maxNumCompThreads(4);
