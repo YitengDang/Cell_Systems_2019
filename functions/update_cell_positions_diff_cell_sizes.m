@@ -57,6 +57,7 @@ end
 Lx = 1;
 N = n^2;
 R_all = rcell_all*Lx/n; % convert to box unit distances
+max_rejections = 10^6;
 
 % hexagonal placement
 delx = Lx/n;
@@ -75,8 +76,14 @@ rcell_mat = repmat(R_all, 1, N) + repmat(R_all', N, 1);
 %%
 % Key parameters
 cells_updated = []; % number of cells that have been updated
+cells_to_update = 1:N;
 rejections = 0;
 while numel(cells_updated) < N
+    %%
+    if mod(rejections, 10^4)==0
+        fprintf('Rejections: %d \n', rejections);
+        fprintf('Cells to update: %d \n', numel(cells_to_update) );
+    end
     %disp(step)
     %fprintf('Cells to do = %d \n', N-numel(cells_updated) );
     %fprintf('Rejections: %d \n', rejections);
@@ -95,7 +102,7 @@ while numel(cells_updated) < N
     
     % Calculate distance
     dist_new = calc_dist_periodic(x_new, y_new, Lx, Ly);
-
+    %%
     cond_mat = (dist_new > rcell_mat);
     if all(cond_mat(dist_new>0))
         %all(dist_new(cell_i, setdiff(1:N, cell_i) ) >= 2*R) % check only updated cell, exclude distance to self
@@ -108,7 +115,7 @@ while numel(cells_updated) < N
     else
         rejections = rejections + 1;
         %fprintf('Rejected! \n');
-        if rejections>=10^6
+        if rejections>=max_rejections
             warning('Too many rejections! Not all cell positions updated');
             pos_new = [x(:) y(:)];
             dist_new = dist_new/(Lx/n); 
