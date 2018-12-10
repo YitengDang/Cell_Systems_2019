@@ -54,7 +54,11 @@ cell_type = zeros(N,1);
 % simulation parameters
 tmax = 1000;
 mcsteps = 0;
-nruns = 20;
+nruns = 23;
+
+save_folder = 'H:\My Documents\Multicellular automaton\temp\Network_19';
+%save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp';
+%save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp';
 
 %{
 fname_lbl = strrep(sprintf('N%d_iniON_%d_%d_M_int_%d_%d_%d_%d_a0_%.1f_Con_%d_%d_K_%d_%d_%d_%d_lambda_%.1f_%.1f_mcsteps_%d', ...
@@ -65,8 +69,6 @@ fname_lbl = strrep(sprintf('N%d_iniON_%d_%d_M_int_%d_%d_%d_%d_a0_%.1f_Con_%d_%d_
 
 % generate initial lattice (dist, pos)
 %[dist, pos] = init_dist_hex(gz, gz);
-nodisplay = 1;
-[pos, dist] = initial_cells_random_markov_periodic(gz, mcsteps, rcell, nodisplay);
 
 %}
 %{
@@ -116,6 +118,14 @@ showI = 0;
 cells_hist = {};
 positions_all = {};
 rcell_hist = {};
+max_rejections_reached = 0;
+
+% Initial position -> initiate on hexagonal lattice
+nodisplay = 1;
+[pos, dist] = initial_cells_random_markov_periodic(gz, mcsteps, rcell, nodisplay);
+
+% store cell positions
+positions_all{end+1} = pos;
 
 % (1) generate initial state
 %
@@ -141,8 +151,6 @@ folder = 'D:\Multicellularity\app\data\system_states';
 % store cell states
 cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
 
-% store cell positions
-positions_all{end+1} = pos;
 
 % Initiate cells on a lattice, with random cell sizes
 %rcell_all = zeros(N, 1);
@@ -231,6 +239,11 @@ while t<tmax && cont_sim
     %[pos, dist, rejections] = update_cell_positions(gz, rcell_all, pos, dist, sigma_D);
     [pos, dist, rejections] = update_cell_positions_diff_cell_sizes(...
         gz, rcell_all, pos, dist, sigma_D);
+    if rejections >= 10^6
+        % some cells are not being updated because the max. number of
+        % MC rejections has been reached
+        max_rejections_reached = 1;
+    end
     %fprintf('Update position rejections = %d \n', rejections);
     
     % continue if cells are still growing and cell states changed
@@ -260,10 +273,8 @@ if period_ub<Inf
     t_out = t_onset + period; 
 end
 %% Save trajectory
-save_folder = 'H:\My Documents\Multicellular automaton\temp\Network_19';
-%save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp';
-%save_folder = 'W:\staff-homes\d\yitengdang\My Documents\Multicellular automaton\temp';
-
+ext = '.mat';
+%label = '';
 % default file name
 if InitiateI
     I_ini_str = sprintf('_I_ini_%.2f_%.2f', I0(1), I0(2));
@@ -271,7 +282,11 @@ else
     I_ini_str = '';
     I0 = Inf;
 end
-
+if max_rejections_reached
+    label = '_max_rejections_reached';
+else
+    label = '';
+end
 %fname_str = strrep(sprintf('two_signals_growing_cells_t_out_%d',...
 %    t_out), '.', 'p');
 fname_str = strrep(sprintf('two_signals_rcell_sigma_%.1f_K_growth_%.1f_sigma_D_%.3f_t_out_%d',...
@@ -289,8 +304,6 @@ end
 %    survival_str);
 %fname_str = sprintf('%s_sigma_rcell_0p1_K_growth_1p5_%s', ini_state_fname,...
 %    survival_str);
-ext = '.mat';
-label = '';
 
 % check if filename already exists
 i=1;

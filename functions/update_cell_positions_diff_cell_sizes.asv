@@ -92,7 +92,7 @@ while numel(cells_updated) < N
     y_new = y;
     x_new(cell_i) = mod(x_new(cell_i) + sigma_D_box_units*randn(), Lx);
     y_new(cell_i) = mod(y_new(cell_i) + sigma_D_box_units*randn(), Ly);
-    
+
     % Calculate distance
     dist_new = calc_dist_periodic(x_new, y_new, Lx, Ly);
 
