@@ -19,3 +19,6 @@ set(gca, 'FontSize', 24);
 
 %% Plot simulation results
 %gz_all = [8:2:20 25]; % from simulations
+
+% New version that loads simulation data can be found in:
+% -> analyze_trajectories_trav_wave_vs_variable 

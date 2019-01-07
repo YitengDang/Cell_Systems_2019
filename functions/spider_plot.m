@@ -154,6 +154,7 @@ theta = 0:polar_increments:2*pi;
 [x_axes, y_axes] = pol2cart(theta, radius);
 
 % Plot polar axes
+hold on
 grey = [1, 1, 1] * 0.5;
 h = line(x_axes, y_axes,...
     'LineWidth', 1,...

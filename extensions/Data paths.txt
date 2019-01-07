@@ -1,0 +1,7 @@
+N:\tnw\BN\HY\Shared\Yiteng\two_signals\randomized lattice
+N:\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells_TW
+
+Subfolders of the type:
+TW_formation_network_15
+TW_propagation_network_15
+

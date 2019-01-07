@@ -2,7 +2,7 @@
 clear variables
 close all
 clc
-set(0,'defaulttextinterpreter','latex');
+set(0, 'defaulttextinterpreter', 'latex');
 %% Parameters and settings
 % Settings
 tmax = 10000;
@@ -148,6 +148,40 @@ end
 frac_spatially_ordered = zeros(n_networks, 1);
 frac_spatially_ordered(networks_sel) = num_ordered(networks_sel)/(n_pset*nsim);
 
+%% Plot subset of networks as graph
+subset = class{2}; 
+graph_edges_temp = graph_edges(subset, subset);
+networks_reduced = 1:n_networks;
+networks_temp = networks_reduced(subset);
+
+% get x, y positions
+x_graph = num_int(subset);
+y_graph = zeros(numel(x_graph), 1);
+for ii=1:4
+    idx = find(x_graph==ii);
+    %disp(idx);
+    idx_sorted = [];
+    y_graph(idx) = linspace(-1, 1, numel(idx) );
+end
+%y_graph = y_graph(subset);
+y_graph(1) = 0;
+
+figure;
+hold on
+G = graph(graph_edges_temp);
+% Layouts: circle, force(3), layered, subspace(3)
+p = plot(G, 'Layout', 'force', 'MarkerSize', 0.1, 'LineWidth', 1.5, 'NodeLabel', []);
+p.XData = x_graph;
+p.YData = y_graph;
+% plot text
+for ii=1:numel(subset)
+   text(p.XData(ii)+0.06,p.YData(ii)-0.05, p.ZData(ii), num2str(networks_temp(ii)),...
+       'fontsize', 20, 'Color', 'k');
+end
+
+scatter(x_graph, y_graph, 20^2, t_out_max_log10(class{2}),...
+    '^', 'filled');
+
 %% (1) Plot max(t_out)
 % find x and y positions, order by value of output variable
 x_graph = num_int;
@@ -277,13 +311,13 @@ scatter(x_graph(class{3}), y_graph(class{3}), 20^2, output_var(class{3}),...
 p.XData = x_graph;
 p.YData = y_graph;
 for ii=1:n_networks
-   text(p.XData(ii)+0.05,p.YData(ii)-0.05, p.ZData(ii), num2str(ii), 'fontsize', 16, 'Color', 'k');
+   text(p.XData(ii)+0.05,p.YData(ii)-0.05, p.ZData(ii), num2str(ii), 'fontsize', 20, 'Color', 'k');
 end
 %colormap(viridis);
 colormap(jet);
 
 c=colorbar;
-c.FontSize = 20;
+c.FontSize = 24;
 caxis([0 1]);
 
 set(gca, 'FontSize', 20, 'XTick', 1:4, 'YTick', [], 'ZTick', []);
@@ -324,21 +358,21 @@ scatter(x_graph(class{3}), y_graph(class{3}), 20^2, frac_spatially_ordered(class
 p.XData = x_graph;
 p.YData = y_graph;
 for ii=1:n_networks
-	text(p.XData(ii)+0.05,p.YData(ii)-0.05, p.ZData(ii), num2str(ii), 'fontsize', 16, 'Color', 'k');
+	text(p.XData(ii)+0.05,p.YData(ii)-0.05, p.ZData(ii), num2str(ii), 'fontsize', 20, 'Color', 'k');
 end
 colormap(jet);
 c=colorbar;
-c.FontSize = 20;
+c.FontSize = 24;
 
 caxis([0 0.1]);
 set(c, 'YTick', 0:0.05:0.1 );
-set(gca, 'FontSize', 20, 'XTick', 1:4, 'YTick', []);
+set(gca, 'FontSize', 24, 'XTick', 1:4, 'YTick', []);
 xlabel('Number of interactions');
 title('Fraction spatially ordered')
 
-qsave = 0;
-fname_str = strrep(sprintf('graph_plot_frac_I_final_geq_%.1f_mean_rearranged_marked', I_min), '.', 'p');
-save_figure(h2, 15, 10, fullfile(save_folder, fname_str),'.pdf', qsave);
+qsave = 1;
+fname_str = strrep(sprintf('graph_plot_frac_I_final_geq_%.1f_mean_rearranged_marked_size_12_8', I_min), '.', 'p');
+save_figure(h2, 12, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 %% Correlation between final spatial order and oscillation prevalence
 h = figure;
 hold on
@@ -531,7 +565,7 @@ xlabel('Network');
 %ylabel('Fraction spatially ordered');
 ylabel('$P($ordered$|$X$)$', 'Interpreter', 'latex');
 
-qsave = 1;
+qsave = 0;
 save_folder2 = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2';
 fname_str = strrep(sprintf('frac_ordered_network_bar_I_min_%.1f', I_min), '.', 'p');
 save_figure(h, 24, 6, fullfile(save_folder2, fname_str),'.pdf', qsave);
@@ -548,7 +582,7 @@ xlabel('Network');
 %ylabel('Fraction spatially ordered');
 ylabel('$P($ordered$|$X$)$', 'Interpreter', 'latex');
 
-qsave = 1;
+qsave = 0;
 save_folder2 = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2';
 fname_str = strrep(sprintf('frac_ordered_network_bar_I_min_%.1f_v2_sorted', I_min), '.', 'p');
 save_figure(h, 24, 6, fullfile(save_folder2, fname_str),'.pdf', qsave);
@@ -611,12 +645,14 @@ xlabel('Network');
 %ylabel('Fraction spatially ordered');
 ylabel('$P($ordered$|$period$)$', 'Interpreter', 'latex');
 set(gca, 'XTick', 1:n_networks, 'XTickLabel', sort_idx_final );
+set(gca, 'YTick', 0:0.2:1);
 set(gca, 'FontSize', 20);
 %set(h, 'Units', 'Inches', 'Position', [1 1 24 6]);
+box on
 
 qsave = 1;
 save_folder2 = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2';
-fname_str = strrep(sprintf('frac_ordered_by_period_network_I_min_%.1f_plot', I_min), '.', 'p');
+fname_str = strrep(sprintf('frac_ordered_by_period_network_I_min_%.1f_plot_v2', I_min), '.', 'p');
 save_figure(h, 24, 6, fullfile(save_folder2, fname_str),'.pdf', qsave);
 
 % How do the spatially ordered trajectories break down by period?

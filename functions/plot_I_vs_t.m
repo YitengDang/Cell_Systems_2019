@@ -34,9 +34,10 @@ if length(cells_hist) < 100
 elseif length(cells_hist) < 500
     lw = 1; ps = '.-';
 else
-    lw = 0.5; ps = '.-';
+    lw = 0.5; ps = '-';
 end
-          
+ps = '-';
+
 for i=1:s
     switch option
         case 1
@@ -55,7 +56,7 @@ ylabel(plot_labels{option}, 'Interpreter', 'latex');
 legend(num2cell(string(1:s)));
 set(gca, 'FontSize', 24);
 xlim([t0 t0+tmax])
-ylim([-1 1]);
+ylim([-0.1 1]);
 
 set(h2, 'Units', 'inches', 'Position', fig_pos);
 

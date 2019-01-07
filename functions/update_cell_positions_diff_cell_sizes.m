@@ -72,7 +72,7 @@ y = pos(:, 2);
 sigma_D_box_units = sigma_D*(Lx/n);
 
 % sum of radii of pairs of cells, for checking overlap
-rcell_mat = repmat(R_all, 1, N) + repmat(R_all', N, 1); 
+Rcell_mat = repmat(R_all, 1, N) + repmat(R_all', N, 1); 
 %%
 % Key parameters
 cells_updated = []; % number of cells that have been updated
@@ -80,14 +80,12 @@ cells_to_update = 1:N;
 rejections = 0;
 while numel(cells_updated) < N
     %%
+    %{
     if mod(rejections, 10^4)==0
         fprintf('Rejections: %d \n', rejections);
         fprintf('Cells to update: %d \n', numel(cells_to_update) );
     end
-    %disp(step)
-    %fprintf('Cells to do = %d \n', N-numel(cells_updated) );
-    %fprintf('Rejections: %d \n', rejections);
-    
+    %}
     cells_to_update = setdiff(1:N, cells_updated);
     
     % choose random cell to update
@@ -102,8 +100,8 @@ while numel(cells_updated) < N
     
     % Calculate distance
     dist_new = calc_dist_periodic(x_new, y_new, Lx, Ly);
-    %%
-    cond_mat = (dist_new > rcell_mat);
+    
+    cond_mat = (dist_new > Rcell_mat);
     if all(cond_mat(dist_new>0))
         %all(dist_new(cell_i, setdiff(1:N, cell_i) ) >= 2*R) % check only updated cell, exclude distance to self
         x = x_new;

@@ -5,6 +5,10 @@ close all
 set(0, 'defaulttextinterpreter', 'latex');
 
 %% Parameters
+% remote destination (Webdrive)?
+remote = 0;
+
+% parameters
 gz = 15;
 N = gz^2;
 a0 = 1.5;
@@ -49,7 +53,9 @@ fN(2) = sum(sinh(Rcell)*exp((Rcell-r)./lambda(2)).*(lambda(2)./r));
 
 % Load initial conditions
 load_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\travelling_wave_snapshots';
-
+if remote
+    load_folder = strrep(load_folder, 'N:\', 'W:\staff-bulk\');
+end
 fname = fullfile(load_folder, fname_str);
 cells_load = cell(2,1);
 cells_load{1} = xlsread(fname, 'Sheet1');
@@ -69,6 +75,9 @@ n_in = histcounts(cells_idx, -0.5:3.5);
 %% Load overview data
 % Load list of found networks and wave forms
 folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
+if remote
+    folder = strrep(folder, 'N:\', 'W:\staff-bulk\');
+end
 subfolder = 'run2';
 fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_analysed_%s',...
     num_waves, wave_type, subfolder);
@@ -105,6 +114,9 @@ for idx_loop=1:num_psets
     
     % load analytical predictor data
     load_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2';
+    if remote
+        load_folder = strrep(load_folder, 'N:\', 'W:\staff-bulk\');
+    end
     fname_str = sprintf('Trav_wave_predictor_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d_processed',...
            num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4)); 
     fname = fullfile(load_folder, fname_str);
@@ -115,6 +127,9 @@ for idx_loop=1:num_psets
     
     % load simulation data
     load_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2_stability_sim';
+    if remote
+        load_folder = strrep(load_folder, 'N:\', 'W:\staff-bulk\');
+    end
     fname_str = sprintf('stability_sim_from_pred_trav_wave_num_%d_type_%d_network_%d_states_%d_%d_%d_%d',...
            num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4));       
     fname = fullfile(load_folder, fname_str);
@@ -183,7 +198,7 @@ set(h, 'Units', 'inches', 'position', [1 1 10 6]);
 ylim([0 1]);
 %}
 
-qsave = 1;    
+qsave = 0;    
 pred_label = 'run2';
 save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
 fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_Q_vals_normalized', num_waves, wave_type, pred_label);
@@ -231,7 +246,7 @@ ylim([0 1]);
 legend({'Precision', 'Recall', 'F1 score'}, 'Location', 'ne');
 %}
 
-qsave = 1;    
+qsave = 0;    
 pred_label = 'run2';
 save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
 fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_P_R_F1_together', num_waves, wave_type, pred_label);
@@ -267,7 +282,7 @@ set(h, 'Units', 'inches', 'position', [1 1 10 6]);
 ylim([0 1]);
 %}
 
-qsave = 1;    
+qsave = 0;    
 pred_label = 'run2';
 save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
 fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_precision', num_waves, wave_type, pred_label);
@@ -295,7 +310,7 @@ set(h, 'Units', 'inches', 'position', [1 1 10 6]);
 ylim([0 1]);
 %}
 
-qsave = 1;    
+qsave = 0;    
 pred_label = 'run2';
 save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
 fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_recall', num_waves, wave_type, pred_label);
@@ -323,7 +338,7 @@ set(h, 'Units', 'inches', 'position', [1 1 10 6]);
 ylim([0 1]);
 %}
 
-qsave = 1;    
+qsave = 0;    
 pred_label = 'run2';
 save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
 fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_F1_score', num_waves, wave_type, pred_label);
@@ -415,6 +430,9 @@ for idx_loop=1:num_psets
     % load predictor data 
     % get parameter sets
     load_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2';
+    if remote
+        load_folder = strrep(load_folder, 'N:\', 'W:\staff-bulk\');
+    end
     fname_str = sprintf('Trav_wave_predictor_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d_processed',...
            num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4)); 
     fname = fullfile(load_folder, fname_str);
@@ -422,6 +440,9 @@ for idx_loop=1:num_psets
     
     % load simulation data
     load_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2_stability_sim';
+    if remote
+        load_folder = strrep(load_folder, 'N:\', 'W:\staff-bulk\');
+    end
     fname_str = sprintf('stability_sim_from_pred_trav_wave_num_%d_type_%d_network_%d_states_%d_%d_%d_%d',...
            num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4));       
     fname = fullfile(load_folder, fname_str);
@@ -443,11 +464,13 @@ for idx_loop=1:num_psets
         K_idx = 1:4;
     end
     
-    P_data = log10([Con_wave_sim, K_wave_sim(:,K_idx)]); % -> more generally, filter on M_int
-
+    %P_data = log10([Con_wave_sim, K_wave_sim(:,K_idx)]); % -> more generally, filter on M_int
+    P_data = [Con_wave_sim, K_wave_sim(:,K_idx)];
+    
     P_labels = {'$C_{ON}^{(1)}$', '$C_{ON}^{(2)}$', '$K^{(11)}$',...
         '$K^{(12)}$', '$K^{(21)}$', '$K^{(22)}$'};
     axes_interval = 2;
+    
     %{
     if idx_loop==3
     
@@ -459,17 +482,17 @@ for idx_loop=1:num_psets
            'MarkerSize', 2);
     else
     %}
-        spider_plot(P_data, P_labels([1:2 K_idx+2]), axes_interval,...
+        spider_plot_linear(P_data, P_labels([1:2 K_idx+2]), axes_interval,...
             'Marker', 'o',...
-            'LineStyle', '-',...
+            'LineStyle', 'none',...
             'Color', [1 0 0],...
             'LineWidth', 2,...
             'MarkerSize', 2);
     %end
-    %{
-    title(sprintf('Network %d', network),...
+    %
+    title(sprintf('n=%d, nw %d', size(P_data, 1), network),...
         'Fontweight', 'bold',...
-        'FontSize', 32);
+        'FontSize', 28);
     %}
     set(gcf, 'Units', 'Inches', 'Position', [2 2 10 8]);
     h = gcf;
@@ -478,19 +501,36 @@ for idx_loop=1:num_psets
     
     % Save figure
     qsave = 1;
-    save_folder_fig = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
-    fname_root = sprintf('Wave_type_%d_network_%d_states_F%d_M%d_B%d_E%d',...
+    save_folder_fig = ...
+        'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
+    if remote
+        save_folder_fig = strrep(save_folder_fig, 'H:\', 'W:\staff-homes\d\yitengdang\');
+    end
+    fname_root = sprintf('Wave_type_%d_network_%d_states_F%d_M%d_B%d_E%d_TW',...
         1, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
     save_figure(h, 10, 8, fullfile(save_folder_fig, ...
-        strcat(fname_root, '_parameters_wave_prop_spider_layout2')), '.pdf', qsave);
+        strcat(fname_root, '_parameters_wave_prop_spider_linear_v2_filled')), '.pdf', qsave);
     
-    close all
+    % close all
     %}
+    
+    % Save data: filtered set of parameters that give rise to TW propagation (from simulations)
+    %{
+    folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2_net_parameters_TW_sim';
+    if remote
+        folder = strrep(folder, 'N:\', 'W:\staff-bulk\');
+    end
+    fname_str = strcat(fname_root, '_Con_K_values_waves_sim_strict');
+    save(fullfile(folder, fname_str), 'Con_wave_sim', 'K_wave_sim', 'N', 'a0', 'rcell', 'lambda', 'hill', 'noise');
+    %}
+    
+    pause(1);
+    close all;
 end
 
 %%
 % Save figure
-qsave = 1;
+qsave = 0;
 save_folder_fig = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
 fname_root = sprintf('Wave_type_%d_network_%d_both_wave_types',...
     1, network);

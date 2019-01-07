@@ -265,13 +265,21 @@ t_onset_mean = Inf*ones(numel(loopvar), 1);
 t_onset_std = zeros(numel(loopvar), 1);
 for i=1:numel(loopvar)
     %idx = find(mod(period_all(i,:), sqrt(N)) == 0);
-    idx = find(trav_wave_all(i, :));
+    %idx = find(trav_wave_all(i, :));
+    idx = find(trav_wave_2_all(i, :));
     if ~isempty(idx)
         t_onset_mean(i) = mean( t_onset_all(i, idx) );
         t_onset_std(i) = std( t_onset_all(i, idx) );
     end
 end
 
+% calculate confidence interval
+% t_onset_error_margin = zeros(numel(loopvar), 1);
+z = 1.96;
+trav_wave_count = sum(trav_wave_all, 2);
+t_onset_error_margin = z*t_onset_std./sqrt( trav_wave_count );
+
+%%
 if strcmp(loopvar_str, 'hill')
     %------
     xdata = [loopvar(1:end-1) 10^3];
@@ -294,10 +302,19 @@ elseif strcmp(loopvar_str, 'N')
     xtick_str = string(sqrt(loopvar));  
 end
 
-h=figure;
+% calculate fit function
+ffit = polyfit(xdata, t_onset_mean', 1);
+ffit_ydata = ffit(1)*xdata + ffit(2);
+%%
+h = figure;
 hold on
-errorbar(xdata, t_onset_mean, t_onset_std,...
-    'g^--', 'LineWidth', 2, 'MarkerSize', 10);
+%plot(xdata, t_onset_mean,...
+%    'g^', 'LineWidth', 2, 'MarkerSize', 10);
+errorbar(xdata, t_onset_mean, t_onset_error_margin,...
+    'g^', 'LineWidth', 2, 'MarkerSize', 10);
+plot(xdata, ffit_ydata, 'g--', 'LineWidth', 2);
+
+box on
 xlabel(xlabel_text);
 ylabel('$\langle t_{eq} \rangle$');
 title('Onset time of trav. wave');
@@ -305,10 +322,10 @@ set(gca, 'FontSize', 24);
 set(gca, 'XTick', xdata, 'XTickLabels',...
     xtick_str);
 xlim([xdata(1)-1 xdata(end)+1]);
-%ylim([0 10^4]);
+ylim([0 7000]);
 %legend('period = multiple of 15', 'manual', 'Location', 'nw');
 
-qsave = 0;
+qsave = 1;
 if qsave
     fname = fullfile(save_path_fig, sprintf(...
         't_onset_trav_waves_vs_%s_K12_%d_nruns_%d_digits_%d_errorbar',...
@@ -316,7 +333,7 @@ if qsave
     save_figure(h, 10, 8, fname, '.pdf', qsave);
 end
 
-% Plot together with theoretical predictions
+%% Plot together with theoretical predictions
 % Load data
 folder = 'H:\My Documents\Multicellular automaton\data\two_signals';
 fname_str = 'NwaveDensity'; %'TravWaveDensity';
@@ -326,15 +343,16 @@ xls_data = xlsread(fname);
 % Plot theoretical estimates
 idx_sel = 1:size(xls_data, 2);
 %h = figure;
-plot(xls_data(1,idx_sel), 1./xls_data(2,idx_sel), 'bo--',...
+plot(xls_data(1,idx_sel), 1./xls_data(2,idx_sel), 'bo',...
     'LineWidth', 2, 'MarkerSize', 10);
 set(gca, 'YScale', 'log');
 legend({'Model simulations', 'Random process'}, 'Location', 'nw');
+ylim([1 10^150]);
 
-qsave = 1;
+qsave = 0;
 if qsave
     fname = fullfile(save_path_fig, sprintf(...
-        't_onset_trav_waves_vs_%s_K12_%d_nruns_%d_digits_%d_sim_and_calc',...
+        't_onset_trav_waves_vs_%s_K12_%d_nruns_%d_digits_%d_sim_and_calc_for_main_fig',...
         loopvar_str, K12, nruns, digits));
     save_figure(h, 10, 8, fname, '.pdf', qsave);
 end

@@ -1,12 +1,19 @@
 function [status, cells, fname_ini_state] = manual_input_state(...
-    signal_count, folder, N)
+    signal_count, folder, N, filename)
     % used in simulate_cells_... functions when manual input state is called
-    disp('Manually input initial state...');
-
-    %folder = app.InputStateSaveFolder; %fullfile('..', '..', 'data', 'input_states');
-    [file, path] = uigetfile({'*.xls'; '*.xlsx'; '*.*'},...
-        'Load initial lattice configuration', folder );
-    [~, fname_ini_state, ~] = fileparts(file);
+    
+    if nargin<4
+        disp('Manually input initial state...');
+        % Load from folder
+        %folder = app.InputStateSaveFolder; %fullfile('..', '..', 'data', 'input_states');
+        [file, path] = uigetfile({'*.xls'; '*.xlsx'; '*.*'},...
+            'Load initial lattice configuration', folder );
+        [~, fname_ini_state, ~] = fileparts(file);
+    else
+        [path, file, ~] = fileparts(filename);
+        fname_ini_state = file;
+    end
+    
     
     try
         cells_in = cell(2, 1);

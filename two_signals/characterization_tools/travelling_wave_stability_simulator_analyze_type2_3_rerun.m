@@ -25,7 +25,7 @@ mcsteps = 0;
 
 % Specify wave type
 num_waves = 1;
-wave_type = 3;
+wave_type = 2;
 fname_str_all = {'trav_wave_single_vertical',...
     'trav_wave_single_horizontal_inward_bend',...
     'trav_wave_single_horizontal_outward_bend'};
