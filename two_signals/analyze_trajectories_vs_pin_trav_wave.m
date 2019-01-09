@@ -2,7 +2,7 @@
 % v3: for analyzing travelling waves
 clear all
 close all
-set(0, 'defaulttextinterpreter', 'latex');
+%set(0, 'defaulttextinterpreter', 'none');
 %% Parameters
 N = 225;
 a0 = 1.5;
@@ -14,19 +14,19 @@ p2_all = 0:0.1:1;
 N1 = round(p1_all*N);
 N2 = round(p2_all*N);
 
-K12 = 22;
+K12 = 9;
 
 % folder for saving figures
 save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trajectories_vs_pin\trav_wave';
 %% Get all filenames
-%
+%{
 parent_folder = fullfile('N:\tnw\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis',...
     sprintf('vs_p0_K12_%d', K12));
 
-names = cell(numel(p1), numel(p2), nruns);
-for i1=1:numel(p1)
-    for i2=1:numel(p2)
-        p = [p1(i1) p2(i2)];
+names = cell(numel(p1_all), numel(p2_all), nruns);
+for i1=1:numel(p1_all)
+    for i2=1:numel(p2_all)
+        p = [p1_all(i1) p2_all(i2)];
         subfolder = strrep(sprintf('ini_p1_%.2f_p2_%.2f', p(1), p(2)), '.', 'p');
         folder = fullfile(parent_folder, subfolder);
         
@@ -44,8 +44,9 @@ for i1=1:numel(p1)
         end
     end
 end
-
+%}
 %% Load raw data
+%{
 % possible filter to use
 pattern = '.'; % '.' = anything 'p_ini\dp\d{2}_0p30';
 
@@ -98,7 +99,7 @@ for i1=1:numel(p1)
 end
 %}
 %% Save the loaded raw data
-%
+%{
 fname_str = sprintf('trav_wave_occur_vs_p_ini_set2_K12_9_nruns%d', nruns);
 save_path = fullfile('N:\tnw\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis',...
     sprintf('vs_p0_K12_%d', K12));
@@ -130,7 +131,7 @@ idx_class{2} = ((period_all<Inf) + (trav_wave_all==0))==2;
 idx_class{3} = ((period_all<Inf) + (trav_wave_all==1))==2;
 idx_class{4} = ((period_all==Inf) + (t_out_all==tmax))==2;
 
-idx_class_2 = {}; 
+idx_class_2 = {};
 idx_class_2{2} = ((period_all<Inf) + (trav_wave_2_all==0))==2;
 idx_class_2{3} = ((period_all<Inf) + (trav_wave_2_all==1))==2;
 
@@ -155,7 +156,6 @@ frac_regular = sum(class_all == 1, 3)/nruns;
 frac_periodic = sum(((class_all == 2) + (class_all == 3)), 3)/nruns;
 frac_trav_wave = sum(class_all == 3, 3)/nruns;
 frac_trav_wave_2 = sum(class_all_2 == 3, 3)/nruns;
-
 %% calculated weighted estimate of total fraction of each class
 % N.B. weighted average is not over entire distribution (p1, p2 values), but
 % over only a part of it. This shouldn't affect the results.
@@ -243,7 +243,7 @@ caxis([0 1]);
 title('Non-periodic');
 %ylim(c, [0 tmax]);
 
-qsave = 1;
+qsave = 0;
 if qsave
     fname = fullfile(save_path_fig, strcat(fname_str, '_frac_regular_vs_p1_p2'));
     save_figure(h21, 10, 8, fname, '.pdf');
@@ -263,51 +263,47 @@ caxis([0 1]);
 title('Periodic');
 %ylim(c, [0 tmax]);
 
-qsave = 1;
+qsave = 0;
 if qsave
     fname = fullfile(save_path_fig, strcat(fname_str, '_frac_periodic_vs_p1_p2'));
     save_figure(h22, 10, 8, fname, '.pdf');
 end
 
-% Plot fraction travelling waves
+%% Plot fraction travelling waves
 h23=figure(23);
 imagesc(p1, p2, frac_trav_wave);
 set(gca, 'YDir', 'Normal');
 c = colorbar;
-xlabel('$$p_1$$')
-ylabel('$$p_2$$')
-ylabel(c, 'Fraction', ...
-    'Interpreter', 'latex', 'FontSize', 20);
-set(gca, 'FontSize', 20);
+xlabel('p_1', 'Interpreter', 'tex')
+ylabel('p_2', 'Interpreter', 'tex')
+ylabel(c, 'Fraction', 'FontSize', 28);
+%    'Interpreter', 'latex', 'FontSize', 28);
+set(gca, 'FontSize', 28);
 caxis([0 1]);
-title('Fraction trav. waves');
+%title('Fraction trav. waves');
 %ylim(c, [0 tmax]);
 
 qsave = 1;
-if qsave
-    fname = fullfile(save_path_fig, strcat(fname_str, '_frac_trav_waves_vs_p1_p2'));
-    save_figure(h23, 10, 8, fname, '.pdf');
-end
+fname = fullfile(save_path_fig, strcat(fname_str, '_frac_trav_waves_vs_p1_p2'));
+save_figure(h23, 10, 8, fname, '.pdf', qsave);
 
 %% Plot fraction travelling waves, class 2
 h24=figure(24);
 imagesc(p1, p2, frac_trav_wave_2);
 set(gca, 'YDir', 'Normal');
 c = colorbar;
-xlabel('$$p_1$$')
-ylabel('$$p_2$$')
-ylabel(c, 'Fraction', ...
-    'Interpreter', 'latex', 'FontSize', 20);
-set(gca, 'FontSize', 20);
+xlabel('p_1', 'Interpreter', 'tex')
+ylabel('p_2', 'Interpreter', 'tex')
+ylabel(c, 'Fraction', 'FontSize', 28);
+%    'Interpreter', 'latex', 'FontSize', 28);
+set(gca, 'FontSize', 28);
 caxis([0 1]);
-title('Fraction trav. waves');
+%title('Fraction trav. waves');
 %ylim(c, [0 tmax]);
 
 qsave = 1;
-if qsave
-    fname = fullfile(save_path_fig, strcat(fname_str, '_frac_trav_waves_vs_p1_p2_class2'));
-    save_figure(h24, 10, 8, fname, '.pdf');
-end
+fname = fullfile(save_path_fig, strcat(fname_str, '_frac_trav_waves_vs_p1_p2_class2'));
+save_figure(h24, 10, 8, fname, '.pdf', qsave);
 %% Distribution of final t
 h3=figure(3);
 bins = 0:tmax/30:tmax;

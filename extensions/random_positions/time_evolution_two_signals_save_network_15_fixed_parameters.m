@@ -24,11 +24,11 @@ remote = 0;
 
 % variable to loop over
 % sigma_D_all = 10.^[-3 -2 -1];
-mcsteps_all = [0 1 4 10 40 100 400 1000];
+mcsteps_all = [0 1 2 4 10 20 40 100 20 400 1000];
 %mcsteps_all = [1 2 4 6 8]; %setdiff([20:20:100 200:200:1000], [10 100 1000]);
 
 % number of simulations to do 
-sim_count = 100;
+sim_count = 200;
 
 % other settings
 network = 15;
@@ -41,7 +41,7 @@ parent_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\randomized lattice';
 if remote
     parent_folder = strrep(parent_folder, 'N:\', 'W:\staff-bulk\');
 end
-subfolder = sprintf('TW_formation_network_%d_fixed_parameters', network);
+subfolder = sprintf('TW_formation_network_%d_fixed_parameter_set', network);
 save_folder = fullfile(parent_folder, subfolder);
             
 % default file name
@@ -140,53 +140,6 @@ for idx_loop=1:numel(mcsteps_all)
     fprintf('N=%d, mcsteps = %d, sim to do: %d \n',...
         N, mcsteps, sim_count-filecount);
 
-    sim_to_do(idx_loop) = sim_count-filecount;
-end
-
-fprintf('Total number of simulations to do: %d \n', sum(sim_to_do(:)) );
-
-%%
-% Loop over Con, K values
-sim_to_do = zeros(numel(mcsteps_all), 1);
-
-% folder
-folder = save_folder;
-if exist(folder, 'dir') ~= 7
-    warning('Folder does not exist! ');
-    mkdir(folder);
-    fprintf('Made new folder %s \n', folder);
-end
-    
-for idx_loop=1:numel(mcsteps_all)
-    %sigma_D = sigma_D_all(idx_loop);
-    mcsteps = mcsteps_all(idx_loop);
-
-%(!!!)  % Filename pattern (!!!)
-    pattern = strrep(sprintf('%s_N%d_ini_state_rand_fixed_params_mcsteps_%d_t_out_%s_period_%s',...
-        sim_ID, N,  mcsteps, '(\d+)', '(\d+|Inf)' ),...
-        '.', 'p');
-
-    listing = dir(folder);
-    num_files = numel(listing)-2;
-    names = {};
-    filecount = 0;
-    for i = 1:num_files
-        filename = listing(i+2).name;
-        % remove extension and do not include txt files
-        [~,name,ext] = fileparts(filename);
-        if strcmp(ext, '.mat')
-            match = regexp(name, pattern, 'match');
-            %disp(match);
-            if ~isempty(match)
-                filecount = filecount + 1;
-                names{end+1} = name;
-            end
-        end
-    end
-
-    %fprintf('N=%d, sigma_D = %.2f sim to do: %d \n', N, sigma_D, sim_count-filecount);
-    fprintf('N=%d, mcsteps = %d sim to do: %d \n',...
-        N, mcsteps, sim_count-filecount);
     sim_to_do(idx_loop) = sim_count-filecount;
 end
 

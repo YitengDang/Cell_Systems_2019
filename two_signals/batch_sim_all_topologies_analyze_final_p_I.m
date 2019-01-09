@@ -64,7 +64,7 @@ folder = 'H:\My Documents\Multicellular automaton\data\two_signals\batch_sim_all
 load(fullfile(folder, fname_str), 'network_all');
 
 % 
-networks_sel = 1:44;
+networks_sel = [15 19]; %1:44;
 for network=networks_sel
     %network = 1;
     fname_str = sprintf('batch_sim_analyzed_data_batch2_p_I_final_network_%d_old%d',...
@@ -75,7 +75,7 @@ for network=networks_sel
     
     this_periods = period_all_net(network,:);
     %% Analyze final p
-    %{
+    %
     % Scatter plot
     h = figure;
     X = reshape(p_final_network(:, :, 1), n_pset*nsim, 1);
@@ -91,6 +91,7 @@ for network=networks_sel
     fname_str = sprintf('Final_p_scatter_network_%d', network);
     fname = fullfile(save_folder, subfolder1, fname_str);
     save_figure(h, 10, 8, fname, '.pdf', qsave);
+    
     %% Density plot (heat map)
     h = figure;
     Xedges = 0:0.05:1;
@@ -153,15 +154,15 @@ for network=networks_sel
     %ylim([0 1]);
     xlabel('Final $I^{(1)}$');
     ylabel('Final $I^{(2)}$');
-    set(gca, 'FontSize', 24);
+    set(gca, 'FontSize', 32);
     c = colorbar;
     caxis([-10 0]); 
     set(c, 'YTick', -10:2:0, 'YTickLabel', sprintfc('10^{%d}', -10:2:0) );
     ylabel(c, 'Probability');
     scale = '_log'; % '_linear';
 
-    qsave = 0;
-    fname_str = sprintf('Final_I_density_map_network_%d%s', network, scale);
+    qsave = 1;
+    fname_str = sprintf('Final_I_density_map_network_%d%s_v2', network, scale);
     fname = fullfile(save_folder, subfolder2, fname_str);
     save_figure(h, 10, 8, fname, '.pdf', qsave);
     %}
@@ -191,11 +192,12 @@ for network=networks_sel
         xlabel('Final $p^{(1)}$');
         ylabel('Final $p^{(2)}$');
         title(sprintf('$n_{ord} = %d, n_{tot}=%d$', num_in_gate, numel(X)));
-        set(gca, 'FontSize', 24);
-
+        set(gca, 'FontSize', 32);
+        box on
+        
         qsave = 1;
         fname_str = strrep(sprintf(...
-            'Final_p_scatter_complex_periods_network_%d_I_min_%.1f',...
+            'Final_p_scatter_complex_periods_network_%d_I_min_%.1f_v2',...
             network, I_min), '.', 'p');
         fname = fullfile(save_folder, subfolder1, fname_str);
         save_figure(h, 10, 8, fname, '.pdf', qsave);  
@@ -206,24 +208,27 @@ for network=networks_sel
         X = I_1_final(idx_subset);
         Y = I_2_final(idx_subset);
         scatter(X, Y, 'x');
-        plot([0.3 1], [0.3 0.3], 'k--');
-        plot([0.3 0.3], [0.3 1], 'k--');
+        plot([0.3 1], [0.3 0.3], 'r--');
+        plot([0.3 0.3], [0.3 1], 'r--');
+        plot([0.3 1], [1 1], 'r--');
+        plot([1 1], [0.3 1], 'r--');
         xlim([-0.2 0.8]);
         ylim([-0.2 0.8]);
         xlabel('Final $I^{(1)}$');
         ylabel('Final $I^{(2)}$');
         title(sprintf('$n_{ord} = %d, n_{tot}=%d$', num_in_gate, numel(X)));
-        set(gca, 'FontSize', 24);
-
+        set(gca, 'FontSize', 32);
+        box on
+        
         qsave = 1;
         fname_str = strrep(sprintf(...
-            'Final_I_scatter_complex_periods_network_%d_I_min_%.1f',...
+            'Final_I_scatter_complex_periods_network_%d_I_min_%.1f_v2',...
             network, I_min), '.', 'p');
         fname = fullfile(save_folder, subfolder2, fname_str);
         save_figure(h, 10, 8, fname, '.pdf', qsave);   
     end
     %%
-    close all
+    %close all
 end
 
 %% Estimate fraction of spatially ordered final states

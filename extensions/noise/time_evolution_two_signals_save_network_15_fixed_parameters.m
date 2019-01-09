@@ -25,12 +25,12 @@ remote = 0;
 % variable to loop over
 % sigma_D_all = 10.^[-3 -2 -1];
 % mcsteps_all = [0 10 100 1000];
-noise_all = [0 0.01 0.05 0.1 0.5 1];
+noise_all = [0 0.01 0.02 0.05 0.1 0.2 0.5 1];
 %noise_all = [0.01 0.03 0.05 0.1 0.3 0.5 1];
 %noise_all = [0 0.1 1];
 
 % number of simulations to do 
-sim_count = 100;
+sim_count = 200;
 
 % other settings
 network = 15;

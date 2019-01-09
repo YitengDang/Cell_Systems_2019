@@ -320,14 +320,14 @@ c=colorbar;
 c.FontSize = 24;
 caxis([0 1]);
 
-set(gca, 'FontSize', 20, 'XTick', 1:4, 'YTick', [], 'ZTick', []);
+set(gca, 'FontSize', 24, 'XTick', 1:4, 'YTick', [], 'ZTick', []);
 xlabel('Number of interactions');
 title('Oscillation prevalence')
 
 % Save figure
-qsave = 0;
-fname_str = 'graph_plot_osc_prevalence_rearranged_marked_v2_jet';
-save_figure(h3, 15, 10, fullfile(save_folder, fname_str),'.pdf', qsave);
+qsave = 1;
+fname_str = 'graph_plot_osc_prevalence_rearranged_marked_v2_jet_size_12_8';
+save_figure(h3, 12, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 
 %% (4) Final spatial order
 % find x and y positions, order by value of output variable

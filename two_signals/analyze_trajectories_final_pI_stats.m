@@ -78,6 +78,12 @@ for idxN=1:nN
 
 end
 
+%% Save analyzed data
+folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2\data';
+fname_str = sprintf('analyzed_data_final_pI_N%d_nruns_%d', N, nruns);
+fname = fullfile(folder, fname_str);
+save(fname, 'N', 'a0', 'nruns', 'I_ini', 'I1_out', 'I2_out', 'p1_out', 'p2_out', 'periods');
+
 %% Load analyzed data
 
 

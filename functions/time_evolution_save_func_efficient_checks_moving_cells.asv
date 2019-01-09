@@ -84,7 +84,6 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
     periodicity_vs_t = []; % store all found periodicities over time
     t_onset_over_time = []; % store onset times of periodic trajectories
     %t_check = 1; % start checking periodicity from time 1
-    trav_wave_2_vs_t = []; % whether simulation was a TW (according to second test, only constant p) for one period  
     
     while t<tmax % && changed %&& period==Inf
         pause(0.01);
@@ -108,18 +107,17 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
         t_onset_over_time(end+1) = t_onset;
         
         % Check for travelling waves
-        if period<Inf
-            cells_hist_temp = cells_hist(t-period+1:t+1);
-            %dist = ones(N); % not needed, random value
-            [~, trav_wave_2] = travelling_wave_test(cells_hist_temp, a0,...
-                period, numel(cells_hist_temp)-1 , distances);
-            trav_wave_2_vs_t(end+1) = trav_wave_2;
-            fprintf('Time = %d, TW? %d \n', t, trav_wave_2);
-        else
-            trav_wave_2_vs_t(end+1) = 0;
-        end
-        %}
+        cells_hist_temp = cells_hist(t-this_period+1:this_time+1);
+
+        dist = ones(N); % not needed, random value
+        [~, trav_wave_2] = travelling_wave_test(cells_hist_temp, a0,...
+            this_period, numel(cells_hist_temp)-1 , dist);
+        trav_wave_2_vs_t( this_time ) = trav_wave_2;
+
+        fprintf('Time = %d, TW? %d \n', this_time, trav_wave_2);
         
+        %end
+        %}
         % Update figure
         if display_fig
             update_figure_periodic_cell_motion(h_cells, h_borders, cells, t, disp_mol, showI, a0, distances, positions);
@@ -147,8 +145,29 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
     
     %fprintf('Final: t_out = %d, period %d \n', t_out, period);
     fprintf('Final: t_out = %d, periodicity found? %d \n', t_out,...
-        min(periodicity_vs_t) );
+        min(periodicity_over_time) );
     
+    %
+    %----------------------------------------------------------------------
+    
+
+    % Check for TW
+    TW_times = find(mod(periodicity_vs_t, gz)==0 & periodicity_vs_t>0);
+    trav_wave_2_vs_t = zeros(tmax, 1);
+    for ii=1:numel(TW_times)
+        this_time = TW_times(ii);
+        this_period = periodicity_vs_t(this_time);
+
+        cells_hist_temp = cells_hist(this_time-this_period+1:this_time+1);
+
+        dist = ones(N); % not needed, random value
+        [~, trav_wave_2] = travelling_wave_test(cells_hist_temp, a0,...
+            this_period, numel(cells_hist_temp)-1 , dist);
+        trav_wave_2_vs_t( this_time ) = trav_wave_2;
+
+        fprintf('Time = %d, TW? %d \n', this_time, trav_wave_2);
+        %}
+    end
     %----------------------------------------------------------------------
     % Save result       
     % Format of output filename
@@ -180,8 +199,8 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
     
     % save
     save(fname, 'save_consts_struct', 'cells_hist', 'positions_all', 't_out',...
-        'positions', 'distances',...
-        'periodicity_vs_t', 'trav_wave_2_vs_t');
+        'positions', 'distances', 'periodicity_over_time', 't_onset_over_time',...
+        'periodicity_vs_t', '');
     
     fprintf('Saved simulation: %s ; \n', fname);
 end

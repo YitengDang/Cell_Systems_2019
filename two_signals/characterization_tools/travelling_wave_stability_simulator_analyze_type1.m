@@ -161,17 +161,21 @@ labels = {'15', '19', '33(a)', '33(b)',...
 set(gca, 'XTick', 1:num_psets, 'XTickLabels', labels, 'XTickLabelRotation', 45);
 
 % other settings
-xlabel('Wave type');
-ylabel('Q-value');
-set(gca, 'FontSize', 20);
-set(h, 'Units', 'inches', 'position', [1 1 10 6]);
+xlabel('Network');
+%ylabel('Q-value');
+ylabel('Frequency');
+set(gca, 'FontSize', 32);
+set(h, 'Units', 'inches', 'position', [1 1 10 8]);
 ylim([0 0.02]);
+%title('Plane waves');
+box on
+set(gca, 'YTick', 0:0.004:0.02);
 %}
 
 qsave = 0;    
 pred_label = 'run2';
 save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
-fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_Q_vals', num_waves, wave_type, pred_label);
+fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_Q_vals_v2', num_waves, wave_type, pred_label);
 fname = fullfile(save_folder, fname_str_save);
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 
@@ -192,16 +196,19 @@ set(gca, 'XTick', 1:num_psets, 'XTickLabels', labels, 'XTickLabelRotation', 45);
 
 % other settings
 xlabel('Network');
-ylabel('Robustness (normalized)');
-set(gca, 'FontSize', 20);
-set(h, 'Units', 'inches', 'position', [1 1 10 6]);
+%ylabel('Robustness (normalized)');
+ylabel('Relative frequency');
+set(gca, 'FontSize', 32);
+set(h, 'Units', 'inches', 'position', [1 1 10 8]);
 ylim([0 1]);
+box on
+set(gca, 'YTick', 0:0.2:1);
 %}
 
-qsave = 0;    
+qsave = 0;
 pred_label = 'run2';
 save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
-fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_Q_vals_normalized', num_waves, wave_type, pred_label);
+fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_Q_vals_normalized_v2', num_waves, wave_type, pred_label);
 fname = fullfile(save_folder, fname_str_save);
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 
@@ -219,8 +226,8 @@ disp(F1_score_all);
 %% Plot P, R, (F1) score together
 h = figure;
 hold on
-%bar_data = [precision_all recall_all];
-bar_data = [precision_all recall_all F1_score_all];
+bar_data = [precision_all recall_all];
+%bar_data = [precision_all recall_all F1_score_all];
 bar(bar_data)
 
 % labels below
@@ -240,17 +247,18 @@ text(xt, max(bar_data, [], 2), labels, 'FontSize', 20,...
 %xlabel('Wave type');
 xlabel('Network');
 ylabel('Value');
-set(gca, 'FontSize', 20);
+set(gca, 'FontSize', 28);
 set(h, 'Units', 'inches', 'position', [1 1 10 6]);
 ylim([0 1]);
-legend({'Precision', 'Recall', 'F1 score'}, 'Location', 'ne');
+legend({'Precision', 'Recall', 'F1 score'}, 'Location', 'ne', 'FontSize', 20);
+box on
 %}
 
-qsave = 0;    
+qsave = 1;    
 pred_label = 'run2';
 save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
-fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_P_R_F1_together', num_waves, wave_type, pred_label);
-%fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_P_R_together', num_waves, wave_type, pred_label);
+%fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_P_R_F1_together', num_waves, wave_type, pred_label);
+fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_P_R_together_v2', num_waves, wave_type, pred_label);
 fname = fullfile(save_folder, fname_str_save);
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 %% Plot precision

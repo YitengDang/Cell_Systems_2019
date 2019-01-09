@@ -5,7 +5,7 @@ clear variables
 close all
 clc
 set(0, 'defaulttextinterpreter', 'latex');
-
+%set(0, 'defaulttextinterpreter', 'none');
 %% Parameters and settings
 % Settings
 remote = 0;
@@ -42,10 +42,10 @@ if remote
     save_folder = strrep(save_folder, 'H:\', 'W:\staff-homes\d\yitengdang\');
 end
 %% Load full data
-%{
+%
 networks_sel = [15 19 33 34 36]; %[15  16	19	20	32	33	34	36	43];
-TW_count_strict = zeros( numel(networks_sel), 1 );
-TW_count_loose = zeros( numel(networks_sel), 1 );
+TW_count_strict = zeros( numel(networks_sel), n_pset );
+TW_count_loose = zeros( numel(networks_sel), n_pset );
 K_all_by_network = cell(numel(networks_sel), 1);
 Con_all_by_network = cell(numel(networks_sel), 1);
 
@@ -71,6 +71,9 @@ for network_idx=1:numel(networks_sel) %networks_sel
         if strcmp(ext, '.mat')
             [~, tokens] = regexp(name, pattern, 'match', 'tokens');
             if ~isempty(tokens)
+                % identify parameter set
+                pset_idx = str2double(tokens{1}{1});
+                
                 % Select ones with correct period
                 this_period = str2double(tokens{1}{4});
                 if mod(this_period, gz)==0
@@ -82,12 +85,14 @@ for network_idx=1:numel(networks_sel) %networks_sel
                     a0 = save_consts_struct.a0;
                     [trav_wave, trav_wave_2] = travelling_wave_test(cells_hist, a0,...
                         this_period, numel(cells_hist)-1, distances, digits);
-                    TW_count_strict(network_idx) = TW_count_strict(network_idx) + trav_wave;
-                    TW_count_loose(network_idx) = TW_count_loose(network_idx) + trav_wave_2;
+                    TW_count_strict(network_idx, pset_idx) = ...
+                        TW_count_strict(network_idx, pset_idx) + trav_wave;
+                    TW_count_loose(network_idx, pset_idx) = ...
+                        TW_count_loose(network_idx, pset_idx) + trav_wave_2;
                     
                     % Store K, Con values
                     if trav_wave_2
-                        count = TW_count_loose(network_idx);
+                        count = sum(sum(TW_count_loose(network_idx, :, :)));
                     	K_all_temp(count, :, :) = save_consts_struct.K;
                         Con_all_temp(count, :) = save_consts_struct.Con;
                     end
@@ -103,13 +108,13 @@ end
 %% Save analyzed data
 %
 %save_folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2\count_TW';
-fname_str = 'batch_sim_all_topologies_run2_count_TW_analyzed';
+fname_str = 'batch_sim_all_topologies_run2_count_TW_analyzed_v2_by_pset';
 save( fullfile(save_folder, fname_str), 'networks_sel', 'TW_count_strict',...
     'TW_count_loose', 'K_all_by_network', 'Con_all_by_network');
 %}
 %% Load analyzed data
 %save_folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2\count_TW';
-fname_str = 'batch_sim_all_topologies_run2_count_TW_analyzed';
+fname_str = 'batch_sim_all_topologies_run2_count_TW_analyzed_v2_by_pset';
 load( fullfile(save_folder, fname_str), 'networks_sel', 'TW_count_strict',...
     'TW_count_loose', 'K_all_by_network', 'Con_all_by_network');
 
@@ -117,46 +122,65 @@ load( fullfile(save_folder, fname_str), 'networks_sel', 'TW_count_strict',...
 networks_idx2 = 1:5; %[1 3 6 7 8]; %[15 19 33 34 36];
 num_params = [5 5 6 6 6]; % number of parameters per network
 
+% get # parameter sets that gave at least one TW
+y_data = zeros(5, 1);
+for i=1:5
+    idx_temp = find( TW_count_loose(i,:)==1 );
+    y_data(i) = numel(idx_temp);
+end
+y_data = y_data/n_pset;
+
+% overall fraction of simulations that gave TWs
+%y_data = TW_count_loose(networks_idx2)/(n_pset*nsim);
+
 h = figure;
-bar( 1:numel(networks_idx2), TW_count_loose(networks_idx2)/(n_pset*nsim) );
-set(gca, 'XTickLabel', sprintfc('Network %d', networks_sel(networks_idx2)) );
-set(gca, 'FontSize', 24);
+bar( 1:numel(networks_idx2), y_data);
+%set(gca, 'XTickLabel', sprintfc('Network %d', networks_sel(networks_idx2)) );
+xlabel('Network');
+set(gca, 'XTickLabel', sprintfc('%d', networks_sel(networks_idx2)) );
 xtickangle(45)
 %ylabel('Count');
-ylabel('Robustness');
+ylabel('Frequency');
 %set(gca, 'YScale', 'log');
+set(gca, 'FontSize', 32);
 %ylim([10^(-4) 1]);
+ylim([0 2*10^(-3)]);
+box on
 
 % Save figures
 set(h, 'Units', 'Inches', 'Position', [0.1 0.1 10 8]);
 qsave = 0;
-fname_str = 'Robustness_frac_sim_TW_raw';
+fname_str = 'Robustness_frac_sim_TW_raw_v2';
 save_figure(h, 10, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 
 %% Plot normalized results
-h = figure;
+% data
 x_data = 1:numel(networks_idx2);
-y_data = (TW_count_loose(networks_idx2)'/(n_pset*nsim)).^(1./num_params);
-bar( x_data, y_data );
+%y_data = (TW_count_loose(networks_idx2)'/(n_pset*nsim)).^(1./num_params);
+y_data_norm = y_data.^(1./num_params');
+
+% plot
+h = figure;
+bar( x_data, y_data_norm );
 set(gca, 'XTickLabel', sprintfc('%d', networks_sel(networks_idx2)) );
-set(gca, 'FontSize', 24);
+set(gca, 'FontSize', 32);
 xtickangle(45)
 %ylabel('Count');
 xlabel('Network');
-ylabel('Robustness (normalized)');
+ylabel('Normalized frequency');
 %set(gca, 'YScale', 'log');
 %ylim([10^(-4) 1]);
 ylim([0 1]);
-text(x_data-0.3, y_data+0.05, sprintfc('$n_P = %d$', num_params), 'FontSize', 20 );
+text(x_data-0.4, y_data_norm+0.05, sprintfc('$n_P = %d$', num_params),...
+    'FontSize', 24, 'interpreter', 'latex' );
 
 % Save figures
 set(h, 'Units', 'Inches', 'Position', [0.1 0.1 10 8]);
 qsave = 0;
-fname_str = 'Robustness_frac_sim_TW_normalized';
+fname_str = 'Robustness_frac_sim_TW_normalized_v2';
 save_figure(h, 10, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 
 %% Plot parameter sets as spider plots
-
 for idx_loop=1:numel(networks_sel)
     network = networks_sel(idx_loop);
     
