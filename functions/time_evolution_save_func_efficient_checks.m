@@ -63,7 +63,7 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
         pause(1);
     end
     
-    %-------------dynamics-----------------------------------------
+    %-------------dynamics-------------------------------------------------
     t = 0;
     period = Inf; %default values
     t_onset = Inf; 

@@ -1,7 +1,7 @@
 %% Analyze saved trajectories across a range of parameters
 clear all
 close all
-set(0, 'defaulttextinterpreter', 'latex');
+set(0, 'defaulttextinterpreter', 'tex');
 
 %% Parameters
 gz = 15;
@@ -13,10 +13,11 @@ sigma_D_all = [0.001 0.003 0.005 0.01 0.03 0.05 0.1];
 num_params = 100;
 %num_params = 30;
 nruns = 3; %number of runs per parameter set
+network = 15;
 
 % Load data files
 path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells_TW';
-subfolder = 'TW_propagation_network_19';
+subfolder = sprintf('TW_propagation_network_%d', network);
 
 folder = fullfile(path, subfolder);
 listing = dir(folder);
@@ -184,6 +185,7 @@ TW_breaking_time_all = TW_breaking_time_all + gz-1; % scale times into actual si
 TW_breaking_time_all(TW_breaking_time_all==gz) = 0; % TW broken before time gz
 
 %% Save analyzed data
+%{
 % Save the loaded data
 fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, nruns);
 save_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells_TW';
@@ -212,22 +214,31 @@ count_other = num_params*nruns - count_Inf - count_0;
 
 %bar_data = [count_Inf count_other count_0];
 bar_data = [count_Inf count_other count_0]/(nruns*num_params);
-%bar( sigma_D_all, [count_Inf count_other count_0], 'stacked');
-bar( bar_data, 'stacked');
+
+% plot evenly spaced
+%{
+bar(bar_data, 'stacked');
 set(gca, 'XTick', 1:numel(sigma_D_all), 'XTickLabel', sprintfc('%.3f', sigma_D_all) );
 set(gca, 'YTick', 0:0.2:1);
+%}
+% plot log scale
+%
+bar(log10(sigma_D_all), bar_data, 'stacked');
+set(gca, 'XTick', -3:0, 'XTickLabel', sprintfc('10^{%d}', -3:0) );
+set(gca, 'YTick', 0:0.2:1);
+%}
 %ylabel('Count');
-ylabel('Probability');
-xlabel('$\sigma_D$');
-set(gca, 'FontSize', 20);
+ylabel('Fraction of simulations');
+xlabel('Cell motility \sigma_D');
+set(gca, 'FontSize', 32);
 set(h, 'Units', 'Inches', 'Position', [1 1 12 8]);
 legend({'TW preserved', 'Broken at t>T', 'Broken at t\leqT' },...
-    'Location', 'no');
+    'Location', 'ne');
 
 qsave = 1;
 if qsave
     fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
-        sprintf('_nruns_%d_digits_%d', nruns, digits), '_TW_preserved_vs_sigma_D_norm_prob_v1b'));
+        sprintf('_nruns_%d_digits_%d', nruns, digits), '_TW_preserved_vs_sigma_D_norm_prob'));
     save_figure(h, 12, 8, fname, '.pdf', qsave);
 end
 

@@ -87,9 +87,9 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
     trav_wave_2_vs_t = []; % whether simulation was a TW (according to second test, only constant p) for one period  
     
     while t<tmax % && changed %&& period==Inf
-        pause(0.01);
+        pause(0.001);
         t = t+1; 
-        disp(t);
+        %disp(t);
         cells = cellsOut;
         cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
         positions_all{end+1} = positions;

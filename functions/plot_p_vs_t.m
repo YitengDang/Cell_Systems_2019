@@ -1,7 +1,8 @@
-function msg = plot_p_vs_t(cells_hist, t0, fig_pos)
+function [msg, p_t] = plot_p_vs_t(cells_hist, t0, fig_pos)
 
 if isempty(cells_hist)
     msg = ' Unable to plot p(t); ';
+    p_t = [];
     return
 end
 
@@ -44,4 +45,8 @@ ylim([0 1]);
 set(h1, 'Units', 'inches', 'Position', fig_pos);
 
 msg = 'Successfully plotted p(t); ';    
+
+% Output
+p_t = Non/N; %p(t) 
+
 end

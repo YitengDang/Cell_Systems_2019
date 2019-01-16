@@ -1,12 +1,13 @@
 %% Analyze saved trajectories across a range of parameters
 clear all
 close all
-set(0, 'defaulttextinterpreter', 'latex');
+set(0, 'defaulttextinterpreter', 'tex');
 
 %% Parameters
 N = 225;
 tmax = 10000;
-noise_all = [0 0.01 0.02 0.05 0.1 0.2 0.5 1];
+%noise_all = [0 0.01 0.02 0.05 0.1 0.2 0.5 1];
+noise_all = [0 0.001 0.005 0.01 0.05 0.1 0.5];
 network = 15;
 
 var_all = noise_all; %mcsteps_all;
@@ -111,14 +112,14 @@ for i=1:numel(names)
             trav_wave_all(idx, idx2, idx3) = trav_wave;
             trav_wave_all_2(idx, idx2, idx3) = trav_wave_2;
         end
-        %}
+        %
     end
 end
 %}
 %% Save the loaded data
 %
 %subfolder = sprintf('TW_propagation_network_%d', network);
-fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, nruns);
+fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5_with_classification', subfolder, nruns);
 
 % noise
 %
@@ -138,10 +139,12 @@ save( fullfile(save_data_path, strcat(fname_str, '.mat')), 'mcsteps_all',...
 subfolder = 'TW_formation_network_15_fixed_parameter_set';
 %subfolder = sprintf('TW_propagation_network_%d', network);
 
+%{
 this_nruns = 100;
 fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, this_nruns);
-
 %fname_str = 'analyzed_data_TW_propagation_network_19_nruns_100_digits_5_old_v2';
+%}
+fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, nruns);
 
 % noise
 save_data_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_with_noise';
@@ -159,7 +162,7 @@ load( fullfile(save_data_path, strcat(fname_str, '.mat')), 'noise_all',...
 trav_wave_all_2_mean = sum(sum(trav_wave_all_2, 3), 2)/(num_params*nruns);
 
 h = figure;
-x_data = [10^(-3) var_all(2:end)];
+x_data = [10^(-4) var_all(2:end)];
 %x_data = noise_all;
 
 plot( x_data, trav_wave_all_2_mean, 'bo-', 'LineWidth', 1.5 );
@@ -168,21 +171,21 @@ set(gca, 'XScale', 'log');
 
 % labels (change per case)
 %xlabel('MC steps');
-xlabel('Noise $\alpha$');
+xlabel('Noise strength \alpha/K^{(ij)}');
 ylabel('Fraction TW');
 
 % Ticks
-xticks = 10.^(-3:0);
+xticks = 10.^(-4:0);
 % Tick labels
-xtick_labels = sprintfc('10^{%d}', -3:0);
+xtick_labels = sprintfc('10^{%d}', -4:0);
 xtick_labels{1} = '0';
-set(gca, 'FontSize', 20, 'XTick', xticks, 'XTickLabels', xtick_labels);
+set(gca, 'FontSize', 32, 'XTick', xticks, 'XTickLabels', xtick_labels);
 
 qsave = 1;
 if qsave
     fname = fullfile(save_path_fig, strcat('TW_formation_vs_noise_', label,...
-        sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_TW_all_mean'));
-    save_figure(h, 10, 8, fname, '.pdf', qsave);
+        sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_TW_all_mean_size_12_8'));
+    save_figure(h, 12, 8, fname, '.pdf', qsave);
 end
 %% fraction with period 15
 period_15_frac = sum( sum( period_all==15, 3 ), 2)/(num_params*nruns);
@@ -190,28 +193,28 @@ period_15_mult_frac = sum( sum( mod(period_all, 15)==0, 3 ), 2)/(num_params*nrun
 
 h = figure;
 hold on
-x_data = [10^(-3) var_all(2:end)];
+x_data = [10^(-4) var_all(2:end)];
 
 plot( x_data, period_15_frac, 'bo-', 'LineWidth', 1.5  );
 plot( x_data, period_15_mult_frac, 'ro-', 'LineWidth', 1.5  );
 ylim([0 1]);
-set(gca, 'FontSize', 20);
+set(gca, 'FontSize', 32);
 legend({'T=15', 'mod(T,15)=0'}, 'Location', 'sw');
 set(gca, 'XScale', 'log');
 
 % labels (change per case)
 %xlabel('MC steps');
-xlabel('Noise $\alpha$');
+xlabel('Noise strength \alpha/K^{(ij)}');
 ylabel('Fraction period 15');
 
 % Ticks
-xticks = 10.^(-3:0);
+xticks = 10.^(-4:0);
 % Tick labels
-xtick_labels = sprintfc('10^{%d}', -3:0);
+xtick_labels = sprintfc('10^{%d}', -4:0);
 xtick_labels{1} = '0';
-set(gca, 'FontSize', 20, 'XTick', xticks, 'XTickLabels', xtick_labels);
+set(gca, 'FontSize', 32, 'XTick', xticks, 'XTickLabels', xtick_labels);
 
-qsave = 0;
+qsave = 1;
 if qsave
     fname = fullfile(save_path_fig, strcat('TW_formation_vs_noise_', label,...
         sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_period_15'));
@@ -226,17 +229,14 @@ t_max_reached = (t_out_all == tmax);
 t_max_count = sum(sum(t_max_reached, 3), 2);
 
 h2 = figure;
-x_data = [10^(-3) var_all(2:end)];
-
+x_data = [10^(-4) var_all(2:end)];
 plot( x_data, t_max_count/(num_params*nruns), 'bo-', 'LineWidth', 1.5  );
-set(gca, 'FontSize', 20);
 ylim([0 1]);
 set(gca, 'XScale', 'log');
-
 %xlabel('MC steps');
-xlabel('Noise $\alpha$');
-ylabel('Fraction reaching $t_{max}$');
-title(sprintf('$t_{max}=10^{%d}$', log10(tmax)));
+xlabel('Noise \alpha');
+ylabel('Fraction reaching t_{max}');
+title(sprintf('t_{max}=10^{%d}', log10(tmax)));
 
 %imagesc(p1, p2, t_max_count/nruns);
 %set(gca, 'YDir', 'Normal');
@@ -248,11 +248,11 @@ title(sprintf('$t_{max}=10^{%d}$', log10(tmax)));
 %ylabel(c, 'fraction');
 
 % Ticks
-xticks = 10.^(-3:0);
+xticks = 10.^(-4:0);
 % Tick labels
-xtick_labels = sprintfc('10^{%d}', -3:0);
+xtick_labels = sprintfc('10^{%d}', -4:0);
 xtick_labels{1} = '0';
-set(gca, 'FontSize', 20, 'XTick', xticks, 'XTickLabels', xtick_labels);
+set(gca, 'FontSize', 32, 'XTick', xticks, 'XTickLabels', xtick_labels);
 
 qsave = 1;
 if qsave

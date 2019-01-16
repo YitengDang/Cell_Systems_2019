@@ -1,10 +1,12 @@
-function msg = plot_I_vs_t(cells_hist, t0, a0, dist, option, fig_pos)
+function [msg, I_t, Theta_t] = plot_I_vs_t(cells_hist, t0, a0, dist, option, fig_pos)
 % option: 1 = plot I, 2 = plot Theta
 
 str_options = {'I(t)', 'Theta(t)'};
 
 if isempty(cells_hist)
     msg = sprintf(' Unable to plot %s; ', str_options{option});
+    I_t = [];
+    Theta_t = [];
     return
 end
 
@@ -12,15 +14,15 @@ N = size(cells_hist{1}, 1);
 s = size(cells_hist{1}, 2);
 
 tmax = numel(cells_hist)-1;
-I = zeros(tmax+1, s);
-Theta = zeros(tmax+1, s);
+I_t = zeros(tmax+1, s);
+Theta_t = zeros(tmax+1, s);
 
 for i=1:tmax+1
     for j=1:s
         %cells = cells_hist{i}{j};
         cells = cells_hist{i};
         %[I(i,j), Theta(i,j)] = moranI(cells, a0*dist);
-        [I(i,j), Theta(i,j)] = moranI(cells(:, j), a0*dist);
+        [I_t(i,j), Theta_t(i,j)] = moranI(cells(:, j), a0*dist);
     end
 end
 %%        
@@ -41,9 +43,9 @@ ps = '-';
 for i=1:s
     switch option
         case 1
-            y = I(:,i);
+            y = I_t(:,i);
         case 2
-            y = Theta(:,i);
+            y = Theta_t(:,i);
     end
     clr = plot_clrs(i,:);
     plot(t0:t0+tmax, y, ps, 'LineWidth', lw, 'Color', clr);

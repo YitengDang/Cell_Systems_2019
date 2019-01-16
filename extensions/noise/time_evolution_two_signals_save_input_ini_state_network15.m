@@ -25,12 +25,13 @@ remote = 0;
 
 % variable to loop over
 % 
-noise_all = [100]; %[0.01 0.03 0.05 0.1 0.3 0.5 1 3 5 10];
+%noise_all = [100]; %[0.01 0.03 0.05 0.1 0.3 0.5 1 3 5 10]; %old: absolute noise
+noise_all = [0.001 0.005 0.01 0.05 0.1 0.5];
 
 var_all = noise_all;
 
 % number of simulations to do 
-sim_count = 20;
+sim_count = 10;
 max_num_params = 100;
 
 % other settings
@@ -51,7 +52,7 @@ if remote
     parent_folder = strrep(parent_folder, 'N:\', 'W:\staff-bulk\');
 end
 
-appendix = '_part2';
+appendix = ''; %'_part2';
 %subfolder0 = 'negative_control';
 %subfolder = sprintf('K12_%d', K12_all);
 subfolder = sprintf('TW_propagation_network_%d%s', network, appendix);
@@ -160,7 +161,7 @@ if exist(folder, 'dir') ~= 7
     mkdir(folder);
     fprintf('Made new folder %s \n', folder);
 end
-        
+
 for idx_param_loop=1:num_params
     Con = Con_wave_sim(idx_param_loop,:);
     K = squeeze(K_wave_sim(idx_param_loop,:,:));

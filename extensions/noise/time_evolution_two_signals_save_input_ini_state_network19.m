@@ -26,11 +26,11 @@ remote = 0;
 
 % variable to loop over
 %
-%noise_all = [0.01 0.03 0.05 0.1 0.3 0.5 1 3 5 10];
-noise_all = [100];
+%noise_all = [0.01 0.03 0.05 0.1 0.3 0.5 1 3 5 10]; % absolute noise
+noise_all = [0.001 0.005 0.01 0.05 0.1 0.5]; % relative noise
 
-% number of simulations to do 
-sim_count = 20;
+% number of simulations to do
+sim_count = 10;
 
 % other settings
 % InitiateI = 0; % generate lattice with input I?
@@ -50,7 +50,7 @@ if remote
     parent_folder = strrep(parent_folder, 'N:\', 'W:\staff-bulk\');
 end
 
-appendix = '_part2';
+appendix = ''; %'_part2';
 %subfolder = sprintf('K12_%d', K12_all);
 subfolder = sprintf('TW_propagation_network_%d%s', network, appendix);
 save_folder = fullfile(parent_folder, subfolder);
