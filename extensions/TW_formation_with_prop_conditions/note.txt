@@ -1,0 +1,1 @@
+These codes check whether the set of parameters that were found to be able to propagate waves are also able to form waves from random initial conditions.
