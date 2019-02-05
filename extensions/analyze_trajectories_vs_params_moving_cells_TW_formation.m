@@ -7,11 +7,11 @@ set(0, 'defaulttextinterpreter', 'tex');
 gz = 15;
 N = gz^2;
 tmax = 1000;
-sigma_D_all = [0.001 0.003]; % 0.01 0.03 0.1];
+sigma_D_all = [0 0.001 0.003 0.005 0.01 0.03 0.1]; % 0.01 0.03 0.1];
 %sigma_D_all = [0.001 0.01 0.1];
 
 num_params = 1;
-nruns = 50; %number of runs per parameter set
+nruns = 100; %number of runs per parameter set
 
 % folder for saving figures
 %save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_moving_cells';
@@ -174,6 +174,9 @@ pattern = sprintf(...
 pattern = sprintf(...
     'two_signal_mult_N%d_ini_state_rand_fixed_params_sigma_D_%s_tmax_%d-v%s',...
     N, '\d+p\d+', tmax, '(\d+)');
+pattern2 = sprintf(...
+    'two_signal_mult_N%d_ini_state_rand_fixed_params_sigma_D_0p000_t_out_%s_period_%s',...
+    N, '(\d+)', '(\d+|Inf)');
 %--------------------------------------------------------------------------
 names_ordered_all = cell( numel(sigma_D_all), num_params, nruns );
 
@@ -190,7 +193,47 @@ TW_times_all = cell( numel(sigma_D_all), num_params, nruns ); % times of (Transi
 
 for i=1:numel(names)
     if isempty(regexp(names{i}, pattern, 'once')) % only load files matching a certain pattern
-        continue
+        if isempty(regexp(names{i}, pattern2, 'once'))
+            continue
+        else
+            % -- special case sigma_D = 0 --
+            disp('sigmaD = 0');
+            
+            disp(names{i});
+            load( fullfile( folder, strcat(names{i}, '.mat')), 'cells_hist',...
+                'save_consts_struct', 'distances', 't_out', 'period');
+
+            [tokens, ~] = regexp(names{i}, pattern, 'tokens', 'match');
+        
+            idx = 1;
+            if num_params>1
+                idx2 = str2double(tokens{1}{1});
+            elseif num_params==1
+                idx2 = 1;
+            end
+            
+            filecount(idx, idx2) = filecount(idx, idx2) + 1;
+            idx3 = filecount(idx, idx2);
+            if idx3 > nruns
+                % only do up to nruns simulations
+                continue
+            end
+            %disp(idx3);
+            
+            % register file name        
+            names_ordered_all{idx, idx2, idx3} = names{i};
+            
+            % TW times
+            a0 = save_consts_struct.a0;
+            digits = 3;
+            [trav_wave, trav_wave_2] = travelling_wave_test(cells_hist, a0,...
+                period, t_out, distances, digits);
+            TW_test_all(idx, idx2, idx3) = trav_wave_2;
+            % ------------------------------
+            
+        end
+        
+        %continue
     else
         disp(names{i});
         load( fullfile( folder, strcat(names{i}, '.mat')), 'cells_hist',...
@@ -209,6 +252,7 @@ for i=1:numel(names)
         %disp(idx2);
         
         if ~isempty(idx)
+            
             filecount(idx, idx2) = filecount(idx, idx2) + 1;
             idx3 = filecount(idx, idx2);
             if idx3 > nruns
@@ -261,7 +305,7 @@ TW_breaking_time_all(TW_breaking_time_all==gz) = 0; % TW broken before time gz
 periodicity_all = squeeze(periodicity_all);
 %sum(periodicity_trajectories, 2)
 %}
-%% Save analyzed data
+% Save analyzed data
 %
 % Save the loaded data
 save_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells_TW';
@@ -274,13 +318,13 @@ save( fullfile(save_path, strcat(fname_str, '.mat')), 'sigma_D_all',...
 %}
 
 % TW formation
-fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, nruns);
+fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5_with_sigmaD_0', subfolder, nruns);
 save( fullfile(save_path, strcat(fname_str, '.mat')), 'sigma_D_all',...
     'filecount', 'tmax', 'num_params', 'nruns', 'periodicity_all',...
     'periodicity_times', 'periodicity_periods', 'TW_test_all', 'TW_times_all');
 %}
 %% Load analyzed data
-%{
+%
 save_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells_TW';
 subfolder = 'TW_formation_network_15_fixed_params';
 % TW propagation
@@ -292,7 +336,9 @@ load( fullfile(save_path, strcat(fname_str, '.mat')), 'sigma_D_all',...
 
 % TW formation
 %fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, nruns);
-fname_str = sprintf('analyzed_data_TW_formation_network_15_fixed_params_reanalyzed_nruns_%d_digits_5', nruns);
+%fname_str = sprintf('analyzed_data_TW_formation_network_15_fixed_params_reanalyzed_nruns_%d_digits_5', nruns);
+fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5_with_sigmaD_0', subfolder, nruns);
+
 %load( fullfile(save_path, strcat(fname_str, '.mat')), 'sigma_D_all',...
 %    'filecount', 'tmax', 'num_params', 'nruns', 'periodicity_all',...
 %    'periodicity_times', 'periodicity_periods', 'TW_test_all', 'TW_times_all');
@@ -302,12 +348,11 @@ load( fullfile(save_path, strcat(fname_str, '.mat')), 'sigma_D_all',...
 %}
 
 %% Load the negative control data (other simulation set)
-%
-nruns = 200;
+%{
+nruns = 100;
 subfolder = 'TW_formation_network_15_fixed_parameter_set';
 fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, nruns);
 
-% noise
 save_data_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_with_noise';
 load( fullfile(save_data_path, strcat(fname_str, '.mat')), 'trav_wave_all_2');
 trav_wave_all_2_mean = sum(sum(trav_wave_all_2, 3), 2)/nruns;
@@ -318,8 +363,12 @@ TW_frac_neg_control = trav_wave_all_2_mean(1); % TW fraction of negative control
 count_TW = sum(sum(TW_test_all, 3), 2);
 y_data = count_TW/(nruns*num_params);
 
-x_data = [sigma_D_all(1)/10 sigma_D_all];
-y_data = [TW_frac_neg_control(1); y_data];
+x_data = sigma_D_all;
+x_data(1) = sigma_D_all(2)/10; %[sigma_D_all(1)/10 sigma_D_all(2:end)];
+
+%x_data = [sigma_D_all(1)/10 sigma_D_all];
+%y_data = [TW_frac_neg_control(1); y_data];
+
 h = figure;
 plot(x_data, y_data, 'bo-', 'LineWidth', 1.5 );
 set(gca, 'XScale', 'log');
@@ -362,13 +411,12 @@ set(gca, 'FontSize', 32);
 set(h, 'Units', 'Inches', 'Position', [1 1 12 8]);
 ylim([0 1]);
 
-qsave = 0;
+qsave = 1;
 if qsave
     fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
         sprintf('_nruns_%d_digits_%d', nruns, digits), '_TW_formation_vs_sigma_D_bar_plot'));
     save_figure(h, 10, 8, fname, '.pdf', qsave);
 end
-
 %% Find breaking times of TWs (ini TW simulations)
 %{
 h = figure;

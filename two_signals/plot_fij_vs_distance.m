@@ -147,7 +147,7 @@ legend({'f_{nn}^{(1)}/f_N^{(1)}', 'f_{nn}^{(2)}/f_N^{(2)}',...
 set(gca, 'FontSize', 24);
 set(h, 'Units', 'Inches', 'Position', [1 1 10 8]);
 
-qsave = 1;
+qsave = 0;
 folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\interaction_strength';
 %fname_str = strrep(sprintf('plot_fnn_fN_ratio_vs_a0_gz%d_lambda12_%.1f', gz, lambda(2)), '.', 'p');
 fname_str = strrep(sprintf('plot_fnn_fN_ratio_vs_gz_a0_%.1f_lambda12_%.1f', a0, lambda(2)), '.', 'p');

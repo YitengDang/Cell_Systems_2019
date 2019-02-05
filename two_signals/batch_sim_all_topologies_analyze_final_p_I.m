@@ -64,7 +64,7 @@ folder = 'H:\My Documents\Multicellular automaton\data\two_signals\batch_sim_all
 load(fullfile(folder, fname_str), 'network_all');
 
 % 
-networks_sel = [15 19]; %1:44;
+networks_sel = [15  16	19	20	32	33	34	36	43]; %1:44;
 for network=networks_sel
     %network = 1;
     fname_str = sprintf('batch_sim_analyzed_data_batch2_p_I_final_network_%d_old%d',...
@@ -161,7 +161,7 @@ for network=networks_sel
     ylabel(c, 'Probability');
     scale = '_log'; % '_linear';
 
-    qsave = 1;
+    qsave = 0;
     fname_str = sprintf('Final_I_density_map_network_%d%s_v2', network, scale);
     fname = fullfile(save_folder, subfolder2, fname_str);
     save_figure(h, 10, 8, fname, '.pdf', qsave);
@@ -175,7 +175,9 @@ for network=networks_sel
     
     % Scatter plot
     % select only periodic points
-    idx_subset = this_periods<Inf & this_periods>4;
+    %idx_subset = this_periods<Inf & this_periods>4;
+    % select only periodic points with mod(T, gz) = 0
+    idx_subset = (mod(this_periods, gz) == 0);
     % select spatially ordered points
     idx_subset2 = (I_1_final(:)>I_min & I_2_final(:)>I_min)';
     
@@ -195,7 +197,7 @@ for network=networks_sel
         set(gca, 'FontSize', 32);
         box on
         
-        qsave = 1;
+        qsave = 0;
         fname_str = strrep(sprintf(...
             'Final_p_scatter_complex_periods_network_%d_I_min_%.1f_v2',...
             network, I_min), '.', 'p');
@@ -207,7 +209,7 @@ for network=networks_sel
         hold on
         X = I_1_final(idx_subset);
         Y = I_2_final(idx_subset);
-        scatter(X, Y, 'x');
+        scatter(X, Y, 'o');
         plot([0.3 1], [0.3 0.3], 'r--');
         plot([0.3 0.3], [0.3 1], 'r--');
         plot([0.3 1], [1 1], 'r--');
@@ -222,13 +224,13 @@ for network=networks_sel
         
         qsave = 1;
         fname_str = strrep(sprintf(...
-            'Final_I_scatter_complex_periods_network_%d_I_min_%.1f_v2',...
+            'Final_I_scatter_period_mod_gz_network_%d_I_min_%.1f_v2',...
             network, I_min), '.', 'p');
         fname = fullfile(save_folder, subfolder2, fname_str);
         save_figure(h, 10, 8, fname, '.pdf', qsave);   
     end
     %%
-    %close all
+    close all
 end
 
 %% Estimate fraction of spatially ordered final states

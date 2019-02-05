@@ -2,7 +2,7 @@
 % simulations
 clear all
 close all
-set(0,'defaulttextinterpreter', 'latex')
+set(0,'defaulttextinterpreter', 'tex')
 %% Parameters
 gz = 15;
 N = gz^2;
@@ -234,12 +234,13 @@ disp(recall_all);
 disp('F1_score_all');
 disp(F1_score_all);
 
-%% Plot P, R, F1 score together
+%% Plot P, R, (F1) score together
 h = figure;
 hold on
-bar_data = [precision_all recall_all F1_score_all];
-%bar_data = [precision_all recall_all];
+%bar_data = [precision_all recall_all F1_score_all];
+bar_data = [precision_all recall_all];
 bar(bar_data)
+box on
 
 % labels below
 %labels = {'15, [3 4 2 1]', '19, [4 3 1 2]', '33, [4 2 1 3]', '33, [3 4 2 1]',...
@@ -258,17 +259,17 @@ text(xt, max(bar_data, [], 2), labels, 'FontSize', 20,...
 %xlabel('Wave type');
 xlabel('Network');
 ylabel('Value');
-set(gca, 'FontSize', 20);
-set(h, 'Units', 'inches', 'position', [1 1 10 6]);
+set(gca, 'FontSize', 28);
+set(h, 'Units', 'inches', 'position', [1 1 10 8]);
 ylim([0 1]);
-legend({'Precision', 'Recall', 'F1 score'}, 'Location', 'ne');
+% legend({'Precision', 'Recall', 'F1 score'}, 'Location', 'ne');
 %}
 
 qsave = 1;    
-pred_label = 'run2_rerun';
+pred_label = 'run2_rerun_v2';
 save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
-fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_P_R_F1_together', num_waves, wave_type, pred_label);
-%fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_P_R_together', num_waves, wave_type, pred_label);
+%fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_P_R_F1_together', num_waves, wave_type, pred_label);
+fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_P_R_together', num_waves, wave_type, pred_label);
 fname = fullfile(save_folder, fname_str_save);
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 %% Plot precision

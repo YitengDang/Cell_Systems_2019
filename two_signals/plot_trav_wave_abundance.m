@@ -62,7 +62,7 @@ save_figure(h, 10, 8, fname, '.pdf', qsave);
 %
 load_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_vs_N';
 fname_str = 'trav_wave_occur_vs_N_K12_10_nruns300_round_p_I_digits_5';
-load(fullfile(load_path, strcat(fname_str, '.mat')), 't_onset_all');
+load(fullfile(load_path, strcat(fname_str, '.mat')) ); %, 't_onset_all');
 %}
 %% Plot distribution of t onset
 t_data = t_onset_all(idx_sel, :);

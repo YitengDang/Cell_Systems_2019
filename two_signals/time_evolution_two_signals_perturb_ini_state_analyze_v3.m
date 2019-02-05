@@ -5,9 +5,9 @@ clc
 %%
 % Parameters
 N = 225;
-K12 = 5;
+K12 = 9;
 num_cells_changed = 1;
-n_sims = 200;
+
 %% Load data
 %
 % filter on original data first
@@ -78,7 +78,7 @@ end
 if numel(unique(sizes))>1
     error('Simulations per file not equal!');
 else
-    n_sims = sizes(1);
+    nsim = sizes(1);
 end
 %% Load data and process it
 trajectory_distances = cell(size(names_flipped));
@@ -110,14 +110,14 @@ for i=1:numel(names_orig)
 end
 %% Save analyzed data
 save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\sweep K12 new lattice\sensitivity_init_cond';
-fname_str = sprintf('analyzed_data_K12_%d_%druns', K12, n_sims);
+fname_str = sprintf('analyzed_data_K12_%d_%druns', K12, nsim);
 save( fullfile(save_folder, fname_str), 'names_orig', 'names_flipped', 'trajectory_distances'); 
 %}
 %% Load analyzed data
 save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\sweep K12 new lattice\sensitivity_init_cond';
-fname_str = sprintf('analyzed_data_K12_%d_%druns', K12, n_sims);
+fname_str = sprintf('analyzed_data_K12_%d_%druns', K12, nsim);
 load( fullfile(save_folder, fname_str), 'names_orig', 'names_flipped', 'trajectory_distances'); 
-%nsims = size( trajectory_distances{1}, 2 );
+
 %%
 %{
 % load original data
@@ -173,28 +173,25 @@ end
 %% Plot distance trajectories
 %
 for i=1:numel(trajectory_distances)
-    h = figure;
+    figure;
+    this_tmax = min(tmax, numel(avg_distances{i})-1);
+    plot(0:this_tmax, avg_distances{i}(1:this_tmax+1), 'r', 'LineWidth', 2);
     hold on
-    % plot trajectories
     for i2=1:numel(trajectory_distances{i})
         cells_dist_temp = trajectory_distances{i}{i2};
         t_data = 0:numel(cells_dist_temp)-1;
         plot(t_data, cells_dist_temp, 'Color', [0.6 0.6 0.6 0.3]);
     end
-    % plot average
-    plot(0:numel(avg_distances{i})-1, avg_distances{i}, 'r', 'LineWidth', 2);
-    
-    % settings
     ylim([0 1]);
     xlabel('time');
     ylabel('distance');
     set(gca, 'FontSize', 20);
     
     % save figure
-    qsave = 0;
+    qsave = 1;
     save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\sweep K12 new lattice\sensitivity_init_cond\figures';
     fname_str = sprintf('%s_%d_cells_changed_distance_vs_t_plot_w_avg_%d_sims',...
-        names_orig{i}, num_cells_changed, n_sims);
+        names_orig{i}, num_cells_changed, nsims);
     fname = fullfile(save_folder, fname_str);
     save_figure(h, 10, 8, fname, '.pdf', qsave);
 end
@@ -205,10 +202,9 @@ end
 tmax = 60;
 for i=1:10
     h = figure;
-    this_tmax = min(tmax, numel(avg_distances{i})-1);
-    
+    plot(0:tmax, avg_distances{i}(1:tmax+1), 'r', 'LineWidth', 2);
+
     hold on
-    % plot individual trajectories
     for i2=1:numel(trajectory_distances{i})
         cells_dist_temp = trajectory_distances{i}{i2};
         %t_data = 0:numel(cells_dist_temp)-1;
@@ -216,107 +212,19 @@ for i=1:10
         %plot(t_range, cells_dist_temp(t_range+1) );
         plot(t_range, cells_dist_temp(t_range+1), 'Color', [0.6 0.6 0.6 0.3]);
     end
-    % plot average
-    plot(0:this_tmax, avg_distances{i}(1:this_tmax+1), 'r', 'LineWidth', 2);
-    % settings
     ylim([0 1]);
     xlabel('time');
     ylabel('distance');
     set(gca, 'FontSize', 20);
     
     % save figure
-    qsave = 0;
+    qsave = 1;
     save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\sweep K12 new lattice\sensitivity_init_cond\figures';
     %fname_str = sprintf('%s_%d_cells_changed_distance_vs_t_plot_t_range_%dto%d',...
     %    names_orig{i},  num_cells_changed, t_range(1), t_range(end) );
     fname_str = sprintf('%s_%d_cells_changed_distance_vs_t_plot_t_range_%dto%d_w_avg_%d_sims',...
-        names_orig{i}, num_cells_changed, t_range(1), t_range(end), n_sims );
+        names_orig{i}, num_cells_changed, t_range(1), t_range(end), nsims );
     fname = fullfile(save_folder, fname_str);
     save_figure(h, 10, 8, fname, '.pdf', qsave);
 end
 %}
-%% Calculate "correlation times"
-% Define a "correlation time" as the time it takes before the distance
-% function first reaches a value indicating uncorrelated states. For 4
-% states, this corresponds to the time when the distance function first
-% reaches a value >= 3/4 = 0.75
-
-corr_times = zeros( numel(trajectory_distances), n_sims );
-threshold = 3/4;
-for i=1:numel(trajectory_distances)
-    for i2=1:n_sims
-        t_dist_temp = trajectory_distances{i}{i2};
-        
-        t_threshold = find(t_dist_temp > threshold, 1);
-        if ~isempty(t_threshold)
-            corr_times(i, i2) = t_threshold;
-        else
-            corr_times(i, i2) = Inf; % set correlation time to Inf for trajectories that don't diverge
-        end
-    end
-end
-
-%% Plot correlation times
-h = figure;
-histogram( corr_times(corr_times<Inf) );
-xlabel('Correlation time');
-ylabel('Count');
-set(gca, 'FontSize', 20);
-title('Time trajectories first become uncorrelated');
-
-qsave = 1;
-save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\sweep K12 new lattice\sensitivity_init_cond\figures';
-fname_str = sprintf('two_signal_mult_N%d_K12_%d_%d_cells_changed_%d_sims_correlation_times',...
-    N, K12, num_cells_changed, n_sims);
-fname = fullfile(save_folder, fname_str);
-save_figure(h, 10, 8, fname,'.pdf',  qsave);
-
-%% Split by simulation
-edges = 0:10:200;
-counts = zeros( size(corr_times, 1), numel(edges)-1 );
-
-% plot as overlayed histograms
-h=figure;
-hold on
-for i=1:size(corr_times, 1)
-    this_corr_times = corr_times(i, :);
-    histogram( this_corr_times(this_corr_times<Inf), edges );
-    counts(i,:) = histcounts(this_corr_times(this_corr_times<Inf), edges );
-end
-
-%% Plot as 3D histograms
-h=figure;
-width = 1;
-y = 1:10;
-h2=bar3(y, counts, width, 'detached');
-%bar(counts(1,:), 'BarWidth', 1);
-for i=1:numel(h2)
-    h2(i).FaceAlpha = 0.5;
-end
-xlabel('Correlation time');
-ylabel('Simulation')
-zlabel('Count');
-set(gca, 'FontSize', 20);
-
-qsave = 1;
-save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\sweep K12 new lattice\sensitivity_init_cond\figures';
-fname_str = sprintf('two_signal_mult_N%d_K12_%d_%d_cells_changed_%d_sims_corr_time_by_sim',...
-    N, K12, num_cells_changed, n_sims);
-fname = fullfile(save_folder, fname_str);
-save_figure(h, 16, 9, fname, '.pdf',  qsave); 
-
-%% Fraction of simulations remaining correlated
-h=figure;
-bar( sum(corr_times<Inf, 2)/n_sims );
-ylim([0 1]);
-xlabel('Simulation');
-ylabel('Fraction');
-set(gca, 'FontSize', 20);
-title('Trajectories becoming uncorrelated over time');
-
-qsave = 1;
-save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\sweep K12 new lattice\sensitivity_init_cond\figures';
-fname_str = sprintf('two_signal_mult_N%d_K12_%d_%d_cells_changed_%d_sims_frac_correlated',...
-    N, K12, num_cells_changed, n_sims);
-fname = fullfile(save_folder, fname_str);
-save_figure(h, 10, 8, fname,'.pdf',  qsave);

@@ -18,13 +18,13 @@ M_int = [1 -1; 1 0]; % network topology to simulate
 network = 15; % manually set network number (for saving files)
 
 % Fixed parameters
-gz = 15;
+gz = 3;
 N = gz^2;
 a0 = 1.5;
 rcell = 0.2;
 Rcell = rcell*a0;
 lambda = [1 1.2];
-hill = 10; %Inf;
+hill = Inf;
 noise = 0;
 Coff = [1 1];
 
@@ -36,10 +36,14 @@ InitiateI = 0;
 
 % get pos, dist
 mcsteps = 0;
-[pos, dist] = initial_cells_random_markov_periodic(gz, mcsteps, rcell);
+[positions, distances] = initial_cells_random_markov_periodic(gz, mcsteps, rcell);
 
 % Folder for storing simulations
-parent_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\temp';
+parent_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\batch_sim_fixed_topology_vs_N';
+
+% other
+sim_ID = 'two_signal_mult';
+cells_ini = []; % []=randomly generate
 
 %% test simulation
 %{
@@ -65,6 +69,7 @@ pattern = 'all_topologies_simulate-v(\d+)';
 %% loop over all phases
    
 % ---- Generate random parameter set ----
+%
 % bounds
 K_b = [1 10^3]; 
 Con_b = [1 10^3];
@@ -77,6 +82,7 @@ nK = numel(idxK); %sum(sum(abs(M_int)));
 nCon = numel(idxCon); %sum(sum(abs(M_int), 1)>0);
 
 x = lhsdesign(n_pset, nK+nCon);
+%}
 % ----------------------------------------
 
 % Visualize parameters
@@ -88,20 +94,22 @@ ylim(Con_b);
 %}
 
 % Loop over parameter sets
-for idx1=1:n_pset
+for idx_pset=1:n_pset
+    %
     thisK = zeros(2);
     thisCon = zeros(1,2);
-    thisK(idxK) = (K_b(2) - K_b(1))*x(idx1, 1:nK) + K_b(1);
-    thisCon(idxCon) = (Con_b(2) - Con_b(1))*x(idx1, nK+1:end) + Con_b(1); 
-
+    thisK(idxK) = (K_b(2) - K_b(1))*x(idx_pset, 1:nK) + K_b(1);
+    thisCon(idxCon) = (Con_b(2) - Con_b(1))*x(idx_pset, nK+1:end) + Con_b(1); 
+    %}
+    
     % Visualize parameters
     % plot(thisK(2,2), thisCon(2), 'bo');
     % plot(thisK(1,2), thisK(2,1), 'bo');
     % plot(thisCon(1), thisCon(2), 'ro');
 
     % get save folder
-    subfolder1 = sprintf('Network_%d', network);
-    subfolder2 = sprintf('Param_%d', idx1);
+    subfolder1 = sprintf('Network_%d_N%d', network, N);
+    subfolder2 = sprintf('Param_%d', idx_pset);
     save_folder = fullfile(parent_folder, subfolder1, subfolder2);
 
     if exist(save_folder, 'dir')~=7
@@ -112,32 +120,37 @@ for idx1=1:n_pset
     fname = fullfile(save_folder, 'parameters.mat');
     if exist(fname, 'file')==2
         try 
-            load(fname);
+            load(fname, 'thisK', 'thisCon');
         catch ME
             if strcmp(ME.identifier, 'MATLAB:load:couldNotReadFile')
                 warning('Could not find parameters.mat file for topology %d, pset %d',...
-                    network, idx1);
+                    network, idx_pset);
                 break
             end
         end
     else
         save(fname, 'thisK', 'thisCon');
     end
-
+    
     % count # simulations to do
-    pattern = 'all_topologies_simulate-v(\d+)';
+    %pattern = 'all_topologies_simulate-v(\d+)';
+    pattern = 'Simulate_network_(\d+)_params_(\d+)_t_out_(\d+)_period_(\d+|Inf)-v(\d+)';
     [sim_todo, ~] = batch_sim_all_topologies_count_todo(...
         nsim, save_folder, pattern);
-
+    fprintf('Parameter set %d, sims to do: %d \n', idx_pset, sim_todo);
+    
+    % additional input
+    fname_str_template = sprintf('Simulate_network_%d_params_%d', network, idx_pset);
+    display_fig = 0;
+    
     % simulate trajectories
+    %
     for count=1:sim_todo
         %disp(count);
-        %[cells_hist, period, t_onset] = time_evolution_save_func(N, a0,...
-        %    Rcell, lambda, hill, noise, M_int, thisK, thisCon, Coff,...
-        %    dist, InitiateI, p0, I0, tmax, save_folder);
         [cells_hist, period, t_onset] = time_evolution_save_func_efficient_checks(...
             N, a0, Rcell, lambda, hill, noise, M_int, thisK, thisCon, Coff,...
-            dist, pos, 'two_signals', mcsteps, InitiateI, p0, I0, tmax, save_folder);
+            distances, positions, sim_ID, mcsteps, InitiateI, p0, I0, cells_ini, tmax,...
+            save_folder, fname_str_template, display_fig);
     end
     %}
 end

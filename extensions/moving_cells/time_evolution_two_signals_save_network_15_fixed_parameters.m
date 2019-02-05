@@ -23,7 +23,7 @@ clear all
 remote = 0;
 
 % variable to loop over
-sigma_D_all = [0 0.001 0.003 0.01];
+sigma_D_all = 0; %[0.005]; %[0 0.001 0.003 0.01];
 % mcsteps_all = [0 10 100 1000];
 
 % number of simulations to do 
@@ -32,7 +32,7 @@ sim_count = 100;
 % other settings
 network = 15;
 networks_all = [15 19 33 34 36];
-tmax = 10^3; % max. number of time steps
+tmax = 10^4; % max. number of time steps
 % InitiateI = 0; % generate lattice with input I?
 
 % folder to save simulations in

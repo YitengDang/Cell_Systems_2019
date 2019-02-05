@@ -185,7 +185,7 @@ TW_breaking_time_all = TW_breaking_time_all + gz-1; % scale times into actual si
 TW_breaking_time_all(TW_breaking_time_all==gz) = 0; % TW broken before time gz
 
 %% Save analyzed data
-%{
+%
 % Save the loaded data
 fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, nruns);
 save_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells_TW';

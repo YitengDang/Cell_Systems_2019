@@ -4,28 +4,18 @@ clear all
 close all
 set(0, 'defaulttextinterpreter', 'latex');
 %% Parameters
-N_all = [8 10 12 14 16 18 20 25].^2;
+N_all = [1:7].^2;
 a0 = 1.5;
-nruns = 300;
+nruns = 500;
 tmax = 10000;
-%noise_all = [0 0.01 0.05 0.1 0.5];
-%hill_all = [2 5 10 100 Inf];
-K12 = 10;
-digits = 5;
+TW_digits = 5;
 
 % variable to loop over
 loopvar = N_all; %hill_all; %noise_all; %
-%loopvar_str = 'hill'; %'noise'; 
 loopvar_str = 'N';
 
 %% Get all filenames
-%
-%path = 'H:\My Documents\Multicellular automaton\data\two_signals\time_evolution\vs_p_ini_batch3';
-%path = 'D:\Multicellularity\data\two_signals\time_evolution\vs_pini_batch3';
-%parent_folder = 'L:\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis\vs_noise\K12_9';
-%parent_folder = 'L:\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis\vs_Hill\K12_9';
 parent_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_vs_N';
-
 names = cell(numel(loopvar), nruns);
 for i1=1:numel(loopvar)
     %folder = parent_folder; %fullfile(parent_folder, subfolder);
@@ -51,24 +41,10 @@ pat1 = '\d+|Inf';
 pat2 = '(\d+p\d+|Inf)';
 pat3 = '\w*';
 
-if strcmp(loopvar_str, 'noise')
-    pattern = sprintf('two_signal_mult_N%d_noise_%s_K12_%d_t_out_%s_period_%s-v%s%s',...
-        N, pat2, K12, pat1, pat1, pat1, pat3);
-    %pattern = sprintf('two_signal_mult_N%d_initiateI0_noise_%s_t_out_%s_period_%s_%stemp-v%s',...
-    %    N, pat2, pat1, pat1, pat3, pat1); % noise
-elseif strcmp(loopvar_str, 'hill')
-    pattern = sprintf('two_signal_mult_N%d_hill_%s_K12_%d_t_out_%s_period_%s-v%s%s',...
-        N, pat2, K12, pat1, pat1, pat1, pat3); % Hill
-    %pattern = sprintf('two_signal_mult_N%d_initiateI0_hill_%s_t_out_%s_period_%s_%stemp-v%s',...
-    %    N, pat2, pat1, pat1, pat3, pat1); % Hill
-elseif strcmp(loopvar_str, 'N')
-    pattern = sprintf('two_signal_mult_N%s_t_out_%s_period_%s-v%s',...
-        '(\d+)', '\d+', '(\d+|Inf)', '\d+'); % Hill
-    pattern2 = sprintf('two_signal_mult_N%s_initiateI0_randpos_mcsteps0_K12_10_t_out_%s_period_%s-v%s',...
-        '(\d+)', '\d+', '(\d+|Inf)', '\d+');
-end
+pattern = sprintf('two_signal_mult_N%s_t_out_%s_period_%s-v%s',...
+    '(\d+)', '\d+', '(\d+|Inf)', '\d+');
 %% Load raw data
-%{
+%
 % variables to store
 fname_all = cell(numel(loopvar), nruns);
 filecount = zeros(numel(loopvar), 1);
@@ -83,17 +59,11 @@ error_files = {};
 for i1=1:numel(loopvar)
     for i2=1:nruns
         %----------------------------------------------------------------------
-        %test_fname1 = 'two_signal_mult_N225_initiateI0_noise_0p50_t_out_10000_period_Inf_tmax_reached_temp-v1';
-        %test_fname2 = 'two_signal_mult_N225_initiateI0_noise_0p10_t_out_3491_period_15_temp-v1';
         fname = names{i1, i2};
-
         [~, tokens] = regexp(fname, pattern, 'match', 'tokens');
-        if isempty(tokens) % temporary fix
-            [~, tokens] = regexp(fname, pattern2, 'match', 'tokens');
-        end
+        
         % get variable from regexp tokens, match to variable list
         this_var = str2double(strrep(tokens{1}{1}, 'p', '.')); % noise / Hill
-
         idx = find(this_var == loopvar);
 
         if isempty(idx) % only load files matching a certain pattern
@@ -106,20 +76,19 @@ for i1=1:numel(loopvar)
 
             load(fullfile(folder, fname));
 
-            %{
+            %
             filecount(idx) = filecount(idx) + 1;
             idx2 = filecount(idx);
             fname_all{idx, idx2} = fname; % store filename
             t_out_all(idx, idx2) = t_out;
             period_all(idx, idx2) = period;
             t_onset_all(idx, idx2) = t_onset;
-            %trav_wave_all(idx, idx2) = trav_wave;
             if period<Inf
                 [trav_wave, trav_wave_2] = travelling_wave_test(cells_hist, a0,...
-                    period, t_out, distances, digits);
+                    period, t_out, distances, TW_digits);
                 trav_wave_all(idx, idx2) = trav_wave;
                 trav_wave_2_all(idx, idx2) = trav_wave_2;
-            % else: not a travelling wave, no need to update trav_wave_all
+            %else: not a travelling wave, no need to update trav_wave_all
             end
             %}
         end
@@ -148,12 +117,10 @@ select_idx = trav_wave_all==1;
 fname_all(select_idx);
 %}
 %% Save the loaded raw data
-%{
-%fname_str = sprintf('trav_wave_occur_vs_%s_K12_%d_nruns%d_round_p_I_digits_%d',...
-%    loopvar_str, K12, nruns, digits);
-fname_str = sprintf('trav_wave_occur_vs_%s_K12_%d_nruns%d_round_p_I_digits_%d',...
-    loopvar_str, K12, nruns, digits);
-%save_path = 'L:\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis\analyzed_data';
+%
+K12 = 10;
+fname_str = sprintf('analyzed_trav_wave_vs_gz_1to7_K12_%d_nruns%d_round_p_I_digits_%d',...
+    K12, nruns, TW_digits); %loopvar_str
 save_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_vs_N';
 
 save(fullfile(save_path, strcat(fname_str, '.mat') ), 'loopvar', 'loopvar_str', 'filecount',...
@@ -168,10 +135,39 @@ save(fullfile(save_path, strcat(fname_str, '.mat') ), 'loopvar', 'loopvar_str', 
 %load_path = 'L:\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis\analyzed_data';
 % vs N
 load_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_vs_N';
-fname_str = 'trav_wave_occur_vs_N_K12_10_nruns300_round_p_I_digits_5';
+fname_str = sprintf('analyzed_trav_wave_vs_gz_1to7_K12_%d_nruns%d_round_p_I_digits_%d',...
+    K12, nruns, TW_digits); %loopvar_str
 
-load(fullfile(load_path, strcat(fname_str, '.mat')));
+load( fullfile(load_path, strcat(fname_str, '.mat')), 'loopvar', 'loopvar_str', 'filecount',...
+    't_out_all', 'period_all', 't_onset_all', 'trav_wave_all', 'trav_wave_2_all');
 %}
+%% Filter specific trajectories
+%N_idx = 4;
+%idx_temp = find( trav_wave_2_all(N_idx,:,:) == 1 );
+%names_temp = names( N_idx, idx_temp);
+
+% move trajectories
+for N_idx=1:numel(N_all)
+    N = N_all(N_idx);
+    idx_temp = find( trav_wave_2_all(N_idx,:,:) == 1 );
+    names_temp = names( N_idx, idx_temp);
+
+    folder_in = fullfile('N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_vs_N', sprintf('N%d', N));
+    folder_out = fullfile('N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_vs_N', sprintf('N%d', N), 'selected');
+    if exist(folder_out, 'dir')~=7
+        status = mkdir(folder_out);
+        disp(status);
+    end
+    
+    for ii=1:numel(names_temp)
+        disp(names_temp{ii})
+        fname_str = strcat(names_temp{ii}, '.mat');
+        fname_in = fullfile(folder_in, fname_str );
+        fname_out = fullfile(folder_out, fname_str);
+        status = copyfile(fname_in, fname_out);
+        disp(status);
+    end
+end
 
 %% Fraction travelling waves
 % folder for saving figures
@@ -179,30 +175,11 @@ save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\tra
 
 h = figure;
 hold on
-%---
-if strcmp(loopvar_str, 'hill')
-    xdata = [loopvar(1:end-1) 10^3];
-    plot(xdata, sum(trav_wave_all, 2)/nruns, 'bo--', 'LineWidth', 2);
-    plot(xdata, sum(trav_wave_2_all, 2)/nruns, 'ro--', 'LineWidth', 2);
-    xlabel('Hill coeff. $n$')
-    xtick_str = [string(loopvar(1:end-1)), "Inf"];
-    set(gca, 'XScale', 'log');
-%---
-elseif strcmp(loopvar_str, 'noise')
-    xdata = [0.001 loopvar(2:end)];
-    plot(xdata, sum(trav_wave_all, 2)/nruns, 'bo--', 'LineWidth', 2);
-    plot(xdata, sum(trav_wave_2_all, 2)/nruns, 'ro--', 'LineWidth', 2);
-    xlabel('Noise $\alpha$')
-    xtick_str = string([0 loopvar(2:end)]);
-    set(gca, 'XScale', 'log');
-%---
-elseif strcmp(loopvar_str, 'N')
-    xdata = loopvar;
-    plot(xdata, sum(trav_wave_all, 2)/nruns, 'bo--', 'LineWidth', 2);
-    plot(xdata, sum(trav_wave_2_all, 2)/nruns, 'ro--', 'LineWidth', 2);
-    xlabel('$N$')
-    xtick_str = string(loopvar);
-end
+xdata = loopvar;
+plot(xdata, sum(trav_wave_all, 2)/nruns, 'bo--', 'LineWidth', 2);
+plot(xdata, sum(trav_wave_2_all, 2)/nruns, 'ro--', 'LineWidth', 2);
+xlabel('$N$')
+xtick_str = string(loopvar);
 %---
 ylabel('Fraction')
 title('Fraction travelling waves');
@@ -215,7 +192,7 @@ legend('strict crit.', 'loose crit.');
 qsave = 0;
 if qsave
     fname = fullfile(save_path_fig, sprintf('frac_trav_waves_vs_%s_K12_%d_nruns_%d_p_I_%d_digits',...
-        loopvar_str, K12, nruns, digits));
+        loopvar_str, K12, nruns, TW_digits));
     save_figure(h, 10, 8, fname, '.pdf', qsave);
 end
 
@@ -305,7 +282,7 @@ end
 %[ffit, S] = polyfit(xdata, t_onset_mean', 1);
 %ffit_ydata = ffit(1)*xdata + ffit(2);
 
-mdl = fitlm(xdata, t_onset_mean, 'linear')
+mdl = fitlm(xdata, t_onset_mean, 'linear');
 
 %%
 h = figure;
@@ -331,7 +308,7 @@ qsave = 0;
 if qsave
     fname = fullfile(save_path_fig, sprintf(...
         't_onset_trav_waves_vs_%s_K12_%d_nruns_%d_digits_%d_errorbar',...
-        loopvar_str, K12, nruns, digits));
+        loopvar_str, K12, nruns, TW_digits));
     save_figure(h, 10, 8, fname, '.pdf', qsave);
 end
 
@@ -355,7 +332,7 @@ qsave = 0;
 if qsave
     fname = fullfile(save_path_fig, sprintf(...
         't_onset_trav_waves_vs_%s_K12_%d_nruns_%d_digits_%d_sim_and_calc_for_main_fig',...
-        loopvar_str, K12, nruns, digits));
+        loopvar_str, K12, nruns, TW_digits));
     save_figure(h, 10, 8, fname, '.pdf', qsave);
 end
 % Box plot
@@ -455,10 +432,10 @@ text(xt, max_t_onset+30, labels, 'FontSize', 20,...
     'HorizontalAlignment', 'center', 'VerticalAlignment','bottom')
 %}
 
-qsave = 1;
+qsave = 0;
 fname = fullfile(save_path_fig, sprintf(...
     't_onset_trav_waves_vs_%s_K12_%d_nruns_%d_digits_%d_scatter',...
-    loopvar_str, K12, nruns, digits));
+    loopvar_str, K12, nruns, TW_digits));
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 %% Plot as box plot
 h = figure;
@@ -495,7 +472,7 @@ text(xt(1)-0.5, 8300, '#TW = ','FontSize', 20,...
 qsave = 1;
 fname = fullfile(save_path_fig, sprintf(...
     't_onset_trav_waves_vs_%s_K12_%d_nruns_%d_digits_%d_boxplot',...
-    loopvar_str, K12, nruns, digits));
+    loopvar_str, K12, nruns, TW_digits));
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 
 %% Onset time vs. periodicity
@@ -529,5 +506,5 @@ title(sprintf('$\\rho = %.2f$', R(1,2)))
 qsave = 0;
 fname = fullfile(save_path_fig, sprintf(...
     'corr_t_onset_period_var_%s_K12_%d_nruns_%d_digits_%d_',...
-    loopvar_str, K12, nruns, digits));
+    loopvar_str, K12, nruns, TW_digits));
 save_figure(h, 10, 8, fname, '.pdf', qsave);

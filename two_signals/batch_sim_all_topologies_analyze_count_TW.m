@@ -4,7 +4,7 @@
 clear variables
 close all
 clc
-set(0, 'defaulttextinterpreter', 'latex');
+set(0, 'defaulttextinterpreter', 'tex');
 %set(0, 'defaulttextinterpreter', 'none');
 %% Parameters and settings
 % Settings
@@ -42,7 +42,7 @@ if remote
     save_folder = strrep(save_folder, 'H:\', 'W:\staff-homes\d\yitengdang\');
 end
 %% Load full data
-%
+%{
 networks_sel = [15 19 33 34 36]; %[15  16	19	20	32	33	34	36	43];
 TW_count_strict = zeros( numel(networks_sel), n_pset );
 TW_count_loose = zeros( numel(networks_sel), n_pset );
@@ -197,9 +197,11 @@ for idx_loop=1:numel(networks_sel)
     % input vars
     %P_data = log10([Con_all_temp, K_all_temp(:,K_idx)]);
     P_data = [Con_all_temp, K_all_temp(:,K_idx)];
-    P_labels = {'$C_{ON}^{(1)}$', '$C_{ON}^{(2)}$', '$K^{(11)}$',...
-            '$K^{(12)}$', '$K^{(21)}$', '$K^{(22)}$'};
-    axes_interval = 2;
+    %P_labels = {'$C_{ON}^{(1)}$', '$C_{ON}^{(2)}$', '$K^{(11)}$',...
+    %	'$K^{(12)}$', '$K^{(21)}$', '$K^{(22)}$'};
+    P_labels = {'C_{ON}^{(1)}', 'C_{ON}^{(2)}', 'K^{(11)}',...
+        'K^{(12)}', 'K^{(21)}', 'K^{(22)}'};
+    axes_interval = 3;
     
     % plot
     %{
@@ -211,8 +213,8 @@ for idx_loop=1:numel(networks_sel)
         'MarkerSize', 2);
     %}
     spider_plot_linear(P_data, P_labels([1:2 K_idx+2]), axes_interval);
-    title(sprintf('n=%d, nw %d', size(P_data,1), network),...
-        'Fontweight', 'bold', 'FontSize', 28);
+    %title(sprintf('n=%d, nw %d', size(P_data,1), network),...
+    %    'Fontweight', 'bold', 'FontSize', 28);
     set(gcf, 'Units', 'Inches', 'Position', [2 2 10 8]);
     h = gcf;
     hold off 
@@ -220,13 +222,9 @@ for idx_loop=1:numel(networks_sel)
     % save plot
     set(h, 'Units', 'Inches', 'Position', [0.1 0.1 10 8]);
     qsave = 1;
-    fname_str = sprintf('Parameters_TW_spider_plot_network_%d_linear_filled', network);
+    fname_str = sprintf('Parameters_TW_spider_plot_network_%d_n_%d_linear_filled_v2',...
+        network, size(P_data,1));
     save_figure(h, 10, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
     pause(0.2);
     close all
-end
-
-%% 
-for ii=1:5
-    disp(size(Con_all_by_network{ii}, 1))
 end

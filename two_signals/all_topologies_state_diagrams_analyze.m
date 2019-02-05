@@ -10,7 +10,7 @@ save_folder_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\a
 save_folder_data = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
 %save_folder_fig = 'D:\Multicellularity\figures\two_signals\all_topologies'; % for figures
 %save_folder_data = 'D:\Multicellularity\data\two_signals\all_topologies'; % for data
-mastersave = 1; % switch off all save options
+mastersave = 0; % switch off all save options
 
 % Load data
 load_path = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
@@ -90,12 +90,60 @@ ylim([1 100])
 
 % --> Statistics of this distribution? Zipf's Law?
 % save figure
-qsave = 1;
+qsave = 0;
 save_folder = save_folder_fig; %fullfile(save_folder_fig, 'rank-freq_distributions');
 fname_str = sprintf('state_diagrams_ranked_%s_log_log', label);
 path_out = fullfile(save_folder, fname_str);
 %path_out = 'C:\Users\Yiteng\Desktop\temp';
 save_figure(h, 7, 6, path_out, '.pdf', qsave && mastersave)
+
+%% Fit power law to distribution
+x_log = log10(1:n_unique);
+y_log = log10(count_diagrams_sorted);
+
+% fit (method 1)
+%[cf_coeff, S] = polyfit(x_log, y_log, 1);
+%[y_fitted, delta] = polyval(p, x_log, S);
+%y_fitted = cf_coeff(1)*x_log + cf_coeff(2);
+
+% fit (method 2)
+cf = fit(x_log', y_log', 'poly1');
+cf_coeff = coeffvalues(cf);
+cf_confint = confint(cf);
+uncert1 = (cf_confint(2,1) - cf_confint(1,1))/2;
+uncert2 = (cf_confint(2,2) - cf_confint(1,2))/2;
+y_fitted = cf_coeff(1)*x_log + cf_coeff(2);
+
+% residuals
+y_res = y_fitted - y_log;
+SSresid = sum(y_res.^2);
+SStotal = (length(y_log)-1) * var(y_log); % total sum of squares
+rsq = 1 - SSresid/SStotal;
+rsq_adj = 1 - SSresid/SStotal*(length(y_log)-1)/(length(y_log)-length(p));
+
+fprintf('R^2 = %.3f \n', rsq);
+fprintf('R^2 adjusted = %.3f \n', rsq_adj);
+
+h=figure;
+hold on
+scatter(x_log, y_log, 40, ...
+    'MarkerEdgeColor' ,'b', 'MarkerFaceColor' ,'b', 'MarkerFaceAlpha', 0.5);
+plot(x_log, y_fitted, 'r-');
+title(sprintf('a_{const} = %.3f, a_{lin} = %.3f \\pm %.3f, R^2 = %.4f',...
+    cf_coeff(2), cf_coeff(1), uncert1, rsq));
+
+xlabel('State diagram rank');
+ylabel('Frequency');
+set(gca, 'FontSize', 18);
+set(h, 'Units', 'Inches', 'Position', [0 0 9 8]);
+
+qsave = 1;
+save_folder = save_folder_fig; %fullfile(save_folder_fig, 'rank-freq_distributions');
+fname_str = sprintf('state_diagrams_ranked_%s_log_log_power_law_fit', label);
+path_out = fullfile(save_folder, fname_str);
+%path_out = 'C:\Users\Yiteng\Desktop\temp';
+save_figure(h, 9, 8, path_out, '.pdf', qsave && mastersave)
+
 
 %% (2b) Common diagrams: draw
 % get most common diagrams

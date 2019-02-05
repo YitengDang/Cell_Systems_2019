@@ -4,7 +4,13 @@ band_nr = sum(band_vec);
 
 % Determine how many bands are next to each other in a single wave
 band_idx = find(band_vec == 1);
-init_band = datasample(band_idx,1);
+if ~isempty(band_idx)
+    init_band = datasample(band_idx,1);
+else
+    bands_in_wave = 0;
+    number_of_wave = 0;
+    return
+end
 
 counter = 1;
 % Check for neighbours on right (as positioned in band_vec)

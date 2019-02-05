@@ -2,7 +2,7 @@
 % simulations
 clear all
 close all
-set(0, 'defaulttextinterpreter', 'latex');
+set(0, 'defaulttextinterpreter', 'tex');
 
 %% Parameters
 % remote destination (Webdrive)?
@@ -475,9 +475,11 @@ for idx_loop=1:num_psets
     %P_data = log10([Con_wave_sim, K_wave_sim(:,K_idx)]); % -> more generally, filter on M_int
     P_data = [Con_wave_sim, K_wave_sim(:,K_idx)];
     
-    P_labels = {'$C_{ON}^{(1)}$', '$C_{ON}^{(2)}$', '$K^{(11)}$',...
-        '$K^{(12)}$', '$K^{(21)}$', '$K^{(22)}$'};
-    axes_interval = 2;
+    %P_labels = {'$C_{ON}^{(1)}$', '$C_{ON}^{(2)}$', '$K^{(11)}$',...
+    %    '$K^{(12)}$', '$K^{(21)}$', '$K^{(22)}$'};
+    P_labels = {'C_{ON}^{(1)}', 'C_{ON}^{(2)}', 'K^{(11)}',...
+        'K^{(12)}', 'K^{(21)}', 'K^{(22)}'};
+    axes_interval = 3;
     
     %{
     if idx_loop==3
@@ -498,9 +500,9 @@ for idx_loop=1:num_psets
             'MarkerSize', 2);
     %end
     %
-    title(sprintf('n=%d, nw %d', size(P_data, 1), network),...
-        'Fontweight', 'bold',...
-        'FontSize', 28);
+    %title(sprintf('n=%d, nw %d', size(P_data, 1), network),...
+    %    'Fontweight', 'bold',...
+    %    'FontSize', 28);
     %}
     set(gcf, 'Units', 'Inches', 'Position', [2 2 10 8]);
     h = gcf;
@@ -514,10 +516,10 @@ for idx_loop=1:num_psets
     if remote
         save_folder_fig = strrep(save_folder_fig, 'H:\', 'W:\staff-homes\d\yitengdang\');
     end
-    fname_root = sprintf('Wave_type_%d_network_%d_states_F%d_M%d_B%d_E%d_TW',...
-        1, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
+    fname_root = sprintf('Wave_type_%d_network_%d_states_F%d_M%d_B%d_E%d_TW_n%d',...
+        1, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4), size(P_data, 1));
     save_figure(h, 10, 8, fullfile(save_folder_fig, ...
-        strcat(fname_root, '_parameters_wave_prop_spider_linear_v2_filled')), '.pdf', qsave);
+        strcat(fname_root, '_parameters_wave_prop_spider_linear_v3_filled')), '.pdf', qsave);
     
     % close all
     %}

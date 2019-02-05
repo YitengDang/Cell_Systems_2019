@@ -1,4 +1,4 @@
-function spider_plot(P, P_labels, axes_interval, varargin)
+function spider_plot(P, P_labels, axes_interval, range_values_in, varargin)
 % Create a spider web or radar plot with an axes specified for each column
 %
 % Custom version Yiteng Dang 2018
@@ -15,7 +15,8 @@ function spider_plot(P, P_labels, axes_interval, varargin)
 % P_labels - [cell of strings]
 % axes_interval - [integer] (number of spider web lines to plot)
 % axes_precision - [integer] (number of decimals of axes ticks)
-%
+% range_values_in - [matrix] plot ranges of each of the input values
+
 % spider_plot(P, P_labels, axes_interval, axes_precision, line_spec) works
 % the same as the function above. Additional line properties can be added
 % in the same format as the default "plot" function in MATLAB.
@@ -126,8 +127,8 @@ for ii = 1:num_of_points
     
     % set custom range and normalize
     % Max and min value of each group
-    max_values(ii) = 3;
-    min_values(ii) = 0;
+    max_values(ii) = range_values_in(ii, 2);
+    min_values(ii) = range_values_in(ii, 1);
     
     % Axis increment
     range = max_values(ii) - min_values(ii);
@@ -216,7 +217,7 @@ for ii = 1:row_of_points
         'Color', colors(ii, :),...
         'MarkerFaceColor', colors(ii, :),...
         varargin{:});
-    p.Color(4) = 0.1; % transparency
+    %p.Color(4) = 0.1; % transparency
 end
 %%
 %%% Axis Properties %%%
