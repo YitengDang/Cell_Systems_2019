@@ -2,7 +2,7 @@
 % Check across a range of a variable (= noise, Hill)
 clear all
 close all
-set(0, 'defaulttextinterpreter', 'latex');
+set(0, 'defaulttextinterpreter', 'tex');
 %% Parameters
 N_all = [8 10 12 14 16 18 20 25].^2;
 a0 = 1.5;
@@ -297,16 +297,22 @@ elseif strcmp(loopvar_str, 'noise')
 elseif strcmp(loopvar_str, 'N')
     xdata = sqrt(loopvar);
     %xlabel('$N$')
-    xlabel_text = 'Grid size ($\sqrt{N}$)';
+    xlabel_text = 'Grid size';
     xtick_str = string(sqrt(loopvar));  
 end
 
-% calculate fit function
-%[ffit, S] = polyfit(xdata, t_onset_mean', 1);
-%ffit_ydata = ffit(1)*xdata + ffit(2);
+%% calculate fit function
+[ffit, S] = polyfit(xdata, t_onset_mean', 1);
+ffit_ydata = ffit(1)*xdata + ffit(2);
 
-mdl = fitlm(xdata, t_onset_mean, 'linear')
+%mdl = fitlm(xdata, t_onset_mean, 'linear');
 
+%% Plot variability vs variable
+
+h = figure;
+plot(xdata, t_onset_std./t_onset_mean, 'o',  'MarkerSize', 10)
+ylabel('Coefficient of variation \sigma/\mu');
+ylim([0 1.2]);
 %%
 h = figure;
 hold on
@@ -315,16 +321,21 @@ hold on
 errorbar(xdata, t_onset_mean, t_onset_error_margin,...
     'g^', 'LineWidth', 2, 'MarkerSize', 10);
 plot(xdata, ffit_ydata, 'g--', 'LineWidth', 2);
-
 box on
 xlabel(xlabel_text);
-ylabel('$\langle t_{eq} \rangle$');
-title('Onset time of trav. wave');
+ylabel('Travelling wave formation time');
+title('Travelling wave formation time');
 set(gca, 'FontSize', 24);
 set(gca, 'XTick', xdata, 'XTickLabels',...
     xtick_str);
 xlim([xdata(1)-1 xdata(end)+1]);
 ylim([0 7000]);
+
+% Plot CV
+yyaxis right
+plot(xdata, t_onset_std./t_onset_mean, 'o',  'MarkerSize', 10)
+ylabel('Coefficient of variation \sigma/\mu');
+
 %legend('period = multiple of 15', 'manual', 'Location', 'nw');
 
 qsave = 0;
@@ -366,8 +377,7 @@ group_data = repmat(1:5', 1, nruns);
 group_data = group_data(idx);
 boxplot(box_data, group_data, 'Labels', [string(loopvar(2:end-1)), "Inf"]);
 %}
-%% Plot t_onset histograms
-% (1) raw data histogram
+%% Plot t_onset histograms - Normalized onset times (together)
 bins = 10;
 edges = 0:1:30;
 N_hist = zeros(numel(loopvar), numel(edges)-1 );
@@ -386,8 +396,8 @@ bincenters = (edges(1:end-1)+edges(2:end))/2;
 plot( bincenters, N_hist, 'x-');
 %set(gca, 'YScale', 'log')
 legend( sprintfc('N=%d', loopvar) );
-%%
-% (2) normalized t_onset 
+
+% (2) plot separate histograms 
 edges = 0:0.5:5;
 N_hist = zeros(numel(loopvar), numel(edges)-1 );
 
@@ -406,6 +416,63 @@ for ii=1:numel(loopvar)
     bar( edgecenters, N_hist(ii,:) );
 end
 
+%% Plot t_onset histograms - Unnormalized onset times (together)
+h = figure;
+hold on
+nbins = 10;
+edges = 0:1000:10000;
+N_hist = zeros(numel(loopvar), numel(edges)-1 );
+for ii=1:numel(loopvar)
+    idx = find(trav_wave_2_all(ii, :));
+    if ~isempty(idx)
+        %histogram(t_onset_all(ii, idx), nbins);
+        N_hist(ii,:) = histcounts(t_onset_all(ii, idx), edges,...
+            'normalization', 'probability');
+    end
+end
+
+bincenters = (edges(1:end-1)+edges(2:end))/2;
+%waterfall(bincenters, sqrt(loopvar), N_hist)
+%ribbon( N_hist')
+b=bar3( N_hist', 1 );
+set(b,'FaceAlpha', 0.5)
+set(gca, 'XTick', 1:size(N_hist, 1), 'XTickLabel', sqrt(loopvar));
+set(gca, 'YTick', 0.5:2:size(N_hist, 2)+0.5, 'YTickLabel', edges(1:2:end)); % 1:size(N_hist, 2),
+ylabel('TW formation time');
+xlabel('Grid Size');
+zlabel('Probability');
+set(gca, 'FontSize', 20);
+view(45, 45);
+
+folder_out = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_vs_N';
+fname_str_out = sprintf('t_onset_TW_distribution_all_K12_%d_nruns_%d_digits_%d_v2_touching_bars', K12, nruns, digits);
+fname = fullfile(folder_out, fname_str_out);
+set(h, 'Units', 'inches', 'Position', [1 1 16 9]);
+
+qsave = 1;
+save_figure(h, 16, 9, fname, '.pdf', qsave);
+
+%% Plot t_onset histograms - unnormalized, separate
+
+loopvar_idx = 5;
+N = loopvar(loopvar_idx);
+fprintf('N = %d \n', N);
+
+h=figure;
+idx = find(trav_wave_2_all(loopvar_idx, :));
+edges = 0:500:5000;
+histogram(t_onset_all(loopvar_idx, idx), edges, 'Normalization', 'probability');
+xlabel('TW formation time');
+ylabel('Probability');
+set(gca, 'FontSize', 20);
+
+folder_out = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_vs_N';
+fname_str_out = sprintf('t_onset_TW_distribution_single_N_%d_K12_%d_nruns_%d_digits_%d',...
+    N, K12, nruns, digits);
+fname = fullfile(folder_out, fname_str_out);
+
+qsave = 1;
+save_figure(h, 10, 8, fname, '.pdf', qsave);
 
 
 %% Plot t_onset full data

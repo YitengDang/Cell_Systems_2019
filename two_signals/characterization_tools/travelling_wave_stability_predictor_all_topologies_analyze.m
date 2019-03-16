@@ -221,7 +221,7 @@ for idx_loop=1:numel(x_found)
     
     %
     % save figures
-    qsave = 1;
+    qsave = 0;
     fname_str = sprintf('Trav_wave_conditions_wave_num_%d_type_%d_networks_%d_states_F%d_M%d_B%d_E%d',...
         num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
     fname = fullfile(save_folder, 'all_networks_analytical_Con_K_conditions', strcat(fname_str, '_Con_hist'));
@@ -263,30 +263,39 @@ for idx_loop=1:numel(x_found)
     colormap(colorMap);
     
     % Save correlation heatmap
-    qsave = 1;
+    qsave = 0;
     fname_str = sprintf('Trav_wave_conditions_wave_num_%d_type_%d_networks_%d_states_F%d_M%d_B%d_E%d',...
         num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
     fname = fullfile(save_folder, 'all_networks_analytical_Con_K_conditions', strcat(fname_str, '_Con_K_corr'));
     save_figure(h3, 10, 8, fname, '.pdf', qsave);
 end
 
-% Plot Q values as bar graph
+%% Plot Q values as bar graph
 h = figure;
+hold on
 labels = {'15, [3 4 2 1]','19, [4 3 1 2]','33, [4 2 1 3]','33, [3 4 2 1]',...
     '34, [4 2 1 3]','36, 2 4 3 1]'};
 c = categorical(labels);
-bar(c, Qvals/n_pset);
+
+%yyaxis left
+bar(c, Qvals/n_pset); % unnormalized
+ylabel('Robustness'); 
+%{
+yyaxis right
+num_params = [5 5 6 6 6 6];
+bar(c, (Qvals/n_pset).^(1./num_params')); % unnormalized
+ylabel('Normalized robustness');
+%}
 xlabel('Network, wave form')
-ylabel('Q-value');
 set(gca, 'FontSize', 20);
 
 % save figures
-qsave = 1;
+qsave = 0;
 %folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
 fname_str = sprintf('Trav_wave_conditions_wave_num_%d_type_%d_%s',...
     num_waves, wave_type, subfolder);
 fname = fullfile(save_folder, 'all_networks_analytical_Con_K_conditions',...
-    strcat(fname_str, '_Q_vals_by_wave'));
+    strcat(fname_str, '_Q_vals_by_wave_v2_both'));
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 %}
 %% Plots part II - phases

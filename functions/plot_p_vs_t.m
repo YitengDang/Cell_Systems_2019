@@ -1,8 +1,9 @@
-function [msg, p_t] = plot_p_vs_t(cells_hist, t0, fig_pos)
+function [h1, msg, p_t] = plot_p_vs_t(cells_hist, t0, fig_pos)
 
 if isempty(cells_hist)
     msg = ' Unable to plot p(t); ';
     p_t = [];
+    h1 = [];
     return
 end
 
@@ -33,10 +34,11 @@ else
 end
 for i=1:s
     clr = plot_clrs(i, :);
-    plot(t0:t0+tmax, Non(:,i)/N, ps, 'LineWidth', lw, 'Color', clr);
+    p1 = plot(t0:t0+tmax, Non(:,i)/N, ps, 'LineWidth', 2, 'Color', clr);
+    p1.Color(4) = 0.75; % transparency
 end
-xlabel('$$t$$', 'Interpreter', 'latex');
-ylabel('$$p$$', 'Interpreter', 'latex');
+xlabel('t', 'Interpreter', 'tex');
+ylabel('p', 'Interpreter', 'tex');
 legend(num2cell(string(1:s)));
 set(gca, 'FontSize', 24);
 xlim([t0 t0+tmax])

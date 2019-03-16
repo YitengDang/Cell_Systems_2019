@@ -7,7 +7,7 @@ set(0, 'defaulttextinterpreter', 'tex');
 gz = 15;
 N = gz^2;
 tmax = 1000;
-sigma_D_all = [0 0.001 0.003 0.005 0.01 0.03 0.1]; % 0.01 0.03 0.1];
+sigma_D_all = [0 0.001 10^(-2.75) 0.003 0.005 0.01 10^(-1.75) 0.03 0.1 10^(-0.75)]; % 0.01 0.03 0.1]; %10.^[-2.75 -1.75 -0.75];
 %sigma_D_all = [0.001 0.01 0.1];
 
 num_params = 1;
@@ -18,7 +18,7 @@ nruns = 100; %number of runs per parameter set
 save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_formation_fixed_params_network_15';
 
 %% Load data files (original files)
-%
+%{
 path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\moving_cells_TW';
 %subfolder = 'TW_propagation_network_19';
 subfolder = 'TW_formation_network_15_fixed_params';
@@ -361,9 +361,11 @@ TW_frac_neg_control = trav_wave_all_2_mean(1); % TW fraction of negative control
 
 %% Fraction of (transient) TWs (random initial state simulations)
 count_TW = sum(sum(TW_test_all, 3), 2);
-y_data = count_TW/(nruns*num_params);
+%y_data = count_TW/(nruns*num_params);
+y_data = count_TW(1:end-1)/(nruns*num_params);
 
-x_data = sigma_D_all;
+x_data = sigma_D_all(1:end-1);
+%x_data = sigma_D_all;
 x_data(1) = sigma_D_all(2)/10; %[sigma_D_all(1)/10 sigma_D_all(2:end)];
 
 %x_data = [sigma_D_all(1)/10 sigma_D_all];
@@ -386,7 +388,6 @@ hold on
 bar( y_data, 'stacked');
 set(gca, 'XTick', 1:numel(sigma_D_all), 'XTickLabel', sprintfc('%.3f', sigma_D_all) );
 set(gca, 'YTick', 0:0.2:1);
-
 %}
 % plot errorbars
 %sigma = std( TW_test_all(:,:), [], 2 );

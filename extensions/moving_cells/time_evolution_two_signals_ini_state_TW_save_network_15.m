@@ -23,8 +23,10 @@ clear all
 remote = 0;
 
 % variable to loop over
-sigma_D_all = 10.^[-3 -2 -1];
+sigma_D_all = 10.^[-2.75 -1.75 -0.75];
 % mcsteps_all = [0 10 100 1000];
+%sigma_D_all = [0.001 0.003 0.005 0.01 0.03 0.05 0.1 0.3 0.5];
+sigma_D_all = [0 0.001 10^(-2.75) 0.003 0.005 0.01 10^(-1.75) 0.03 0.1 10^(-0.75)];
 
 % number of simulations to do 
 sim_count = 3;
@@ -48,10 +50,9 @@ end
 %subfolder = sprintf('K12_%d', K12_all);
 subfolder = sprintf('TW_propagation_network_%d%s', network, appendix);
 save_folder = fullfile(parent_folder, subfolder);
-            
+
 % default file name
 sim_ID = 'two_signal_mult';
-
 %% (2) Load parameters 
 % Load simulation parameters
 folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2_net_parameters_TW_sim';

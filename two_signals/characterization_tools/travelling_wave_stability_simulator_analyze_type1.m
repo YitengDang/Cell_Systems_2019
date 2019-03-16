@@ -1,5 +1,6 @@
 % Tests whether a travelling wave can propagate by performing explicit
 % simulations
+% Quantify using machine learning concepts (accuracy, precision, recall)
 clear all
 close all
 set(0, 'defaulttextinterpreter', 'tex');
@@ -212,10 +213,13 @@ fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_Q_vals_normalized_v2', num
 fname = fullfile(save_folder, fname_str_save);
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 
-%% Calculate precision and recall
+%% Calculate accuracy, precision and recall
+accuracy_all = (out_all_count(:, 1)+out_all_count(:, 4))./sum(out_all_count, 2);
 precision_all = out_all_count(:, 4)./(out_all_count(:, 3)+out_all_count(:, 4));
 recall_all = out_all_count(:, 4)./(out_all_count(:, 2)+out_all_count(:, 4));
 F1_score_all = 2*precision_all.*recall_all./(precision_all + recall_all);
+disp('accuracy_all');
+disp(accuracy_all);
 disp('precision_all');
 disp(precision_all);
 disp('recall_all');
@@ -223,10 +227,11 @@ disp(recall_all);
 disp('F1_score_all');
 disp(F1_score_all);
 
-%% Plot P, R, (F1) score together
+%% Plot A, P, R, (F1) score together
 h = figure;
 hold on
-bar_data = [precision_all recall_all];
+bar_data = [accuracy_all precision_all recall_all];
+%bar_data = [precision_all recall_all];
 %bar_data = [precision_all recall_all F1_score_all];
 bar(bar_data)
 
@@ -250,7 +255,8 @@ ylabel('Value');
 set(gca, 'FontSize', 28);
 set(h, 'Units', 'inches', 'position', [1 1 10 6]);
 ylim([0 1]);
-legend({'Precision', 'Recall', 'F1 score'}, 'Location', 'ne', 'FontSize', 20);
+%legend({'Precision', 'Recall', 'F1 score'}, 'Location', 'ne', 'FontSize', 20);
+legend({'Accuracy', 'Precision', 'Recall'}, 'Location', 'ne', 'FontSize', 20);
 box on
 %}
 
@@ -258,7 +264,7 @@ qsave = 1;
 pred_label = 'run2';
 save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
 %fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_P_R_F1_together', num_waves, wave_type, pred_label);
-fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_P_R_together_v2', num_waves, wave_type, pred_label);
+fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_A_P_R_together', num_waves, wave_type, pred_label);
 fname = fullfile(save_folder, fname_str_save);
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 %% Plot precision
@@ -429,7 +435,7 @@ for idx_loop=1:numel(x_found)
 end
 
 %% Plot parameters of simulations giving waves as spider plot
-for idx_loop=1:num_psets
+for idx_loop=1 %:num_psets
     wave_idx = x_found(idx_loop);
     network = y_found(idx_loop);
     fprintf('wave_idx %d, network %d \n', wave_idx, network);
@@ -444,8 +450,10 @@ for idx_loop=1:num_psets
     fname_str = sprintf('Trav_wave_predictor_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d_processed',...
            num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4)); 
     fname = fullfile(load_folder, fname_str);
-    load(fname, 'Con_all', 'K_all');
+    %load(fname, 'Con_all', 'K_all');
+    load(fname);
     
+    %%
     % load simulation data
     load_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2_stability_sim';
     if remote
@@ -456,6 +464,7 @@ for idx_loop=1:num_psets
     fname = fullfile(load_folder, fname_str);
     load(fname, 'trav_wave_all', 'trav_wave_all_strict', 'unmodified_all');
     
+    %%
     % get list of simulations that generated trav. waves
     trav_wave_propagation_all = (trav_wave_all & unmodified_all);
     fprintf('Network %d, #trav. wave conditions = %d \n', network, sum(trav_wave_propagation_all) )
@@ -511,8 +520,11 @@ for idx_loop=1:num_psets
     
     % Save figure
     qsave = 1;
+    %save_folder_fig = ...
+    %    'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
     save_folder_fig = ...
-        'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
+        'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\spider_plots_analytical';
+    
     if remote
         save_folder_fig = strrep(save_folder_fig, 'H:\', 'W:\staff-homes\d\yitengdang\');
     end

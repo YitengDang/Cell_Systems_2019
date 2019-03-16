@@ -27,7 +27,7 @@ remote = 0;
 % mcsteps_all = [0 10 100 1000];
 %noise_all = [0.01 0.05 0.1 0.5];
 %noise_all = [0.01 0.03 0.05 0.1 0.3 0.5 1];
-noise_all = [];
+noise_all = [0.002 0.02 0.2];
 
 % number of simulations to do 
 sim_count = 10;

@@ -43,7 +43,8 @@ function [h_cells, h_borders] = reset_cell_figure(ax, pos, rcell)
     %markers = {'o', 's'};
 
     h_cells = scatter(pos(:,1), pos(:,2), (2*Rcell_px)^2, c_all, 'filled', 'o');
-    h_borders = scatter(pos(:,1), pos(:,2), (2*Rcell_px)^2, clr_k, 'o'); % plot cell boundaries
+    %h_borders = scatter(pos(:,1), pos(:,2), (2*Rcell_px)^2, clr_k, 'o'); % plot cell boundaries
+    h_borders = [];
     
     % Plot box outline
     plot([0 Lx], [0 0], 'k--');

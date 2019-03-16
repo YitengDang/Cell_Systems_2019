@@ -7,7 +7,8 @@ set(0, 'defaulttextinterpreter', 'tex');
 gz = 15;
 N = gz^2;
 tmax = 100;
-sigma_D_all = [0.001 0.003 0.005 0.01 0.03 0.05 0.1];
+%sigma_D_all = [0.001 0.003 0.005 0.01 0.03 0.05 0.1];
+sigma_D_all = [0.001 10^(-2.75) 0.003 0.005 0.01 10^(-1.75) 0.03 0.05 0.1]; % 10^(-0.75)];
 %sigma_D_all = [0.001 0.01 0.1];
 
 num_params = 100;
@@ -184,7 +185,7 @@ end
 TW_breaking_time_all = TW_breaking_time_all + gz-1; % scale times into actual simulation times
 TW_breaking_time_all(TW_breaking_time_all==gz) = 0; % TW broken before time gz
 
-%% Save analyzed data
+% Save analyzed data
 %
 % Save the loaded data
 fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, nruns);
@@ -193,7 +194,7 @@ save( fullfile(save_path, strcat(fname_str, '.mat')), 'sigma_D_all',...
     'filecount', 'tmax', 'num_params', 'nruns', 'TW_breaking_time_all' );
 
 % folder for saving figures
-save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_moving_cells';
+save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_formation_fixed_params_network_15\new'; %'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_moving_cells';
 %}
 %% Load analyzed data
 %
@@ -203,7 +204,7 @@ load( fullfile(save_path, strcat(fname_str, '.mat')), 'sigma_D_all',...
     'filecount', 'tmax', 'num_params', 'nruns', 'TW_breaking_time_all');
 
 % folder for saving figures
-save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_moving_cells';
+save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_formation_fixed_params_network_15\new'; %'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_moving_cells';
 %}
 
 %% Find breaking times of TWs (ini TW simulations)
@@ -223,7 +224,7 @@ set(gca, 'YTick', 0:0.2:1);
 %}
 % plot log scale
 %
-bar(log10(sigma_D_all), bar_data, 'stacked');
+b = bar(log10(sigma_D_all), bar_data, 'stacked', 'FaceColor', 'flat');
 set(gca, 'XTick', -3:0, 'XTickLabel', sprintfc('10^{%d}', -3:0) );
 set(gca, 'YTick', 0:0.2:1);
 %}
@@ -232,8 +233,17 @@ ylabel('Fraction of simulations');
 xlabel('Cell motility \sigma_D');
 set(gca, 'FontSize', 32);
 set(h, 'Units', 'Inches', 'Position', [1 1 12 8]);
-legend({'TW preserved', 'Broken at t>T', 'Broken at t\leqT' },...
+legend({'Sustained', 'Broken at t>T', 'Broken at t\leqT' },...
     'Location', 'ne');
+
+% play around with colors
+cmap = colormap('parula');
+colors = [cmap(1,:); cmap(ceil(size(cmap, 1)/2),:); cmap(size(cmap, 1) ,:)];
+%colors = [1 0 0; 0 1 0; 0 0 1];
+set(gca, 'colororder', colors);
+for k = 1:size(bar_data,2)
+    b(k).CData = repmat(colors(k,:), size(bar_data, 1), 1);
+end
 
 qsave = 1;
 if qsave

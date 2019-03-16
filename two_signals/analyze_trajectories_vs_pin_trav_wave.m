@@ -14,7 +14,7 @@ p2_all = 0:0.1:1;
 N1 = round(p1_all*N);
 N2 = round(p2_all*N);
 
-K12 = 9;
+K12 = 22;
 
 % folder for saving figures
 save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trajectories_vs_pin\trav_wave';
@@ -109,7 +109,8 @@ save(fullfile(save_path, strcat(fname_str, '.mat') ), 'p1', 'p2', 'filecount',..
 %}
 %% Load processed data
 fname_str = sprintf('trav_wave_occur_vs_p_ini_set2_K12_%d_nruns%d', K12, nruns);
-load_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis';
+%load_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis';
+load_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_vs_p_ini_all';
 subfolder = sprintf('vs_p0_K12_%d', K12);
 load( fullfile(load_path, subfolder, strcat(fname_str, '.mat')) );
 
@@ -132,8 +133,10 @@ idx_class{3} = ((period_all<Inf) + (trav_wave_all==1))==2;
 idx_class{4} = ((period_all==Inf) + (t_out_all==tmax))==2;
 
 idx_class_2 = {};
+idx_class_2{1} = ((period_all==Inf) + (t_out_all<tmax))==2;
 idx_class_2{2} = ((period_all<Inf) + (trav_wave_2_all==0))==2;
 idx_class_2{3} = ((period_all<Inf) + (trav_wave_2_all==1))==2;
+idx_class_2{4} = ((period_all==Inf) + (t_out_all==tmax))==2;
 
 class_all(idx_class{1}) = 1;
 class_all(idx_class{2}) = 2;
@@ -172,10 +175,16 @@ density_states = density_states/(sum(sum(density_states)));
 
 X_count_by_p = zeros(4, numel(p1_all), numel(p2_all));
 X_weighted = zeros(1, 4);
+X_weighted_2 = zeros(1, 4);
 for i=1:4
     class_count = sum(idx_class{i}, 3);
+    class_count_2 = sum(idx_class_2{i}, 3);
+    
     X_count_by_p(i,:,:) = class_count;
     X_weighted(i) = sum(sum( class_count/nruns.*density_states ));
+    
+    %X_count_by_p_2(i,:,:) = class_count;
+    X_weighted_2(i) = sum(sum( class_count_2/nruns.*density_states ));    
 end
 
 %% Pie chart
@@ -198,11 +207,8 @@ legend({'non-periodic', 'periodic, non-trav. wave', 'trav. wave', 'unknown'},...
 %ax.Children(3).String = sprintf('regular: %d', sum(class_all(:)==1));
 
 qsave = 0;
-if qsave
-    fname = fullfile(save_path_fig, strcat(fname_str, '_class_pie_chart_class_2'));
-    save_figure(h1, 10, 8, fname, '.pdf');
-end
-
+fname = fullfile(save_path_fig, strcat(fname_str, '_class_pie_chart_class_2'));
+save_figure(h1, 10, 8, fname, '.pdf', qsave);
 %% Stacked bar chart for fractions of each type (regular, periodic, TW, ...)
 % class 1: non-periodic
 % class 2: periodic, not travelling wave
@@ -283,7 +289,7 @@ caxis([0 1]);
 %title('Fraction trav. waves');
 %ylim(c, [0 tmax]);
 
-qsave = 1;
+qsave = 0;
 fname = fullfile(save_path_fig, strcat(fname_str, '_frac_trav_waves_vs_p1_p2'));
 save_figure(h23, 10, 8, fname, '.pdf', qsave);
 
@@ -301,7 +307,7 @@ caxis([0 1]);
 %title('Fraction trav. waves');
 %ylim(c, [0 tmax]);
 
-qsave = 1;
+qsave = 0;
 fname = fullfile(save_path_fig, strcat(fname_str, '_frac_trav_waves_vs_p1_p2_class2'));
 save_figure(h24, 10, 8, fname, '.pdf', qsave);
 %% Distribution of final t

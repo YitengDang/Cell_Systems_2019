@@ -6,7 +6,6 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
     % implements an efficient periodicity test by checking only every
     % t_check time steps whether trajectory has become periodic (after a
     % transient phase of t_ac steps when it checks every step).
-
     cells_hist = {};
     gz = sqrt(N);
     rcell = Rcell/a0;

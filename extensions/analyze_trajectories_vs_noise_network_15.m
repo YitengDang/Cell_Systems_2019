@@ -7,7 +7,7 @@ set(0, 'defaulttextinterpreter', 'tex');
 N = 225;
 tmax = 10000;
 %noise_all = [0.01 0.03 0.05 0.1 0.3 0.5 1 3 5 10]; % absolute
-noise_all = [0.001 0.005 0.01 0.05 0.1 0.5]; % relative
+noise_all = [0.001 0.002 0.005 0.01 0.02 0.05 0.1 0.2 0.5]; % relative
 network = 15;
 
 var_all = noise_all; %mcsteps_all;
@@ -118,7 +118,8 @@ end
 %% Save the loaded data
 %
 subfolder = sprintf('TW_propagation_network_%d', network);
-fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, nruns);
+fname_str = sprintf('analyzed_data_%s_vs_noise_num_params_%d_nruns_%d_digits_%d',...
+    subfolder, num_params, nruns, digits);
 
 % noise
 %
@@ -138,23 +139,61 @@ save( fullfile(save_data_path, strcat(fname_str, '.mat')), 'mcsteps_all',...
 %}
 %% Load the saved data
 %
+
+% temp
+%{
 subfolder = sprintf('TW_propagation_network_%d', network);
 %this_nruns = 100;
 fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5_with_homogeneity_end_states', subfolder, nruns);
 %fname_str = 'analyzed_data_TW_propagation_network_19_nruns_100_digits_5_old_v2';
+%}
 
 % noise
+%subfolder = sprintf('TW_propagation_network_%d', network);
+%fname_str = sprintf('analyzed_data_%s_fixed_parameter_set_vs_noise_nruns_%d_digits_%d', subfolder, nruns, digits);
+fname_str = 'analyzed_data_TW_propagation_network_15_fixed_parameter_set_vs_noise_nruns_10_digits_3';
+
 save_data_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_with_noise';
 load( fullfile(save_data_path, strcat(fname_str, '.mat')), 'noise_all',...
     'filecount', 't_out_all', 'period_all', 't_onset_all', 'tmax',...
     'num_params', 'digits', 'trav_wave_all', 'trav_wave_all_2', 'hom_end_state_all');
 
 % mc steps
-%save_data_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\randomized lattice';
-%load( fullfile(save_data_path, strcat(fname_str, '.mat')), 'mcsteps_all'...
-%    'filecount', 't_out_all', 'period_all', 't_onset_all', 'tmax',...
-%    'num_params', 'digits', 'trav_wave_all', 'trav_wave_all_2');
+%{
+save_data_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\randomized lattice';
+load( fullfile(save_data_path, strcat(fname_str, '.mat')), 'mcsteps_all'...
+    'filecount', 't_out_all', 'period_all', 't_onset_all', 'tmax',...
+    'num_params', 'digits', 'trav_wave_all', 'trav_wave_all_2');
 %}
+%% (Temp) Correct ordering
+% noise_all(4) = 0.2 <-> noise_all(5) = 0.1
+noise_all_temp = noise_all;
+noise_all(4) = noise_all_temp(5);
+noise_all(5) = noise_all_temp(4);
+
+t_out_all_temp = t_out_all;
+t_out_all(5,:) = t_out_all_temp(4,:);
+t_out_all(4,:) = t_out_all_temp(5,:);
+
+period_all_temp = period_all;
+period_all(5,:) = period_all_temp(4,:);
+period_all(4,:) = period_all_temp(5,:);
+
+t_onset_all_temp = t_onset_all;
+t_onset_all(5,:) = t_onset_all_temp(4,:);
+t_onset_all(4,:) = t_onset_all_temp(5,:);
+
+trav_wave_all_temp = trav_wave_all;
+trav_wave_all(5,:) = trav_wave_all_temp(4,:);
+trav_wave_all(4,:) = trav_wave_all_temp(5,:);
+
+trav_wave_all_2_temp = trav_wave_all_2;
+trav_wave_all_2(5,:) = trav_wave_all_2_temp(4,:);
+trav_wave_all_2(4,:) = trav_wave_all_2_temp(5,:);
+
+hom_end_state_all_temp = hom_end_state_all;
+hom_end_state_all(5,:) = hom_end_state_all_temp(4,:);
+hom_end_state_all(4,:) = hom_end_state_all_temp(5,:);
 %% 4-way classification
 % (1) static, (2) oscillatory, (3) TW end states, (4) infinite dynamics
 %
@@ -181,12 +220,12 @@ h = figure;
 x_data = var_all;
 
 % x-axis log-scale 
-%bar( log10(x_data), frac_all, 'stacked');
-%set(gca, 'XTick', -3:0, 'XTickLabels', sprintfc('10^{%d}', -3:0) );
+bar( log10(x_data), frac_all, 'stacked');
+set(gca, 'XTick', -3:0, 'XTickLabels', sprintfc('10^{%d}', -3:0) );
 
 % x-axis evenly spread
-bar( frac_all, 'stacked');
-set(gca, 'XTick', 1:numel(x_data), 'XTickLabels', sprintfc('%.3f', x_data) );
+%bar( frac_all, 'stacked');
+%set(gca, 'XTick', 1:numel(x_data), 'XTickLabels', sprintfc('%.3f', x_data) );
 
 xlabel('Noise strength \alpha/K^{(ij)}');
 ylabel('Fraction of simulations');
@@ -199,16 +238,18 @@ legend({'Travelling wave', 'Oscillatory', 'Static', 'Infinite dynamics'});
 %legend({'Pure travelling wave', 'Infinite dynamics', 'Homogeneous, oscillatory', 'Homogeneous, static'});
 
 qsave = 1;
+%fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
+%    sprintf('_nruns_%d_digits_%d', nruns, digits), '_classification_dynamics_v2_evenly_spread'));
 fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
-    sprintf('_nruns_%d_digits_%d', nruns, digits), '_classification_dynamics_v2_evenly_spread'));
+    sprintf('_nruns_%d_digits_%d', nruns, digits), '_classification_dynamics_v2_log_scale'));
 save_figure(h, 12, 8, fname, '.pdf', qsave);
 %% Analyze fraction of TWs
 %trav_wave_all_mean = sum(sum(trav_wave_all, 3), 2)/(num_params*nruns);
 trav_wave_all_2_mean = sum(sum(trav_wave_all_2, 3), 2)/(num_params*nruns);
 
 h = figure;
-x_data = var_all;
-%x_data = noise_all;
+%x_data = var_all;
+x_data = noise_all;
 
 plot( x_data, trav_wave_all_2_mean, 'bo-', 'LineWidth', 1.5 );
 ylim([0 1]);
@@ -222,18 +263,18 @@ ylabel('Fraction TW');
 % Tick labels 
 %!!! Set manually !!!
 %sel_idx = [1 6 11 16];
-sel_idx = [1 3 5 7];
+sel_idx = [1 4 7 10];
 % last label
 x_data(end+1) = 10^0;
 A = sprintfc('10^{%d}', log10(x_data(sel_idx)) );
 %A{end+1} = '10^{0}';
 set(gca, 'FontSize', 32, 'XTick', x_data(sel_idx), 'XTickLabels', A);
 
-qsave = 0;
+qsave = 1;
 if qsave
     fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
-        sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_TW_all_mean'));
-    save_figure(h, 10, 8, fname, '.pdf', qsave);
+        sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_TW_all_mean_size_12_8'));
+    save_figure(h, 12, 8, fname, '.pdf', qsave);
 end
 %% fraction with period 15
 period_15_frac = sum( sum( period_all==15, 3 ), 2)/(num_params*nruns);
@@ -242,7 +283,6 @@ period_15_mult_frac = sum( sum( mod(period_all, 15)==0, 3 ), 2)/(num_params*nrun
 h = figure;
 hold on
 x_data = var_all;
-
 plot( x_data, period_15_frac, 'bo-', 'LineWidth', 1.5  );
 plot( x_data, period_15_mult_frac, 'ro-', 'LineWidth', 1.5  );
 ylim([0 1]);
@@ -258,7 +298,8 @@ ylabel('Fraction period 15');
 % Tick labels 
 %!!! Set manually !!!
 %sel_idx = [1 6 11 16];
-sel_idx = [1 3 5 7];
+sel_idx = [1 4 7 10];
+
 % last label
 x_data(end+1) = 10^0;
 A = sprintfc('10^{%d}', log10(x_data(sel_idx)) );
@@ -270,7 +311,7 @@ A(2:end) = sprintfc('%d', mcsteps_all(2:end) );
 %}
 set(gca, 'FontSize', 32, 'XTick', x_data(sel_idx), 'XTickLabels', A);
 
-qsave = 0;
+qsave = 1;
 if qsave
     fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
         sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_period_15'));
@@ -309,14 +350,15 @@ title(sprintf('t_{max}=10^{%d}', log10(tmax)));
 % Tick labels 
 %!!! Set manually !!!
 %sel_idx = [1 6 11 16];
-sel_idx = [1 3 5 7];
+sel_idx = [1 4 7 10];
+
 % last label
 x_data(end+1) = 10^0;
 A = sprintfc('10^{%d}', log10(x_data(sel_idx)) );
 %A{end+1} = '10^{0}';
 set(gca, 'FontSize', 32, 'XTick', x_data(sel_idx), 'XTickLabels', A);
 
-qsave = 0;
+qsave = 1;
 if qsave
     fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
         sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_reaching_tmax'));

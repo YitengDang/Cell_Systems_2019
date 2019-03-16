@@ -3,7 +3,7 @@
 clear variables
 close all
 clc
-set(0, 'defaulttextinterpreter', 'latex');
+set(0, 'defaulttextinterpreter', 'tex');
 
 %% Parameters and settings
 % Settings
@@ -234,7 +234,6 @@ for network=networks_sel
 end
 
 %% Estimate fraction of spatially ordered final states
-
 % Arbitrary cutoff for telling when a pattern is spatially ordered
 I_min = 0.3;
 
@@ -245,7 +244,10 @@ load(fullfile(folder, fname_str), 'network_all');
 
 % 
 networks_sel = 1:44;
+num_classes = 4; % number of different classes of trajectories to consider
 num_ordered = zeros( numel(networks_sel), 1 );
+I_mean_all = zeros( numel(networks_sel), num_classes, 2 );
+I_std_all = zeros( numel(networks_sel), num_classes, 2 );
 for network=networks_sel
     %network = 1;
     fname_str = sprintf('batch_sim_analyzed_data_batch2_p_I_final_network_%d_old%d',...
@@ -254,12 +256,175 @@ for network=networks_sel
     disp(fname);
     load(fname, 'I_final_network');
     
+    % number of ordered networks
     num_ordered(network) = sum(sum(I_final_network(:,:,1)>I_min & I_final_network(:,:,2)>I_min));
+    
+    % final spatial order
+    idx_class = {};
+    
+    % ordering 3
+    idx_class{1} = squeeze(period_all_net(network, :, :) == Inf);
+    idx_class{2} = squeeze(period_all_net(network, :, :) < 5);
+    idx_class{3} = squeeze(period_all_net(network, :, :) < Inf & ...
+        period_all_net(network, :, :) >= 5 & mod(period_all_net(network, :, :),gz)~=0);
+    idx_class{4} = squeeze(period_all_net(network, :, :) < Inf & ...
+        mod(period_all_net(network, :, :),gz)==0);
+    
+    % ordering 4
+    %{
+    idx_class{1} = squeeze(period_all_net(network, :, :) == Inf);
+    idx_class{2} = squeeze(period_all_net(network, :, :) < 5);
+    idx_class{3} = squeeze(period_all_net(network, :, :) < Inf & ...
+        period_all_net(network, :, :) >= 5 & period_all_net(network, :, :) < gz);
+    idx_class{4} = squeeze(period_all_net(network, :, :) < Inf & ...
+        period_all_net(network, :, :) >= gz);
+    %idx_class{4} = squeeze( mod(period_all_net(network, :, :),gz)==0 );
+    %}
+    for ii=1:num_classes
+        idx = idx_class{ii};
+        I1_data = I_final_network(:,:,1); I1_data = I1_data(idx); % flatten data
+        I2_data = I_final_network(:,:,2); I2_data = I2_data(idx); % flatten data
+        
+        I_mean_all(network, ii, 1) = mean(I1_data);
+        I_mean_all(network, ii, 2) = mean(I2_data);
+        I_std_all(network, ii, 1) = std(I1_data);
+        I_std_all(network, ii, 2) = std(I2_data); 
+    end
+    
 end
 
 % Plot fraction of ordered states
-
+%{
 h = figure;
 bar(networks_sel, num_ordered/(n_pset*nsim));
-
 % Plot as graph: see other file
+%}
+
+%% Plot average final I1, I2
+mol = 1; % molecule #
+
+% sort data
+I_mean_all_sorted = I_mean_all; 
+I_std_all_sorted = I_std_all;
+idx_nan = isnan(I_mean_all_sorted);
+I_mean_all_sorted(idx_nan) = -1; % set NaN values to -1 for ordering
+sort_idx_final = 1:n_networks;
+for ii = [1 2 3 4] %sort data one by one
+    [~, sort_idx] = sort( I_mean_all_sorted(:, ii, mol), 'ascend' );
+    I_mean_all_sorted(:, :, mol) = I_mean_all_sorted(sort_idx, :, mol);
+    sort_idx_final = sort_idx_final(sort_idx);
+end
+I_std_all_sorted(:,:,mol) = I_std_all(sort_idx_final, :, mol);
+I_mean_all_sorted( idx_nan(sort_idx_final, :, :) ) = NaN; % set the non-existing fractions to NaN again
+
+h=figure;
+hold on
+for i=1:num_classes
+    errorbar(I_mean_all_sorted(:,i,mol), I_std_all_sorted(:,i,mol), 'LineWidth', 2);
+end
+%legend({'T=\infty', 'T=2,4', 'T=3, T>5'}, 'Location', 'nw');
+%legend({'T=\infty', 'T<5', 'T>=5, mod(T,gz)~=0', 'mod(T,gz)=0'}, 'Location', 'nw');
+legend({'T=\infty', 'T<5', '5<=T<gz', 'T>=gz'}, 'Location', 'nw');
+
+xlabel('Network');
+ylabel(sprintf('Final I^{(%d)}', mol), 'Interpreter', 'tex');
+set(gca, 'XTick', 1:n_networks, 'XTickLabel', sort_idx_final );
+%set(gca, 'YTick', 0:0.2:1);
+set(gca, 'FontSize', 20);
+set(h, 'Units', 'Inches', 'Position', [1 1 24 6]);
+box on
+ylim([-0.2 0.8]);
+
+% Save plot
+qsave = 1;
+save_folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2\final_order_by_network';
+fname_str = sprintf('final_I%d_mean_by_network_errorbar_classification3', mol);
+fname = fullfile(save_folder, fname_str);
+save_figure(h, 24, 6, fname, '.pdf', qsave);
+%% Plot distribution of final I per network
+networks_sel = 15; %1:44;
+for network=networks_sel
+    %network = 1;
+    fname_str = sprintf('batch_sim_analyzed_data_batch2_p_I_final_network_%d_old%d',...
+        network, network_all(network) );
+    fname = fullfile(load_folder, fname_str);
+    disp(fname);
+    load(fname, 'I_final_network');
+    
+    % Group by periodicity
+    idx_class = {};
+    idx_class{1} = squeeze(period_all_net(network, :, :) == Inf);
+    idx_class{2} = squeeze(period_all_net(network, :, :) < 5);
+    idx_class{3} = squeeze(period_all_net(network, :, :) < Inf & period_all_net(network, :, :) >= 5);
+    %{
+    idx_class{1} = squeeze(period_all_net(network, :, :) == Inf);
+    idx_class{2} = squeeze(period_all_net(network, :, :) == 2);
+    idx_class{3} = squeeze(period_all_net(network, :, :) == 4);
+    idx_class{4} = squeeze(mod(period_all_net(network, :, :), gz)==0);
+    idx_class{5} = squeeze(period_all_net(network, :, :) <Inf & period_all_net(network, :, :) ~=2 & ...
+        period_all_net(network, :, :) ~=4 & mod(period_all_net(network, :, :), gz)~=0);
+    %}
+    
+    I_mean = zeros(numel(idx_class), 2);
+    I_std = zeros(numel(idx_class), 2);
+    
+    for ii=1:numel(idx_class)
+        idx = idx_class{ii};
+        I1_data = I_final_network(:,:,1); I1_data = I1_data(idx); % flatten data
+        I2_data = I_final_network(:,:,2); I2_data = I2_data(idx); % flatten data
+        
+        I_mean(ii, 1) = mean(I1_data);
+        I_mean(ii, 2) = mean(I2_data);
+        I_std(ii, 1) = std(I1_data);
+        I_std(ii, 2) = std(I2_data);  
+    end
+end
+%% 
+h = figure;
+hold on
+for i=1:numel(idx_class)
+    errorbar(I_mean(i,1), I_mean(i,2),...
+        I_std(i,1), I_std(i,1), I_std(i,2), I_std(i,2));
+end
+xlim([-0.2 0.8]);
+ylim([-0.2 0.8]);
+xlabel('I^{(1)}');
+ylabel('I^{(2)}');
+legend({'T=\infty', 'T=2,3,4', 'T>=5'});
+%legend({'T=\infty', 'T=2', 'T=4', 'mod(T,gz)=0' 'Other T>1'});
+
+%% Plot final I values for each period
+mol = 1; %molecule
+
+% fixed network
+network = 43;
+fname_str = sprintf('batch_sim_analyzed_data_batch2_p_I_final_network_%d_old%d',...
+    network, network_all(network) );
+fname = fullfile(load_folder, fname_str);
+disp(fname);
+load(fname, 'I_final_network');
+
+% unique_periods = unique(period_all_net(network, :, :));
+x_data = period_all_net(network, :, :);
+y_data = I_final_network(:,:,1);
+x_data(x_data==Inf) = 0.5;
+h = figure;
+scatter(log10(x_data(:)), y_data(:));
+
+%% Histogram of final I for different conditions
+mol = 2; %molecule
+
+% fixed network
+network = 14;
+fname_str = sprintf('batch_sim_analyzed_data_batch2_p_I_final_network_%d_old%d',...
+    network, network_all(network) );
+fname = fullfile(load_folder, fname_str);
+disp(fname);
+load(fname, 'I_final_network');
+
+idx = (period_all_net(network, :, :)==Inf);
+I_data = I_final_network(:,:,mol);
+
+figure;
+nbins = 30;
+histogram( I_data(idx), nbins );

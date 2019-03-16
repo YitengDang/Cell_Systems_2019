@@ -12,7 +12,7 @@ remote = 0;
 
 % Note: increasing nsim at n_pset is always possible. However, increasing
 % n_pset leads to data sets that do not form a perfect LHS sample
-n_pset = 10000; % number of parameter sets to do
+n_pset = 10^5; % number of parameter sets to do
 nsim = 10; % number of simulations per parameter set
 tmax = 10000;
 
@@ -42,7 +42,7 @@ if remote
     save_folder = strrep(save_folder, 'H:\', 'W:\staff-homes\d\yitengdang\');
 end
 %% Load full data
-%{
+%
 networks_sel = [15 19 33 34 36]; %[15  16	19	20	32	33	34	36	43];
 TW_count_strict = zeros( numel(networks_sel), n_pset );
 TW_count_loose = zeros( numel(networks_sel), n_pset );
@@ -125,7 +125,7 @@ num_params = [5 5 6 6 6]; % number of parameters per network
 % get # parameter sets that gave at least one TW
 y_data = zeros(5, 1);
 for i=1:5
-    idx_temp = find( TW_count_loose(i,:)==1 );
+    idx_temp = find( TW_count_loose(i,:)>0 );
     y_data(i) = numel(idx_temp);
 end
 y_data = y_data/n_pset;
@@ -144,12 +144,12 @@ ylabel('Frequency');
 %set(gca, 'YScale', 'log');
 set(gca, 'FontSize', 32);
 %ylim([10^(-4) 1]);
-ylim([0 2*10^(-3)]);
+%ylim([0 2*10^(-3)]);
 box on
 
 % Save figures
 set(h, 'Units', 'Inches', 'Position', [0.1 0.1 10 8]);
-qsave = 0;
+qsave = 1;
 fname_str = 'Robustness_frac_sim_TW_raw_v2';
 save_figure(h, 10, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 
@@ -171,12 +171,12 @@ ylabel('Normalized frequency');
 %set(gca, 'YScale', 'log');
 %ylim([10^(-4) 1]);
 ylim([0 1]);
-text(x_data-0.4, y_data_norm+0.05, sprintfc('$n_P = %d$', num_params),...
-    'FontSize', 24, 'interpreter', 'latex' );
+%text(x_data-0.4, y_data_norm+0.05, sprintfc('$n_P = %d$', num_params),...
+%    'FontSize', 24, 'interpreter', 'latex' );
 
 % Save figures
 set(h, 'Units', 'Inches', 'Position', [0.1 0.1 10 8]);
-qsave = 0;
+qsave = 1;
 fname_str = 'Robustness_frac_sim_TW_normalized_v2';
 save_figure(h, 10, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 

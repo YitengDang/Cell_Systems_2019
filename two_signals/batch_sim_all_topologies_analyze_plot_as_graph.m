@@ -2,7 +2,7 @@
 clear variables
 close all
 clc
-set(0, 'defaulttextinterpreter', 'latex');
+set(0, 'defaulttextinterpreter', 'tex');
 %% Parameters and settings
 % Settings
 tmax = 10000;
@@ -43,9 +43,9 @@ clear period_all
 
 % divide into classes
 class = cell(3, 1);
-class{1} = [15	16	19	20	32	33	34	36	43]; % complex dynamics
+class{1} = [15	16	19	20  33	34	36	43]; % complex dynamics
 class{2} = [2	5	8	10	11	12	13	14	18	21	22	23	25	27, ...
-                29	30	31	35	37	38	39	40	41	42	44]; % simple oscillations
+                29	30	31	32  35	37	38	39	40	41	42	44]; % simple oscillations
 class{3} = [1	3	4	6	7	9	17	24	26	28]; % no oscillations
 
 % Networks by number of repressive interactions
@@ -118,6 +118,23 @@ t_out_max_log10 = log10(t_out_max);
 % t_mean
 t_out_mean = mean(t_out_all_net(:,:), 2);
 
+% filter t_out on specific conditions
+% (1) t_out avg over all with periodic ss
+%{
+[idx1, idx2] = find(period_all_net<Inf & period_all_net>4);
+t_out_2 = zeros(size(t_out_all_net, 1), size(t_out_all_net, 2));
+t_out_all_net_mat = t_out_all_net(:,:); % reshape into matrix
+for ii=1:44
+    idx_temp = find(idx1==ii);
+    t_out_2(ii, idx2(idx_temp)) = t_out_all_net_mat(ii, idx2(idx_temp));
+end
+t_out_filtered = mean(t_out_2, 2);
+%}
+
+% (2) fraction with t_out > threshold
+t_min = 50;
+t_out_filtered = mean(t_out_all_net(:,:)>t_min, 2);
+
 % Fraction oscillators
 frac_osc = zeros(n_networks, 1); % Fraction of parameter sets which are capable of generating oscillations
 frac_osc_2 = zeros(n_networks, 1); % Net fraction of simulations which generate oscillations
@@ -127,7 +144,6 @@ for ii=1:n_networks
     frac_osc(ii) = numel(unique(idx1))/n_pset;
     frac_osc_2(ii) = numel(idx1)/(n_pset*nsim);
 end
-
 I_min = 0.3;
 
 % Fraction spatially ordered
@@ -215,7 +231,8 @@ scatter(x_graph(class{3}), y_graph(class{3}), 20^2, t_out_max_log10(class{3}),..
 p.XData = x_graph;
 p.YData = y_graph;
 for ii=1:n_networks
-   text(p.XData(ii)+0.06,p.YData(ii)-0.05, p.ZData(ii), num2str(ii), 'fontsize', 20, 'Color', 'k');
+   text(p.XData(ii)+0.06,p.YData(ii)-0.05, p.ZData(ii), num2str(ii),...
+       'fontsize', 20, 'Color', 'k', 'interpreter', 'tex');
 end
 %colormap(viridis);
 colormap(jet);
@@ -225,12 +242,14 @@ caxis([0 log10(tmax)]);
 set(c, 'YTick', 0:log10(tmax), 'YTickLabel', sprintfc('10^{%d}',0:log10(tmax)) );
 set(gca, 'FontSize', 24, 'XTick', 1:4, 'YTick', []);
 xlabel('Number of interactions');
-ylabel(c, 'max($$t_{eq}$$)', 'Interpreter', 'latex')
+%ylabel(c, 'max($$t_{eq}$$)', 'Interpreter', 'tex')
+title('Maximum equilibration time');
+ylabel(c, 'Time steps', 'Interpreter', 'tex')
 
 % Save figures
 set(h1, 'Units', 'Inches', 'Position', [0.1 0.1 12 8]);
 qsave = 0;
-fname_str = 'graph_plot_t_out_max_log_rearranged_marked_v3_jet_size_12_8';
+fname_str = 'graph_plot_t_out_max_log_rearranged_marked_v4_jet';
 save_figure(h1, 12, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 
 %% (2) Plot t_out mean
@@ -263,23 +282,78 @@ scatter(x_graph(class{3}), y_graph(class{3}), 20^2, log10(output_var(class{3})),
 p.XData = x_graph;
 p.YData = y_graph;
 for ii=1:n_networks
-	text(p.XData(ii)+0.05,p.YData(ii)-0.05, p.ZData(ii), num2str(ii), 'fontsize', 16, 'Color', 'k');
+	text(p.XData(ii)+0.05,p.YData(ii)-0.05, p.ZData(ii), num2str(ii),...
+        'fontsize', 16, 'Color', 'k', 'Interpreter', 'tex');
 end
-%colormap(viridis);
-colormap(jet);
+colormap(viridis);
+%colormap(jet);
 c=colorbar;
 c.FontSize = 20;
 %caxis([0 250]);
 caxis([0 3]);
 set(c, 'YTick', 0:3, 'YTickLabel', sprintfc('10^{%d}',0:3) );
-set(gca, 'FontSize', 20, 'XTick', 1:4, 'YTick', []);
+set(gca, 'FontSize', 24, 'XTick', 1:4, 'YTick', []);
 xlabel('Number of interactions');
-title('$$\langle t_{out} \rangle$$')
+%title('\langle t_{out} \rangle')
+title('Mean equilibration time');
+ylabel(c, 'Time steps', 'Interpreter', 'tex')
 
+qsave = 0;
+fname_str = 'graph_plot_t_out_mean_rearranged_marked_v4_viridis';
+save_figure(h2, 12, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
+
+%% (1,2 extra) Plot manually filtered t_out
+% find x and y positions, order by value of output variable
+x_graph = num_int;
+y_graph = zeros(n_networks, 1);
+output_var = t_out_filtered;
+for ii=1:4
+    idx = find(num_int==ii);
+    output_var_temp = output_var(idx);
+    [output_var_sorted, sort_idx] = sort(output_var_temp, 'ascend');
+    y_graph(idx(sort_idx)) = linspace(-1, 1, numel(idx) );
+end
+
+% Plot t_out max
+h = figure;
+hold on
+G = graph(graph_edges);
+% Layouts: circle, force(3), layered, subspace(3)
+p = plot(G, 'Layout', 'force', 'MarkerSize', 0.1, 'LineWidth', 1.5, 'NodeCData',...
+    output_var, 'NodeLabel', []);
+
+% Plot marker edges for classes
+scatter(x_graph(class{1}), y_graph(class{1}), 20^2, output_var(class{1}),...
+    'o', 'filled');
+scatter(x_graph(class{2}), y_graph(class{2}), 20^2, output_var(class{2}),...
+    '^', 'filled');
+scatter(x_graph(class{3}), y_graph(class{3}), 20^2, output_var(class{3}),...
+    's', 'filled');
+p.XData = x_graph;
+p.YData = y_graph;
+for ii=1:n_networks
+   text(p.XData(ii)+0.06,p.YData(ii)-0.05, p.ZData(ii), num2str(ii),...
+       'fontsize', 20, 'Color', 'k', 'interpreter', 'tex');
+end
+colormap(viridis);
+%colormap(jet);
+c=colorbar;
+c.FontSize = 24;
+%caxis([0 log10(tmax)]);
+%set(c, 'YTick', 0:log10(tmax), 'YTickLabel', sprintfc('10^{%d}',0:log10(tmax)) );
+set(gca, 'FontSize', 24, 'XTick', 1:4, 'YTick', []);
+xlabel('Number of interactions');
+%title('Maximum equilibration time');
+title(sprintf('Fraction with t_{eq} > %d', t_min));
+%ylabel(c, 'Time steps', 'Interpreter', 'tex')
+ylabel(c, 'Fraction of simulations', 'Interpreter', 'tex')
+
+% Save figures
+set(h, 'Units', 'Inches', 'Position', [0.1 0.1 12 8]);
 qsave = 1;
-fname_str = 'graph_plot_t_out_mean_rearranged_marked_v2_jet';
-save_figure(h2, 15, 10, fullfile(save_folder, fname_str),'.pdf', qsave);
-
+%fname_str = sprintf('graph_plot_t_out_filtered_cond3_t_min_%d_jet', t_min);
+fname_str = sprintf('graph_plot_t_out_filtered_cond3_t_min_%d_viridis', t_min);
+save_figure(h, 12, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 %% (3) Oscillation prevalence
 
 % find x and y positions, order by value of output variable
@@ -313,8 +387,8 @@ p.YData = y_graph;
 for ii=1:n_networks
    text(p.XData(ii)+0.05,p.YData(ii)-0.05, p.ZData(ii), num2str(ii), 'fontsize', 20, 'Color', 'k');
 end
-%colormap(viridis);
-colormap(jet);
+colormap(viridis);
+%colormap(jet);
 
 c=colorbar;
 c.FontSize = 24;
@@ -326,7 +400,7 @@ title('Oscillation prevalence')
 
 % Save figure
 qsave = 1;
-fname_str = 'graph_plot_osc_prevalence_rearranged_marked_v2_jet_size_12_8';
+fname_str = 'graph_plot_osc_prevalence_rearranged_marked_v4_viridis';
 save_figure(h3, 12, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 
 %% (4) Final spatial order
@@ -360,18 +434,19 @@ p.YData = y_graph;
 for ii=1:n_networks
 	text(p.XData(ii)+0.05,p.YData(ii)-0.05, p.ZData(ii), num2str(ii), 'fontsize', 20, 'Color', 'k');
 end
-colormap(jet);
+%colormap(jet);
+colormap(viridis);
 c=colorbar;
 c.FontSize = 24;
 
 caxis([0 0.1]);
-set(c, 'YTick', 0:0.05:0.1 );
+set( c, 'YTick', 0:0.05:0.1 );
 set(gca, 'FontSize', 24, 'XTick', 1:4, 'YTick', []);
 xlabel('Number of interactions');
 title('Fraction spatially ordered')
 
 qsave = 1;
-fname_str = strrep(sprintf('graph_plot_frac_I_final_geq_%.1f_mean_rearranged_marked_size_12_8', I_min), '.', 'p');
+fname_str = strrep(sprintf('graph_plot_frac_I_final_geq_%.1f_mean_rearranged_marked_v4_viridis', I_min), '.', 'p');
 save_figure(h2, 12, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 %% Correlation between final spatial order and oscillation prevalence
 h = figure;
@@ -650,7 +725,7 @@ set(gca, 'FontSize', 20);
 %set(h, 'Units', 'Inches', 'Position', [1 1 24 6]);
 box on
 
-qsave = 1;
+qsave = 0;
 save_folder2 = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2';
 fname_str = strrep(sprintf('frac_ordered_by_period_network_I_min_%.1f_plot_v2', I_min), '.', 'p');
 save_figure(h, 24, 6, fullfile(save_folder2, fname_str),'.pdf', qsave);
@@ -684,7 +759,7 @@ for ii=1:numel(class{1})
 end
 set(h, 'Units', 'Inches', 'Position', [1 1 10 8]);
 
-qsave = 1;
+qsave = 0;
 save_folder2 = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2';
 fname_str = strrep(sprintf('frac_ordered_by_period_complex_network_I_min_%.1f_bar_v2_with_counts', I_min), '.', 'p');
 save_figure(h, 10, 8, fullfile(save_folder2, fname_str),'.pdf', qsave);

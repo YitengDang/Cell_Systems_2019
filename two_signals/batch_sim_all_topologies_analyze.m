@@ -228,7 +228,7 @@ save(fullfile(folder, fname_str), 'M_int_all', 'M_int_all_reduced', 'K_all',...
     'noise', 'Coff', 'InitiateI', 'mcsteps'); 
 %}
 %% Load saved data
-%{
+%
 folder = 'H:\My Documents\Multicellular automaton\data\two_signals\batch_sim_all_topologies';
 fname_str = sprintf('batch_sim_analyzed_data_batch2.mat');
 load(fullfile(folder, fname_str));
@@ -318,7 +318,6 @@ for i=1:numel(networks_t1000)
 end
 
 %% Mean t_out per topology
-
 % selected networks to include
 % default
 network_sel_orig = network_all;
@@ -462,9 +461,22 @@ ylabel('Network', 'FontSize', 20);
 xlabel('Period', 'FontSize', 20);
 
 % Same topologies as those with high tmax!
-qsave = 1;
+qsave = 0;
 fname_str = 'oscillations_all_scatter_subset3_v2';
 save_figure(h, 10, 5, fullfile(save_folder, fname_str),'.pdf', qsave);
+
+%% Oscillation periods (histogram) for given topology
+
+network = 33;
+network_old = network_all(network);
+
+raw_data_periods = squeeze(period_all(network_old, :, :));
+cat_data_periods = raw_data_periods(raw_data_periods < Inf);
+
+C = categorical( cat_data_periods );
+
+h = figure;
+histogram( C )
 
 %% Oscillations frequency per class (I, II, III)
 frac_osc = zeros(3, 1); % Fraction of parameter sets which are capable of generating oscillations 
@@ -491,7 +503,7 @@ ylabel('Frequency');
 legend({'Oscillatory', 'Non-oscillatory'}, 'location', 'no');
 set(gca, 'FontSize', 20);
 
-qsave = 1;
+qsave = 0;
 fname_str = 'oscillation_fraction_by_network_class_bar_v2';
 save_figure(h, 10, 6, fullfile(save_folder, fname_str),'.pdf', qsave);
 
@@ -562,11 +574,11 @@ for k = 1:2
 end
 legend(cats_new(1:4), 'location', 'eo', 'FontSize', 20);
 
-qsave = 1;
+qsave = 0;
 fname_str = 'oscillation_breakdown_complex_networks_pie_v2';
 save_figure(h1, 10, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 
-qsave = 1;
+qsave = 0;
 fname_str = 'oscillation_breakdown_osc_networks_pie_v2';
 save_figure(h2, 10, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 

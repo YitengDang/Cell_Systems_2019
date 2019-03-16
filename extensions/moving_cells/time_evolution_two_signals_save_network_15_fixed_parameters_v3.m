@@ -23,7 +23,7 @@ clear all
 remote = 0;
 
 % variable to loop over
-sigma_D_all = [0.1]; %[0 0.001 0.003 0.01];
+sigma_D_all = 10.^[-2.75 -1.75 -0.75];
 % mcsteps_all = [0 10 100 1000];
 
 % number of simulations to do 

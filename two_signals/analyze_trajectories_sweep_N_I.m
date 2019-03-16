@@ -2,7 +2,7 @@
 clear all
 close all
 set(0, 'defaulttextinterpreter', 'latex');
-%%
+%% Load data
 path = 'L:\BN\HY\Shared\Yiteng\two_signals\parameter set 2b';
 N = [5 8 10 12 13 15 20].^2;
 folders = sprintfc('N%d',N);

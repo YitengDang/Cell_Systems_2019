@@ -190,7 +190,7 @@ end
 %}
 
 % (1) Plot lines
-%{
+%
 for ii = 1:row_of_points
     % Convert polar to cartesian coordinates
     [x_points, y_points] = pol2cart(theta(1:end-1), P(ii, :));
@@ -221,6 +221,7 @@ p = fill(x_points, y_points, 'r', 'EdgeColor', 'r', 'FaceAlpha', 0.2);
 p = fill(x_points, y_points, 'w', 'EdgeColor', 'r', 'FaceAlpha', 1);
 
 % (1c) Plot mean values
+%{
 P_mean = mean(P, 1);
 [x_points, y_points] = pol2cart(theta(1:end-1), P_mean);
 x_circular = [x_points, x_points(1)];
@@ -230,6 +231,8 @@ p = plot(x_circular, y_circular,...
         'Color', [1 0 0],...
         'LineStyle', '-',...
         'LineWidth', 3);
+%}
+
 % (2) plot markers
 %{
 for ii = 1:row_of_points

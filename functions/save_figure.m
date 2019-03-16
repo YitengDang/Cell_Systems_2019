@@ -30,6 +30,10 @@ function save_figure(h_fig, width, height, path_out, ext, qsave, colored_backgro
         h_fig.InvertHardcopy = 'off'; 
     end
     
+    % always plot vector graphics
+    h_fig.Renderer='Painters';
+    
+    % save file
     if strcmp(ext, '.pdf')
         print(h_fig, path_out,'-dpdf','-r0');
     elseif strcmp(ext, '.eps')

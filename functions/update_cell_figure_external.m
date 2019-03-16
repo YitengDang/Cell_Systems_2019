@@ -20,7 +20,7 @@ function update_cell_figure_external(h_cells, h_borders, cells, t, disp_mol, pos
         
         % Update cell positions
         set(h_cells, 'xdata', pos(:, 1), 'ydata', pos(:, 2) );
-        set(h_borders, 'xdata', pos(:, 1), 'ydata', pos(:, 2) );
+        %set(h_borders, 'xdata', pos(:, 1), 'ydata', pos(:, 2) );
     else
         cells = cells(:, disp_mol);
         
@@ -31,6 +31,6 @@ function update_cell_figure_external(h_cells, h_borders, cells, t, disp_mol, pos
         
         % Update cell positions
         set(h_cells, 'xdata', pos(:, 1), 'ydata', pos(:, 2) );
-        set(h_borders, 'xdata', pos(:, 1), 'ydata', pos(:, 2) );
+        %set(h_borders, 'xdata', pos(:, 1), 'ydata', pos(:, 2) );
     end
 end

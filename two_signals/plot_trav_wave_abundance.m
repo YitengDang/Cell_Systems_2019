@@ -22,21 +22,23 @@ idx_sel = 5;
 gz = xls_data(1, idx_sel); % grid size
 
 %% Plot cumulative probability for a Bernoulli process
-% (Cumulative Poisson distribution)
+% (Cumulative geometric distribution)
 digits(1000); % set precision
 p = xls_data(2, idx_sel);
 
-t_all = 10.^(48:0.1:54); %10.^(0:100);
-prob_vs_t = (1-vpa(p)).^(t_all)*p;
+t_all = 10.^(0:100); %10.^(48:0.1:54); %10.^(0:100);
+%t_all = linspace(0, 10^5);
+prob_vs_t = (1-vpa(p)).^(t_all)*vpa(p);
 q = 1-vpa(p);
 prob_cumul_vs_t = (1-vpa(q).^t_all);
+%prob_cumul_vs_t = vpa(p).^t_all;
 
 h=figure;
 hold on
 %plot(log10(t_all), prob_vs_t);
-%plot(log10(t_all), prob_cumul_vs_t, 'o-');
-plot(t_all, prob_cumul_vs_t, '-', 'LineWidth', 2);
-plot([1./p 1./p], [0 1], '--');
+plot(log10(t_all), prob_cumul_vs_t, 'o-');
+%plot(t_all, prob_cumul_vs_t, '-', 'LineWidth', 2);
+% plot([1./p 1./p], [0 1], '--');
 %set(gca, 'YScale', 'log');
 set(gca, 'XScale', 'log');
 ylim([0 1]);
@@ -46,7 +48,7 @@ ylim([0 1]);
 set(gca, 'FontSize', 32);
 box on
 
-qsave = 1;
+qsave = 0;
 folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_vs_N';
 fname_str = sprintf('t_onset_TW_cumulative_prob_random_process_theory_gz%d_no_labels', gz);
 fname = fullfile(folder, fname_str);

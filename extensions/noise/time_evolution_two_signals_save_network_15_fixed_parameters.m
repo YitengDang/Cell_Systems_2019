@@ -23,7 +23,7 @@ clear all
 remote = 0;
 
 % variable to loop over
-noise_all = [0 0.001 0.005 0.01 0.05 0.1 0.5 1];
+noise_all = [0.002 0.02 0.2]; %[0 0.001 0.005 0.01 0.05 0.1 0.5 1];
 
 % number of simulations to do 
 sim_count = 200;

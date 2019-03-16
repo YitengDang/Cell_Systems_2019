@@ -1,4 +1,4 @@
-% Predicts whether a travelling wave can propagate according to nearest
+% % Predicts whether a travelling wave can propagate according to nearest
 % neighbour interactions
 % Apply computational search over all topologies to try to find parameters
 % that allow for propagation of any kind of travelling wave

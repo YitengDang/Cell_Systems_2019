@@ -1,4 +1,4 @@
-function [msg, I_t, Theta_t] = plot_I_vs_t(cells_hist, t0, a0, dist, option, fig_pos)
+function [h2, msg, I_t, Theta_t] = plot_I_vs_t(cells_hist, t0, a0, dist, option, fig_pos)
 % option: 1 = plot I, 2 = plot Theta
 
 str_options = {'I(t)', 'Theta(t)'};
@@ -7,6 +7,7 @@ if isempty(cells_hist)
     msg = sprintf(' Unable to plot %s; ', str_options{option});
     I_t = [];
     Theta_t = [];
+    h2 = [];
     return
 end
 
@@ -48,13 +49,13 @@ for i=1:s
             y = Theta_t(:,i);
     end
     clr = plot_clrs(i,:);
-    plot(t0:t0+tmax, y, ps, 'LineWidth', lw, 'Color', clr);
+    p1 = plot(t0:t0+tmax, y, ps, 'LineWidth', 2, 'Color', clr);
+    p1.Color(4) = 0.7; %transparency
 end
-
-%set(0, 'DefaultTextInterpreter', 'latex');
-xlabel('$$t$$', 'Interpreter', 'latex');
-plot_labels = {'$$I(t)$$', '$$\Theta(t)/f_N$$'};
-ylabel(plot_labels{option}, 'Interpreter', 'latex');
+set(0, 'DefaultTextInterpreter', 'tex');
+xlabel('t', 'Interpreter', 'tex');
+plot_labels = {'I(t)', '\Theta(t)/f_N'};
+ylabel(plot_labels{option}, 'Interpreter', 'tex');
 legend(num2cell(string(1:s)));
 set(gca, 'FontSize', 24);
 xlim([t0 t0+tmax])
