@@ -8,26 +8,6 @@ set(0, 'defaulttextinterpreter', 'tex');
 % remote destination (Webdrive)?
 remote = 0;
 
-% parameters
-gz = 15;
-N = gz^2;
-a0 = 1.5;
-rcell = 0.2;
-Rcell = rcell*a0;
-lambda = [1 1.2];
-
-%Con = [18 16];
-%Coff = [1 1];
-%M_int = [0 1; -1 1];
-%K = [0 9; 11 6];
-
-hill = Inf;
-noise = 0;
-
-% get pos, dist
-mcsteps = 0;
-[pos, dist] = initial_cells_random_markov_periodic(gz, mcsteps, rcell);
-
 % Specify wave type
 num_waves = 1;
 wave_type = 1;
@@ -35,43 +15,6 @@ fname_str_all = {'trav_wave_single_vertical',...
     'trav_wave_single_horizontal_inward_bend',...
     'trav_wave_single_horizontal_outward_bend'};
 fname_str = fname_str_all{wave_type};
-
-%% Pre-prosessing
-% calculate fN
-idx_loop = gz + round(gz/2); % pick cell not at corner of grid
-dist_vec = a0*dist(idx_loop,:);
-r = dist_vec(dist_vec>0);
-fN = zeros(2,1);
-fN(1) = sum(sinh(Rcell)*exp((Rcell-r)./lambda(1)).*(lambda(1)./r));
-fN(2) = sum(sinh(Rcell)*exp((Rcell-r)./lambda(2)).*(lambda(2)./r));
-
-% save folder
-%save_folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_stability';
-%fname_str_default = strrep(sprintf('N%d_a0_%.1f_rcell_%.1f_lambda12_%.1f_M_int_%d_%d_%d_%d_Con_%d_%d',...
-%    N, a0, rcell, lambda(2), M_int(1,1), M_int(1,2), M_int(2,1), M_int(2,2),...
-%    Con(1), Con(2)), '.', 'p');
-
-% Load initial conditions
-load_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\travelling_wave_snapshots';
-if remote
-    load_folder = strrep(load_folder, 'N:\', 'W:\staff-bulk\');
-end
-fname = fullfile(load_folder, fname_str);
-cells_load = cell(2,1);
-cells_load{1} = xlsread(fname, 'Sheet1');
-cells_load{2} = xlsread(fname, 'Sheet2');
-if all(size(cells_load{1})==[N 2])
-    cells_in = cells_load{1};
-elseif all(size(cells_load{1})==[gz gz]) && all(size(cells_load{2})==[gz gz])
-    cells_in(:, 1) = reshape(cells_load{1}, N, 1);
-    cells_in(:, 2) = reshape(cells_load{2}, N, 1);
-else
-    disp('Wrong input format');
-end
-
-% get cell state population of initial state
-cells_idx = cells_in*[1; 2];
-n_in = histcounts(cells_idx, -0.5:3.5);
 %% Load overview data
 % Load list of found networks and wave forms
 folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
@@ -93,8 +36,10 @@ disp('Cell states F, M, B, E');
 disp(t);
 disp(t2);
 
+
+
 %% Plot parameters of simulations giving waves as spider plot
-for idx_loop=1:num_psets
+for idx_loop=[2 6] %[1 3 4 5] %1:num_psets
     wave_idx = x_found(idx_loop);
     network = y_found(idx_loop);
     fprintf('wave_idx %d, network %d \n', wave_idx, network);
@@ -109,15 +54,15 @@ for idx_loop=1:num_psets
            num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4)); 
     fname = fullfile(load_folder, fname_str);
     
-    % ----- Option 1: plot simulation data
+    % ----- Option 1: plot analytical data
     %
     load(fname, 'Con_all', 'K_all', 'trav_wave_conds_met');  % load parameter sets and data
     
     % save name, simulations
-    label = 'simulations';
-    subfolder = 'spider_plots_simulations';
+    label = 'analytical'; 
+    subfolder = 'spider_plots_analytical';
     %}
-    % ----- Option 2: plot analytical data
+    % ----- Option 2: plot simulation data
     %{
     load(fname, 'Con_all', 'K_all'); % load parameter sets
     
@@ -136,8 +81,8 @@ for idx_loop=1:num_psets
     fprintf('Network %d, #trav. wave conditions = %d \n', network, sum(trav_wave_conds_met) )
     
     % save name, analytical
-    label = 'analytical'; 
-    subfolder = 'spider_plots_analytical';
+    label = 'simulations';
+    subfolder = 'spider_plots_simulations';
     %}
     %%
     % filter data on TW simulations
@@ -153,12 +98,29 @@ for idx_loop=1:num_psets
     
     %P_data = log10([Con_wave_sim, K_wave_sim(:,K_idx)]); % -> more generally, filter on M_int
     P_data = [Con_wave_sim, K_wave_sim(:,K_idx)];
-    
-    %P_labels = {'$C_{ON}^{(1)}$', '$C_{ON}^{(2)}$', '$K^{(11)}$',...
-    %    '$K^{(12)}$', '$K^{(21)}$', '$K^{(22)}$'};
     P_labels = {'C_{ON}^{(1)}', 'C_{ON}^{(2)}', 'K^{(11)}',...
-        'K^{(12)}', 'K^{(21)}', 'K^{(22)}'};
-    axes_interval = 3;
+        'K^{(21)}', 'K^{(12)}', 'K^{(22)}'};
+    
+    % for certain networks: swap molecules 1 <-> 2
+    %
+    labelswap = '';
+    swap = 1;
+    if swap
+        if idx_loop<3
+            K_idx = 2:4;
+        else
+            K_idx = 1:4;
+        end
+        K_wave_sim_temp = zeros(size(K_wave_sim));
+        K_wave_sim_temp(:,1,1) = K_wave_sim(:,2,2);
+        K_wave_sim_temp(:,1,2) = K_wave_sim(:,2,1);
+        K_wave_sim_temp(:,2,1) = K_wave_sim(:,1,2);
+        K_wave_sim_temp(:,2,2) = K_wave_sim(:,1,1);
+        P_data = [Con_wave_sim(:,2), Con_wave_sim(:,1), K_wave_sim_temp(:, K_idx)];
+        
+        labelswap = '_swapped_mol_1_2';
+    end
+    %}
     
     %{
     if idx_loop==3
@@ -170,6 +132,7 @@ for idx_loop=1:num_psets
            'MarkerSize', 2);
     else
     %}
+        axes_interval = 3;
         spider_plot_linear(P_data, P_labels([1:2 K_idx+2]), axes_interval,...
             'Marker', 'o',...
             'LineStyle', 'none',...
@@ -187,7 +150,7 @@ for idx_loop=1:num_psets
     hold off 
     %hold on
     
-    % Save figure
+    %% Save figure
     qsave = 1;
     fname_root = sprintf('Wave_type_%d_network_%d_states_F%d_M%d_B%d_E%d_TW_n%d_%s',...
         1, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4), size(P_data, 1), label);
@@ -197,7 +160,7 @@ for idx_loop=1:num_psets
         save_folder_fig = strrep(save_folder_fig, 'H:\', 'W:\staff-homes\d\yitengdang\');
     end
     save_figure(h, 10, 8, fullfile(save_folder_fig, ...
-        strcat(fname_root, '_TW_params_spider_linear_lines_filled')), '.pdf', qsave);
+        strcat(fname_root, '_TW_params_spider_linear_lines_filled', labelswap)), '.pdf', qsave);
     
     % close all
     %}

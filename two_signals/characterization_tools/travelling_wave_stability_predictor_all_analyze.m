@@ -56,7 +56,7 @@ M_int = save_consts_struct.M_int;
 
 % specify wave type and characteristics
 wave_types_str = {'straight', 'inward bend', 'outward bend'};
-wave_type = 2;
+wave_type = 1;
 num_waves = 1; % number of waves
 bandwidth = 1; % width of band of cells of one type
 
@@ -168,7 +168,7 @@ save_figure(h, 10, 8, fname, '.pdf', qsave);
 % (3) Plot correlations between Con, K for waves
 
 Qvals = zeros(numel(x_found), 1); % Q-values of circuits
-for idx_loop=1:numel(x_found)
+for idx_loop=1 %1:numel(x_found)
     %wave_idx = 2;
     %network = 19;
     wave_idx = x_found(idx_loop);
@@ -310,13 +310,13 @@ subdiagrams{1} = [1 2; 2 4; 3 1; 4 3]; % sets of (i,j) indices of transitions th
 % clockwise loop
 subdiagrams{2} = [2 1; 4 2; 1 3; 3 4]; % sets of (i,j) indices of transitions that need to be present
 
-for idx_loop=1:numel(x_found)
+for idx_loop=1 %1:numel(x_found)
     %idx_loop = 1;
     wave_idx = x_found(idx_loop);
     network = y_found(idx_loop);
     fprintf('wave_idx %d, network %d \n', wave_idx, network);
     states_perm = P(wave_idx, :);
-
+    
     %idx_wave = 1;
     
     % load data
@@ -333,7 +333,7 @@ for idx_loop=1:numel(x_found)
     num_wave_sims = size(Con_wave, 1);
     state_diagram_match = zeros(num_wave_sims, 1);
     phases_all_match = zeros(num_wave_sims, 2, 2);
-    
+        
     M_int = M_int_found{idx_loop}; 
     for i=1:num_wave_sims
         disp(i);
@@ -349,14 +349,14 @@ for idx_loop=1:numel(x_found)
         state_diagram_match(i) = check_subdiagram(A, subdiagrams{1}) || check_subdiagram(A, subdiagrams{2});
     end
     fprintf('Fraction waves with correct phase diagram: %d/%d \n', sum(state_diagram_match), num_wave_sims);
-
-    %% Plot histogram of phases
+    
+    %% Filter data and plot histogram
     idx_temp = find(state_diagram_match);
     phases_all_match2 = phases_all_match(idx_temp,:,:);
     Con_wave_filtered = Con_wave(idx_temp, :);
     K_wave_filtered = K_wave(idx_temp, :, :);
     
-    phases_all_filtered = unique(phases_all_match2(:,:), 'rows');
+    phases_all_filtered = unique(phases_all_match2(:,:), 'rows'); % unique set of phases for this data set
     
     % Plot histogram of phases
     phase_counts = zeros(size(phases_all_filtered, 1), 1);
@@ -365,6 +365,8 @@ for idx_loop=1:numel(x_found)
     end
     [phase_counts_sorted, sort_idx] = sort(phase_counts, 'descend');
     
+    %{
+    % Plot histogram of phases
     h = figure;
     bar(phase_counts_sorted);
     xlabel_str = sprintfc('[%d %d; %d %d]', phases_all_filtered(sort_idx, :) );
@@ -375,14 +377,14 @@ for idx_loop=1:numel(x_found)
     ylabel('Count');
     
     % save figures
-    qsave = 1;
+    qsave = 0;
     save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_analytical_phases\phase_histogram';
     fname_str = sprintf('Trav_wave_conditions_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d_phases_hist',...
         num_waves, wave_type, network, states_perm(1), states_perm(2),...
         states_perm(3), states_perm(4));
     fname = fullfile(save_folder, fname_str);
     save_figure(h, 10, 8, fname, '.pdf', qsave);
-    
+    %}
     %% Plot phase diagram
     Con_wave = squeeze(Con_all(network, squeeze(trav_wave_conds_met(network, :)), :));
     K_wave = squeeze(K_all(network, squeeze(trav_wave_conds_met(network, :)), :, :));
@@ -390,19 +392,19 @@ for idx_loop=1:numel(x_found)
         for idx_j=1:2
             %idx_i = 1;
             %idx_j = 1;
-
+            
             % check that the interaction is not absent
             if K_wave(1, idx_i, idx_j)==0
                 continue
             end
-
+            
             h = plot_phase_diagram_local(a0, rcell, lambda, dist, idx_i, idx_j);
             %h=figure;
             %hold on
             scatter(K_wave_filtered(:,idx_i,idx_j), Con_wave_filtered(:,idx_j), 'k', 'x');
-
+            
             % save figures
-            qsave = 1;
+            qsave = 0;
             save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_analytical_phases\phase_diagram';
             fname_str = sprintf('Trav_wave_conditions_filtered_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d_interaction_%d_%d_scatter',...
                 num_waves, wave_type, network, states_perm(1), states_perm(2),...
@@ -417,7 +419,7 @@ for idx_loop=1:numel(x_found)
     % For each Con, K, the associated phase diagram should allow for waves
     % Also get information on the phases for each, and get a list of unique
     % phases
-
+    %{
     % Load data on all phase diagrams
     load_path = 'H:\My Documents\Multicellular automaton\data\two_signals\all_topologies';
     %load_path = 'D:\Multicellularity\data\two_signals\all_topologies';
@@ -432,19 +434,19 @@ for idx_loop=1:numel(x_found)
     wave_idx = x_found(idx_loop);
     network = y_found(idx_loop);
     M_int = M_int_by_topology{network};
-
+    
     % get all phases from network
     this_nphases = numel(phases_all_by_topology{network});
     phases_from_state_diagram = []; %zeros(this_nphases, 2, 2);
-
+    
     % check whether they permit travelling waves by checking subdiagram
     count = 0;
     for i=1:this_nphases
         phase = phases_all_by_topology{network}{i};
-
+        
         % construct state diagram from phase
         A = get_state_diagram_from_phase(phase, M_int);
-
+        
         % check if it has the right subdiagram
         this_match = check_subdiagram(A, subdiagrams{1}) || check_subdiagram(A, subdiagrams{2});
         if this_match
@@ -452,7 +454,7 @@ for idx_loop=1:numel(x_found)
             phases_from_state_diagram(count, :, :) = phases_all_by_topology{network}{i};
         end
     end
-
+    
     %% compare phases from state diagrams with phases from nearest-neighbour
     % mean-field theory
     A = phases_from_state_diagram(:,:);
@@ -472,7 +474,7 @@ for idx_loop=1:numel(x_found)
     set(gca, 'FontSize', 16);
 
     % save figures
-    qsave = 1;
+    qsave = 0;
     save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_analytical_phases\phases_compare';
     fname_str = sprintf('Trav_wave_conditions_filtered_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d_phases_compare',...
         num_waves, wave_type, network, states_perm(1), states_perm(2),...
@@ -481,15 +483,211 @@ for idx_loop=1:numel(x_found)
     save_figure(h, 7, 5, fname, '.pdf', qsave);
 
     % Save comparison data
-    save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_analytical_phases\phases_compare';
-    fname_str = sprintf('Trav_wave_conditions_filtered_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d_phases_compare_data',...
-        num_waves, wave_type, network, states_perm(1), states_perm(2),...
-        states_perm(3), states_perm(4));
-    fname = fullfile(save_folder, fname_str);
-    save(fname, 'phases_from_state_diagram', 'phases_all_filtered',...
-        'AB_int', 'A_only', 'B_only', 'Con_wave', 'K_wave');
+    if qsave
+        save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_analytical_phases\phases_compare';
+        fname_str = sprintf('Trav_wave_conditions_filtered_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d_phases_compare_data',...
+            num_waves, wave_type, network, states_perm(1), states_perm(2),...
+            states_perm(3), states_perm(4));
+        fname = fullfile(save_folder, fname_str);
+        save(fname, 'phases_from_state_diagram', 'phases_all_filtered',...
+            'AB_int', 'A_only', 'B_only', 'Con_wave', 'K_wave');
+    end
+    %}
+end
+%%
+% calculate fN
+Rcell = a0*rcell;
+idx = gz + round(gz/2); % pick cell not at corner of grid
+dist_vec = a0*dist(idx,:);
+r = dist_vec(dist_vec>0);
+fN = zeros(2,1);
+fN(1) = sum(sinh(Rcell)*exp((Rcell-r)./lambda(1)).*(lambda(1)./r));
+fN(2) = sum(sinh(Rcell)*exp((Rcell-r)./lambda(2)).*(lambda(2)./r));
+
+% calculate fnn
+fnn = zeros(1, 2);
+rnn = a0;
+fnn(1) = sinh(Rcell)*exp((Rcell-rnn)./lambda(1)).*(lambda(1)./rnn) ; % calculate signaling strength
+fnn(2) = sinh(Rcell)*exp((Rcell-rnn)./lambda(2)).*(lambda(2)./rnn) ; % calculate signaling strength
+
+fnnn = zeros(2,2);
+rnnn = [sqrt(3) 2].*a0;
+fnnn(1,:) = sinh(Rcell)*exp((Rcell-rnnn)./lambda(1)).*(lambda(1)./rnnn);
+fnnn(2,:) = sinh(Rcell)*exp((Rcell-rnnn)./lambda(2)).*(lambda(2)./rnnn);
+
+%% Calculate Y_all
+default_states = [0 0; 0 1; 1 0; 1 1];
+
+% calculate Y(alpha)
+% neighbour data
+switch wave_type
+    case 1
+        n_nei = [2	0	0	4; % EF
+            2	2	0	2; % F
+            2	2	2	0; % M 
+            0	2	2	2; % B
+            0	0	2	4; % EB
+            0	0	0	6]; % E
+    case 2
+        n_nei = [3	0	0	3;
+            2	3	0	1;
+            1	2	3	0;
+            0	1	2	3;
+            0	0	1	5;
+            0	0	0	6];
+    case 3
+        n_nei = [1	0	0	5;
+            2	1	0	3;
+            3	2	1	0;
+            0	3	2	1;
+            0	0	3	3;
+            0	0	0	6];
+end
+states = default_states(states_perm, :); % F, M, B, E
+types = [states(4,:); states(1,:); states(2,:); states(3,:); states(4,:); states(4,:)];
+Y_self = (Con-1).*types + 1;
+
+% calculate Y_nei
+Y_nei = zeros(size(n_nei, 1), 2);
+for i=1:6
+    Y_nei(i,1) = fnn(1)*n_nei(i,:)*((Con(1)-1)*states(:,1)+1);
+    Y_nei(i,2) = fnn(2)*n_nei(i,:)*((Con(2)-1)*states(:,2)+1);
+end
+%
+% estimate p
+tmp = num_waves*bandwidth;
+tmp2 = [tmp tmp tmp gz-3*tmp];
+p = (tmp2*states)/gz;
+
+% calculate Y_mf (mean-field contribution)
+z = 6; % coordination number
+Y_mf = zeros(1, 2);
+Y_mf(1) = (fN(1) - z*fnn(1))*( Con(1)*p(1) + (1-p(1)) );
+Y_mf(2) = (fN(2) - z*fnn(2))*( Con(2)*p(2) + (1-p(2)) );
+%disp(Y_mf)
+
+Y_all = Y_self + Y_nei + Y_mf;
+
+%% Plot specific conditions
+
+%-------------Calculate p values ----------
+% Parameters
+gz = 15;
+N = gz^2;
+a0 = 1.5;
+rcell = 0.2;
+Rcell = rcell*a0;
+lambda = [1 1.2];
+
+Con = [18 16];
+Coff = [1 1];
+M_int = [0 1; -1 1];
+K = [0 9; 11 6];
+
+hill = Inf;
+noise = 0;
+
+% get pos, dist
+mcsteps = 0;
+[pos, dist] = initial_cells_random_markov_periodic(gz, mcsteps, rcell);
+
+% calculate fN
+idx = gz + round(gz/2); % pick cell not at corner of grid
+dist_vec = a0*dist(idx,:);
+r = dist_vec(dist_vec>0);
+fN = zeros(2,1);
+fN(1) = sum(sinh(Rcell)*exp((Rcell-r)./lambda(1)).*(lambda(1)./r));
+fN(2) = sum(sinh(Rcell)*exp((Rcell-r)./lambda(2)).*(lambda(2)./r));
+
+% save folder
+%save_folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_stability';
+%fname_str_default = strrep(sprintf('N%d_a0_%.1f_rcell_%.1f_lambda12_%.1f_M_int_%d_%d_%d_%d_Con_%d_%d',...
+%    N, a0, rcell, lambda(2), M_int(1,1), M_int(1,2), M_int(2,1), M_int(2,2),...
+%    Con(1), Con(2)), '.', 'p');
+
+% Load initial conditions
+load_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\travelling_wave_snapshots';
+%fname_str = 'trav_wave_single_horizontal_inward_bend';
+%fname_str = 'trav_wave_single_horizontal_outward_bend'; 
+fname_str = 'trav_wave_single_vertical'; 
+
+fname = fullfile(load_folder, fname_str);
+cells_load = cell(2,1);
+cells_load{1} = xlsread(fname, 'Sheet1');
+cells_load{2} = xlsread(fname, 'Sheet2');
+if all(size(cells_load{1})==[N 2])
+    cells_in = cells_load{1};
+elseif all(size(cells_load{1})==[gz gz]) && all(size(cells_load{2})==[gz gz])
+    cells_in(:, 1) = reshape(cells_load{1}, N, 1);
+    cells_in(:, 2) = reshape(cells_load{2}, N, 1);
+else
+    disp('Wrong input format');
 end
 
+pw = mean(cells_in, 1);
+
+%----------------------------------------------------------------------------
+%%
+Con_wave = squeeze(Con_all(network, squeeze(trav_wave_conds_met(network, :)), :));
+K_wave = squeeze(K_all(network, squeeze(trav_wave_conds_met(network, :)), :, :));
+for idx_i=1:2
+    for idx_j=1:2
+        %idx_i = 1;
+        %idx_j = 1;
+
+        % check that the interaction is not absent
+        if K_wave(1, idx_i, idx_j)==0
+            continue
+        end
+
+        h = plot_phase_diagram_local(a0, rcell, lambda, dist, idx_i, idx_j);
+        %h=figure;
+        %hold on
+        scatter(K_wave_filtered(:,idx_i,idx_j), Con_wave_filtered(:,idx_j), 'k', 'x');
+
+        % save figures
+        qsave = 0;
+        save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_analytical_phases\phase_diagram';
+        fname_str = sprintf('Trav_wave_conditions_filtered_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d_interaction_%d_%d_scatter',...
+            num_waves, wave_type, network, states_perm(1), states_perm(2),...
+            states_perm(3), states_perm(4), idx_i, idx_j);
+        fname = fullfile(save_folder, fname_str);
+        save_figure(h, 10, 8, fname, '.pdf', qsave);
+    end
+end
+
+cond(1) = 1 + 2*Con(2)*fnn(2) + 4*fnn(2) + (Con(2) - 1)*pw(2) + (1-pw(2)); % < K12
+
+
+%% Plot all conditions
+i = 1;
+Y = Y_all(i, :); % 2x1
+
+
+%% Check conditions for specific parameter set
+conditions_met = zeros(6,1);
+% (1) E_F->F
+% (2) F->M
+% (3) M->B
+% (4) B->E
+% (5) E_B->E
+% (6) E->E 
+targets = [1 2 3 4 4 4]; % recall F, M, B, E
+output_state_list = zeros(6, 2);
+for i=1:6
+    %i = 1;
+    Y = Y_all(i, :); % 2x1
+    
+    %output_state = prod(((Y - K).*M_int>0) + (1-abs(M_int)), 2)';
+    target_state = states(targets(i),:);
+    conditions_met(i) = all(output_state==target_state);
+    output_state_list(i,:) = output_state;
+end
+%disp(output_state_list);
+%disp(conditions_met);
+
+trav_wave_conds_met = all(conditions_met);
+    
 %% Functions
 function [M_int_found] = get_found_M_int(y_found)
     % Get a list of all interaction matrices for the found networks

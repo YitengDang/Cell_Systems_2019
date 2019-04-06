@@ -414,9 +414,9 @@ ylim([0 1]);
 
 qsave = 1;
 if qsave
-    fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
-        sprintf('_nruns_%d_digits_%d', nruns, digits), '_TW_formation_vs_sigma_D_bar_plot'));
-    save_figure(h, 10, 8, fname, '.pdf', qsave);
+    fname = fullfile(save_path_fig, strcat(subfolder,...
+        sprintf('_nruns_%d_digits_%d', nruns, digits), '_vs_sigma_D_bar_plot_size_12_8'));
+    save_figure(h, 12, 8, fname, '.pdf', qsave);
 end
 %% Find breaking times of TWs (ini TW simulations)
 %{

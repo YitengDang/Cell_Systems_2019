@@ -13,9 +13,14 @@ function update_cell_figure_external(h_cells, h_borders, cells, t, disp_mol, pos
         % Update cell states
         clrs = 1-cells;
         c_all = zeros(size(cells, 1), 3); 
-        c_all(:, 3) = clrs(:, 1); % signal 1 present -> Turn on blue channel
-        c_all(:, 1) = clrs(:, 2); % signal 2 present -> Turn on red channel
-        c_all(:, 2) = clrs(:, 1) & clrs(:, 2); % signal 2 present -> Turn on green channel
+        %c_all(:, 3) = clrs(:, 1); % signal 1 present -> Turn on blue channel
+        %c_all(:, 1) = clrs(:, 2); % signal 2 present -> Turn on red channel
+        %c_all(:, 2) = clrs(:, 1) & clrs(:, 2); % signal 2 present -> Turn on green channel
+        
+        c_all(:, 1) = clrs(:, 2);               % signal 2 absent -> Turn on red channel
+        c_all(:, 2) = clrs(:, 1).*clrs(:, 2);   % greenness nonlinear function of redness and blueness
+        c_all(:, 3) = clrs(:, 1);               % signal 1 absent -> Turn on blue channel
+                
         set(h_cells, 'cdata', c_all);
         
         % Update cell positions

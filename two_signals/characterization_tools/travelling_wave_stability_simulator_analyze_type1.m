@@ -434,7 +434,7 @@ for idx_loop=1:numel(x_found)
     end
 end
 
-%% Plot parameters of simulations giving waves as spider plot
+%% Plot parameters of simulations giving waves as spider chart
 for idx_loop=1 %:num_psets
     wave_idx = x_found(idx_loop);
     network = y_found(idx_loop);

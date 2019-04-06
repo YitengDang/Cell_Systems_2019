@@ -1,29 +1,35 @@
 %% Analyze saved trajectories across a range of parameters
 clear all
 close all
-set(0, 'defaulttextinterpreter', 'latex');
+set(0, 'defaulttextinterpreter', 'tex');
 
 %% Parameters
 N = 225;
 tmax = 10000;
 %mcsteps_all = [0 10 100 1000];
-%mcsteps_all = [1 2:2:10 20:20:100 200:200:1000];
-noise_all = [0.01 0.03 0.05 0.1 0.3 0.5 1 3 5 10];
-network = 19;
 
+% MC Steps
+%{
+mcsteps_all = [1 2:2:10 20:20:100 200:200:1000];
+save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_vs_mcsteps'; % folder for saving figures
+load_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\randomized lattice'; % folder for loading data
 var_all = mcsteps_all;
+%}
+% Noise
+%
+noise_all = [0.01 0.03 0.05 0.1 0.3 0.5 1 3 5 10];
+save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_vs_noise'; % folder for saving data
+load_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_with_noise'; % folder for loading data
+var_all = noise_all;
+%}
 
+network = 15;
 num_params = 100;
-nruns = 100; %number of runs per parameter set
+nruns = 10; %number of runs per parameter set
+digits = 3; 
 
-% folder for saving figures
-%save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_vs_mcsteps';
-save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_vs_noise';
-
-% folder for loading data
-%load_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\randomized lattice';
-load_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_with_noise';
-%% Load data files
+%% Load raw data files
+%{
 subfolder = sprintf('TW_propagation_network_%d', network);
 
 folder = fullfile(load_path, subfolder);
@@ -105,12 +111,12 @@ for i=1:numel(names)
             trav_wave_all(idx, idx2, idx3) = trav_wave;
             trav_wave_all_2(idx, idx2, idx3) = trav_wave_2;
         end
-        %}
+        %
     end
 end
-
+%}
 %% Save the loaded data
-%
+%{
 subfolder = sprintf('TW_propagation_network_%d', network);
 fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, nruns);
 
@@ -129,52 +135,69 @@ save( fullfile(save_data_path, strcat(fname_str, '.mat')), 'mcsteps_all',...
     'num_params', 'nruns', 'digits', 'trav_wave_all', 'trav_wave_all_2');
 %}
 %% Load the saved data
-subfolder = sprintf('TW_propagation_network_%d', network);
-fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, nruns);
-
 % noise
-%save_data_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_with_noise';
-%load( fullfile(save_data_path, strcat(fname_str, '.mat')), 'noise_all',...
-%    'filecount', 't_out_all', 'period_all', 't_onset_all', 'tmax',...
-%    'num_params', 'nruns', 'digits', 'trav_wave_all', 'trav_wave_all_2');
+label = sprintf('TW_propagation_vs_noise_network_%d', network);
+fname_str = sprintf('analyzed_data_%s_num_params_%d_nruns_%d_digits_%d',...
+    label, num_params, nruns, digits);
+save_data_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_with_noise';
+load( fullfile(save_data_path, strcat(fname_str, '.mat')), 'noise_all',...
+    'filecount', 't_out_all', 'period_all', 't_onset_all', 'tmax',...
+    'num_params', 'nruns', 'digits', 'trav_wave_all', 'trav_wave_all_2');
 
 % mc steps
+%{
+label = sprintf('TW_propagation_network_%d', network);
+fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', label, nruns);
 save_data_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\randomized lattice';
 load( fullfile(save_data_path, strcat(fname_str, '.mat')), 'mcsteps_all',...
     'filecount', 't_out_all', 'period_all', 't_onset_all', 'tmax',...
     'num_params', 'nruns', 'digits', 'trav_wave_all', 'trav_wave_all_2');
-
+%}
 %% Analyze fraction of TWs
 %trav_wave_all_mean = sum(sum(trav_wave_all, 3), 2)/(num_params*nruns);
 trav_wave_all_2_mean = sum(sum(trav_wave_all_2, 3), 2)/(num_params*nruns);
 
+% rearrange data
+%{
+trav_wave_all_2_temp = trav_wave_all_2;
+trav_wave_all_2(4,:) = trav_wave_all_2_temp(5,:);
+trav_wave_all_2(5,:) = trav_wave_all_2_temp(4,:);
+noise_all_temp = noise_all;
+noise_all(4) = noise_all_temp(5);
+noise_all(5) = noise_all_temp(4);
+%}
 h = figure;
-x_data = var_all;
+x_data = noise_all;
 
 plot( x_data, trav_wave_all_2_mean, 'bo-', 'LineWidth', 1.5 );
 ylim([0 1]);
 set(gca, 'XScale', 'log');
 
 % labels (change per case)
-xlabel('MC steps');
+xlabel('Lattice disorder (MC steps)');
 %xlabel('Noise $\alpha$');
-ylabel('Fraction TW');
+ylabel('Fraction travelling waves');
 
 % Tick labels
-sel_idx = [1 6 11 16];
-A = sprintfc('10^{%d}', log10(x_data(sel_idx)) );
+%sel_idx = [1 6 11 16];
+%sel_idx = [1 4 10];
+%A = sprintfc('10^{%d}', log10(x_data(sel_idx)) );
 %{
 A = cell( numel(mcsteps_all), 1 );
 A{1} = '0';
 A(2:end) = sprintfc('%d', mcsteps_all(2:end) );
 %}
-set(gca, 'FontSize', 20, 'XTick', x_data(sel_idx), 'XTickLabels', A);
+%set(gca, 'FontSize', 32, 'XTick', x_data(sel_idx), 'XTickLabels', A);
 
-qsave = 1;
+qsave = 0;
 if qsave
-    fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
-        sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_TW_all_mean'));
-    save_figure(h, 10, 8, fname, '.pdf', qsave);
+    fname = fullfile(save_path_fig, strcat('analyzed_data_', label,...
+        sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_TW_all_mean_size_12_8'));
+    save_figure(h, 12, 8, fname, '.pdf', qsave);
+    
+    % save data
+    y_data = trav_wave_all_2_mean;
+    save(fname, 'x_data', 'y_data')
 end
 %% fraction with period 15
 period_15_frac = sum( sum( period_all==15, 3 ), 2)/(num_params*nruns);
@@ -208,7 +231,7 @@ set(gca, 'FontSize', 20, 'XTick', x_data(sel_idx), 'XTickLabels', A);
 
 qsave = 1;
 if qsave
-    fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
+    fname = fullfile(save_path_fig, strcat('analyzed_data_', label,...
         sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_period_15'));
     save_figure(h, 10, 8, fname, '.pdf', qsave);
 end
@@ -254,7 +277,7 @@ set(gca, 'FontSize', 20, 'XTick', x_data(sel_idx), 'XTickLabels', A);
 
 qsave = 1;
 if qsave
-    fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
+    fname = fullfile(save_path_fig, strcat('analyzed_data_', label,...
         sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_reaching_tmax'));
     save_figure(h2, 10, 8, fname, '.pdf', qsave);
 end

@@ -182,8 +182,8 @@ set(gca, 'FontSize', 32, 'XTick', xticks, 'XTickLabels', xtick_labels);
 qsave = 1;
 if qsave
     fname = fullfile(save_path_fig, strcat('TW_formation_vs_mcsteps_', label,...
-        sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_TW_all_mean'));
-    save_figure(h, 10, 8, fname, '.pdf', qsave);
+        sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_TW_all_mean_size_12_8'));
+    save_figure(h, 12, 8, fname, '.pdf', qsave);
 end
 %% fraction with period 15
 period_15_frac = sum( sum( period_all==15, 3 ), 2)/(num_params*nruns);

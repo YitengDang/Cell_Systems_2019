@@ -6,10 +6,7 @@ set(0, 'defaulttextinterpreter', 'latex');
 %% Parameters
 N = 225;
 tmax = 10000;
-%mcsteps_all = [0 10 100 1000];
-%mcsteps_all = [1 2:2:10 20:20:100 200:200:1000];
-%noise_all = [0.01 0.03 0.05 0.1 0.3 0.5 1 3 5 10]; % absolute
-noise_all = [0.001 0.005 0.01 0.05 0.1 0.5]; % relative
+noise_all = [0.01 0.03 0.05 0.1 0.3 0.5 1 3 5 10];
 network = 15;
 
 var_all = noise_all; %mcsteps_all;
@@ -131,10 +128,8 @@ save( fullfile(save_data_path, strcat(fname_str, '.mat')), 'mcsteps_all',...
     'num_params', 'nruns', 'digits', 'trav_wave_all', 'trav_wave_all_2');
 %}
 %% Load the saved data
-subfolder = sprintf('TW_propagation_network_%d', network);
-this_nruns = 100;
-%fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, this_nruns);
-fname_str = 'analyzed_data_TW_propagation_network_19_nruns_100_digits_5_old_v2';
+subfolder = sprintf('TW_propagation_vs_noise_network_%d', network);
+fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, nruns);
 
 % noise
 save_data_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_with_noise';
@@ -142,14 +137,9 @@ load( fullfile(save_data_path, strcat(fname_str, '.mat')), 'noise_all',...
     'filecount', 't_out_all', 'period_all', 't_onset_all', 'tmax',...
     'num_params', 'digits', 'trav_wave_all', 'trav_wave_all_2');
 
-% mc steps
-%save_data_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\randomized lattice';
-%load( fullfile(save_data_path, strcat(fname_str, '.mat')), 'mcsteps_all'...
-%    'filecount', 't_out_all', 'period_all', 't_onset_all', 'tmax',...
-%    'num_params', 'digits', 'trav_wave_all', 'trav_wave_all_2');
-
-%% Load data files
+%% Load data files 
 %%% PART II %%%
+%{
 noise_all_part2 = [50 100];
 
 % folders for loading data
@@ -237,7 +227,7 @@ for i=1:numel(names)
             trav_wave_all_part2(idx, idx2, idx3) = trav_wave;
             trav_wave_all_2_part2(idx, idx2, idx3) = trav_wave_2;
         end
-        %}
+        %
     end
 end
 %% Merge data
@@ -278,8 +268,9 @@ save( fullfile(save_path, strcat(fname_str, '.mat')), 'noise_all_new',...
 %    'num_params', 'nruns', 'digits', 'trav_wave_all', 'trav_wave_all_2');
 %}
 
-%% Load the analyzed data
-subfolder = sprintf('TW_propagation_network_%d', network);
+% Load the analyzed data
+%{
+subfolder = sprintf('TW_propagation_vs_noise_network_%d', network);
 fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, nruns);
 save_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_with_noise';
 load( fullfile(save_path, strcat(fname_str, '.mat')), 'noise_all_new',...
@@ -294,6 +285,7 @@ t_onset_all = t_onset_all_new;
 trav_wave_all = trav_wave_all_new;
 trav_wave_all_2 = trav_wave_all_2_new;
 var_all = noise_all;
+%}
 %% Analyze fraction of TWs
 %trav_wave_all_mean = sum(sum(trav_wave_all, 3), 2)/(num_params*nruns);
 trav_wave_all_2_mean = sum(sum(trav_wave_all_2, 3), 2)/(num_params*nruns);
@@ -325,7 +317,7 @@ A(2:end) = sprintfc('%d', mcsteps_all(2:end) );
 %}
 set(gca, 'FontSize', 20, 'XTick', x_data([sel_idx 12]), 'XTickLabels', A);
 
-qsave = 1;
+qsave = 0;
 if qsave
     fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
         sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_TW_all_mean'));

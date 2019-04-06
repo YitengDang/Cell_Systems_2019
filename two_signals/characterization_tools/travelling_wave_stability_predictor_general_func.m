@@ -101,9 +101,7 @@ function trav_wave_conds_met = travelling_wave_stability_predictor_general_func(
 
     % calculate Y_mf (mean-field contribution)
     z = 6; % coordination number
-    Y_mf = zeros(1, 2);
-    Y_mf(1) = (fN(1) - z*fnn(1))*( Con(1)*p(1) + (1-p(1)) );
-    Y_mf(2) = (fN(2) - z*fnn(2))*( Con(2)*p(2) + (1-p(2)) );
+    Y_mf = (fN' - z*fnn).*( Con.*p + (1-p) );
     %disp(Y_mf)
 
     Y_all = Y_self + Y_nei + Y_mf;

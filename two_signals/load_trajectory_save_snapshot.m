@@ -13,19 +13,22 @@ clc
 %folder = 'H:\My Documents\Multicellular automaton\paper_2_draft\figures\data\Fig_S6_types_of_TW';
 %folder = 'H:\My Documents\Multicellular automaton\paper_2_draft\figures\originals\FigS3_class_III_oscillating';
 %folder = 'H:\My Documents\Multicellular automaton\app\data\time_evolution\patterns\Network 12';
-folder = 'H:\My Documents\Multicellular automaton\paper_2\figures\originals\Fig6-extensions\wave_examples';
+%folder = 'H:\My Documents\Multicellular automaton\paper_2\figures\originals\Fig6-extensions\wave_examples';
+folder = 'M:\tnw\bn\hy\Shared\Yiteng\Multicellularity paper 2\movies\Fig_6_model_extension_patterns';
 %fname_str = 'travelling_pulse_horizontal_M_int1_1_-1_0_t_out_243_period_30-network_19';
 %fname_str = 'spiral_single_period_172_M_int_1_-1_1_0_network_15';
 %fname_str = 'sample_complex_trajectory';
-fname_str = 'two_signal_mult_N225_ini_state_TW_params_5_mcsteps_400_t_out_15_period_15-v1';
+%fname_str = 'two_signal_mult_N225_ini_state_TW_params_5_mcsteps_400_t_out_15_period_15-v1';
+fname_str = 'Fig_6_C_TW_formation_hill_10_ini_state_rand';
 
 load(fullfile(folder, fname_str), 'cells_hist', 'positions', 'distances', 'save_consts_struct');
+%load(fullfile(folder, fname_str), 'cells_hist', 'positions', 'distances', 'save_consts_struct', 'positions_all');
 rcell = save_consts_struct.rcell;
 a0 = save_consts_struct.a0;
-% Replay trajectory
+
+%% Replay trajectory
 h = figure;
 disp_mol = 12;
-
 [h_cells, h_borders]  = reset_cell_figure_minimal(h, positions, rcell);  
 for i=0:numel(cells_hist)-1
     cells = cells_hist{i+1};
@@ -37,8 +40,7 @@ for i=0:numel(cells_hist)-1
 end
 
 %% Plot snapshot(s)
-for time=[4 5] %numel(cells_hist)-1
-    
+for time=[1000:1006] %numel(cells_hist)-1
     % parameters
     %time = 27;
     disp_mol = 12;
@@ -46,6 +48,7 @@ for time=[4 5] %numel(cells_hist)-1
 
     % plot
     cells = cells_hist{time+1};
+    %positions = positions_all{time+1};
     h = figure;
     [h_cells, h_borders]  = reset_cell_figure_minimal(h, positions, rcell);
     %update_figure_periodic_scatter(plot_handle, cells, time, disp_mol, showI, a0, distances)
@@ -57,7 +60,9 @@ for time=[4 5] %numel(cells_hist)-1
     %save_folder = 'H:\My Documents\Multicellular automaton\paper_2_draft\figures\originals\FigS3_class_III_oscillating';
     %save_folder = 'H:\My Documents\Multicellular automaton\paper_2_draft\figures\originals\FigS6_types_of_TWs';
     %save_folder = 'H:\My Documents\Multicellular automaton\paper_2_draft\figures\originals\FigS18_static_patterns';
-    save_folder = 'H:\My Documents\Multicellular automaton\paper_2\figures\originals\Fig6-extensions\wave_examples';
+    %save_folder = 'H:\My Documents\Multicellular automaton\paper_2\figures\originals\Fig6-extensions\wave_examples';
+    save_folder = fullfile(folder, 'snapshots');
+    
     save_fname_str = sprintf('%s_snapshot_t_%d', fname_str, time);
     save_fname = fullfile(save_folder, save_fname_str);
 
@@ -76,13 +81,13 @@ box on
 h = gcf;
 width = 0; % set to 0 to keep current width/height
 height = 0;
-saveq = 0;
 colored_background = 0;
 
 save_folder = 'H:\My Documents\Multicellular automaton\paper_2_draft\figures\originals\Fig5-sample complex trajectory';
 save_fname_str = sprintf('sample_complex_trajectory_p_vs_t_v2');
 save_fname = fullfile(save_folder, save_fname_str);
 
+saveq = 0;
 save_figure(h, width, height, save_fname, '.pdf', saveq, colored_background)
 %% Plot I(t)
 t0 = 0;
@@ -94,11 +99,11 @@ box on
 h = gcf;
 width = 0; % set to 0 to keep current width/height
 height = 0;
-saveq = 1;
 colored_background = 0;
 
 save_folder = 'H:\My Documents\Multicellular automaton\paper_2_draft\figures\originals\Fig5-sample complex trajectory';
 save_fname_str = sprintf('sample_complex_trajectory_I_vs_t_v2');
 save_fname = fullfile(save_folder, save_fname_str);
 
+saveq = 0;
 save_figure(h, width, height, save_fname, '.pdf', saveq, colored_background)

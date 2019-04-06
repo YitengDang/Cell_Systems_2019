@@ -204,10 +204,11 @@ load( fullfile(save_path, strcat(fname_str, '.mat')), 'sigma_D_all',...
     'filecount', 'tmax', 'num_params', 'nruns', 'TW_breaking_time_all');
 
 % folder for saving figures
-save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_formation_fixed_params_network_15\new'; %'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_moving_cells';
+%save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_formation_fixed_params_network_15\new'; %'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_moving_cells';
+save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_moving_cells';
 %}
-
-%% Find breaking times of TWs (ini TW simulations)
+%% Plot persistence of TWs (bar graphs)
+% Find breaking times of TWs (ini TW simulations)
 h = figure;
 count_Inf = sum(sum( TW_breaking_time_all == Inf, 3), 2);
 count_0 = sum(sum( TW_breaking_time_all == 0, 3), 2);
@@ -245,15 +246,49 @@ for k = 1:size(bar_data,2)
     b(k).CData = repmat(colors(k,:), size(bar_data, 1), 1);
 end
 
-qsave = 1;
+qsave = 0;
 if qsave
     fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
         sprintf('_nruns_%d_digits_%d', nruns, digits), '_TW_preserved_vs_sigma_D_norm_prob'));
     save_figure(h, 12, 8, fname, '.pdf', qsave);
 end
+%% Plot persistence of TWs (fraction of simulations)
+% 
+h = figure;
+% Plot only final time (t=1000, saturating value)
+frac_sustained = sum(sum( TW_breaking_time_all == Inf, 3), 2)/(nruns*num_params);
 
-%% Analyze specific simulations
-%%%
+% Plot multiple times
+t1 = 100;
+t2 = 50;
+t3 = 30;
+t4 = 10;
+frac_sustained1 = sum(sum( TW_breaking_time_all > t1, 3), 2)/(nruns*num_params);
+frac_sustained2 = sum(sum( TW_breaking_time_all > t2, 3), 2)/(nruns*num_params);
+frac_sustained3 = sum(sum( TW_breaking_time_all > t3, 3), 2)/(nruns*num_params);
+frac_sustained4 = sum(sum( TW_breaking_time_all > t4, 3), 2)/(nruns*num_params);
+x_data = log10(sigma_D_all);
+%y_data = [frac_sustained1 frac_sustained2 frac_sustained3 frac_sustained4];
+y_data = frac_sustained;
+plot(x_data, y_data, 'o-', 'LineWidth', 1.5);
+set(gca, 'XTick', -3:0, 'XTickLabel', sprintfc('10^{%d}', -3:0) );
+set(gca, 'YTick', 0:0.2:1);
+ylim([0 1]);
+ylabel('Fraction of sustained TWs');
+xlabel('Cell motility \sigma_D');
+set(gca, 'FontSize', 32);
+set(h, 'Units', 'Inches', 'Position', [1 1 12 8]);
+%legend(sprintfc('t=%d', [100 t2 t3 t4]));
+
+qsave = 1;
+if qsave
+    fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
+        sprintf('_nruns_%d_digits_%d', nruns, digits), '_frac_TW_preserved_vs_sigma_D_t1000_size_10_8'));
+    save_figure(h, 10, 8, fname, '.pdf', qsave);
+    
+    % save plot data
+    save(fname, 'x_data', 'y_data');
+end
 %% Find filenames of specific simulations
 %[i1, i2] = find( squeeze(TW_breaking_time_all(4, :, :) < Inf), 1);
 %[i1, i2] = find( squeeze(TW_breaking_time_all(4, :, :) < Inf) & squeeze(TW_breaking_time_all(4, :, :) > 0), 1);
