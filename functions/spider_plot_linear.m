@@ -138,6 +138,7 @@ end
 
 
 %%% Figure Properties %%%
+%{
 colors = [0, 0.4470, 0.7410;...
     0.8500, 0.3250, 0.0980;...
     0.9290, 0.6940, 0.1250;...
@@ -147,8 +148,10 @@ colors = [0, 0.4470, 0.7410;...
     0.6350, 0.0780, 0.1840];
 %}
 % Repeat colors is necessary
+%{
 repeat_colors = fix(row_of_points/size(colors, 1))+1;
 colors = repmat(colors, repeat_colors, 1);
+%}
 
 %%% Polar Axes %%%
 % Polar increments
@@ -162,13 +165,13 @@ axes_limit = 1;
 
 % Polar points
 radius = [0; axes_limit];
-theta = 0:polar_increments:2*pi;
+theta = pi/2:polar_increments:2.5*pi;
 
 % Convert polar to cartesian coordinates
 [x_axes, y_axes] = pol2cart(theta, radius);
 %%
 %%% Data Points %%%
-figure;
+%fig_handle = figure;
 hold on
 % Iterate through all the rows
 %{
@@ -191,6 +194,11 @@ end
 
 % (1) Plot lines
 %
+%disp(varargin);
+clr_idx = find(strcmp( varargin, 'Color' ), 1); % find index of colors
+colors = varargin{clr_idx+1};
+other_idx = setdiff(1:numel(varargin), [clr_idx clr_idx+1]);
+%disp(colors)
 for ii = 1:row_of_points
     % Convert polar to cartesian coordinates
     [x_points, y_points] = pol2cart(theta(1:end-1), P(ii, :));
@@ -200,25 +208,30 @@ for ii = 1:row_of_points
     y_circular = [y_points, y_points(1)];
     
     % Plot data points
+    if size(colors, 1)==row_of_points
+        clr = colors(ii, :); 
+    else
+        clr = colors;
+    end
+    
     hold on
     p = plot(x_circular, y_circular,...
-        'Marker', 'none',...
-        'Color', [1 0 0],...
-        'LineStyle', '-',...
-        'LineWidth', 2);
-    p.Color(4) = 0.1; % transparency
+        varargin{other_idx}, 'Color', clr, 'MarkerFaceColor', clr);
+    p.Color(4) = 0.5; % transparency
 end
 %}
 
 % (1b) Plot colored areas
+%{
 P_min = min(P, [], 1);
 P_max = max(P, [], 1);
 % fill 
 [x_points, y_points] = pol2cart(theta(1:end-1), P_max);
-p = fill(x_points, y_points, 'r', 'EdgeColor', 'r', 'FaceAlpha', 0.2);
+p = fill(x_points, y_points, 'r', 'FaceAlpha', 0.2); % 'EdgeColor', 'r',
 % empty inside
 [x_points, y_points] = pol2cart(theta(1:end-1), P_min);
-p = fill(x_points, y_points, 'w', 'EdgeColor', 'r', 'FaceAlpha', 1);
+p = fill(x_points, y_points, 'w', 'FaceAlpha', 1); % 'EdgeColor', 'r',
+%}
 
 % (1c) Plot mean values
 %{
@@ -361,12 +374,12 @@ x_label = x_isocurves_text(end, :);
 y_label = y_isocurves_text(end, :);
 
 % Shift axis label
-shift_pos = 0.02; % default 0.07;
+shift_pos = 0.05; % default 0.07;
 
 % Iterate through each label
 for ii = 1:num_of_points
     % Angle of point in radians
-    theta_point = theta(ii);
+    theta_point = mod( theta(ii), 2*pi );
     
     % Find out which quadrant the point is in
     if theta_point == 0
@@ -400,7 +413,7 @@ for ii = 1:num_of_points
             horz_align = 'left';
             vert_align = 'bottom';
             x_pos = shift_pos;
-            y_pos = shift_pos;
+            y_pos = -shift_pos;
         case 1.5
             horz_align = 'center';
             vert_align = 'bottom';
@@ -410,7 +423,7 @@ for ii = 1:num_of_points
             horz_align = 'right';
             vert_align = 'bottom';
             x_pos = -shift_pos;
-            y_pos = shift_pos;
+            y_pos = -shift_pos;
         case 2.5
             horz_align = 'right';
             vert_align = 'middle';
@@ -420,7 +433,7 @@ for ii = 1:num_of_points
             horz_align = 'right';
             vert_align = 'top';
             x_pos = -shift_pos;
-            y_pos = -shift_pos;
+            y_pos = shift_pos;
         case 3.5
             horz_align = 'center';
             vert_align = 'top';
@@ -430,8 +443,10 @@ for ii = 1:num_of_points
             horz_align = 'left';
             vert_align = 'top';
             x_pos = shift_pos;
-            y_pos = -shift_pos;
+            y_pos = shift_pos;
     end
+    %x_pos = 0;
+    %y_pos = 0;
     
     % Display text label
     text(x_label(ii)+x_pos, y_label(ii)+y_pos, P_labels{ii},...
@@ -445,8 +460,8 @@ end
 
 % Axis limits
 axis square;
+axes_limit = axes_limit + 0.3; %r_offset + shift_pos;
 axis([-axes_limit, axes_limit, -axes_limit, axes_limit]);
 axis off;
-
 
 end

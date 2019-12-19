@@ -25,6 +25,7 @@ tmax = 3000;
 % parameters chosen
 %path = 'H:\My Documents\Multicellular automaton\finite_Hill\data\dynamics 2017-10-16'; 
 path = 'H:\My Documents\Multicellular automaton\finite_Hill\data\dynamics binaryrand';
+
 straux = '(\d+)';
 straux2 = '(\w+)';
 
@@ -151,7 +152,7 @@ for var=1:numel(a0list)
     %ylim([-0.05 0.3])
 
     % save the map
-    qsave = 1;
+    qsave = 0;
     if qsave
         name = strrep(sprintf('N%d_a0%.2f_K%d_Con%d_hill%.2f_%s_runs%d_tmax%d',...
                     N, a0, K, Con, hill, initialID, nruns, tmax), '.','p');
@@ -172,7 +173,7 @@ for var=1:numel(a0list)
     box on
 
     % save the pdf
-    qsave = 1;
+    qsave = 0;
     if qsave
         name = strrep(sprintf('N%d_a0%.2f_K%d_Con%d_hill%.2f_%s_runs%d_tmax%d',...
                     N, a0, K, Con, hill, initialID, nruns, tmax), '.','p');

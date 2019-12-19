@@ -3,7 +3,7 @@
 clear all;
 close all;
 clc;
-set(0, 'defaulttextinterpreter', 'latex');
+set(0, 'defaulttextinterpreter', 'tex');
 %% Parameters
 L = 11; % size of lattice
 N = L^2;
@@ -31,7 +31,9 @@ end
 %nbins_sim = [12 12 12 7 7]; % number of sims with given bin count
 
 %% Load files
-g_all = cell(1,nparts);
+%load_folder = fullfile('H:\My Documents\Multicellular automaton', 'data', 'dos', 'probI_fixedp');
+load_folder = 'M:\tnw\bn\hy\Shared\Yiteng\Multicellularity\data\main\dos\probI_fixedp';
+g_all = cell(1, nparts);
 nbins = [36 36 39 39 39]; % number of histogram bins according to filename (might be wrong)
 for i=1:nparts
     g_temp = zeros(nbins(i), nbins_sim(i));
@@ -41,15 +43,15 @@ for i=1:nparts
         disp(this_n)
         fileid = strrep(sprintf('WL_norm_N%d_n0_%d_a0_%.2f_f0exp%d_ffin_e10e-%d_pflat%.1f_%dbins_fixed%.2f',...
             N, this_n, a0, c1, c2, p_flat, nbins(i)), '.', 'p');
-        fname = fullfile('H:\My Documents\Multicellular automaton', 'data', 'dos', 'probI_fixedp', strcat(fileid, '.mat') ); % filename
-        load(fname, 'lgn2');
+        fname = fullfile(load_folder, strcat(fileid, '.mat') ); % filename
+        load(fname, 'edges', 'lgn2');
         g_temp(:, j) = exp(lgn2)/sum(exp(lgn2));
     end
     g_all{i} = g_temp;
 end
 %% Plot P(I|p)
 %{
-%% Plot surface
+% Plot surface
 set(0, 'defaulttextinterpreter', 'latex');
 Ibincenters = (edges(1:end-1)+edges(2:end))/2;
 [pm, Im] = meshgrid(n/N, Ibincenters);
@@ -57,11 +59,17 @@ h1=figure();
 surf(pm, Im, g_all);
 xlabel('p');
 ylabel('I');
+%}
+P_data = zeros(max(nbins), numel(n));
+for i=1:numel(g_all)
+    P_data(1:nbins(i), idx_all{i}) = g_all{i};
+end
 
-%% Plot heat map
+% Plot heat map
 h2=figure();
+Ibincenters = (edges(1:end-1)+edges(2:end))/2;
 colormap('hot');
-imagesc(n/N, Ibincenters, g_all);
+imagesc(n/N, Ibincenters, P_data);
 c=colorbar;
 c.Label.String = 'P(I|p)';
 set(gca,'FontSize', 14);
@@ -75,7 +83,8 @@ fileid = sprintf('nchoosek_n%d', N);
 fname = fullfile(pwd,'data','nchoosek', strcat(fileid, '.mat'));
 if exist(fname)==2
     %disp('exists!');
-    load(fname);
+    data=load(fname);
+    binom = data.omegap;
 else
     %disp('Doesnt exist!');
     binom = zeros(1,N+1);
@@ -89,48 +98,61 @@ end
 
 omegap = binom(n);
 omegapI = cell(1, numel(g_all));
+omegapI_log = cell(1, numel(g_all));
 for i=1:numel(g_all)
     idx = n_all{i} - n(1) + 1; % indices of omegap to take
     omegapI{i} = g_all{i}.*repmat(omegap(idx), nbins(i), 1);
+    omegapI_log{i} = log(g_all{i}) + log(repmat(omegap(idx), nbins(i), 1));
 end
 %% Plot figures
 h1=figure();
 hold on
-%colormap('hot');
-%edge_max = [0.18 0.18 0.2 0.2 0.2];
+colormap('viridis');
 edges = linspace(-0.06, 0.2, nbins(end)+1); % TUNE
 Icenters = (edges(1:end-1)+edges(2:end))/2;
-%Icenters = cell(1,numel(g_all));
 omegapI_all = Inf*ones(max(nbins), numel(n)); %only works when smaller bins have same edges
-for i=1:numel(g_all)-1
+omegapI_log_all = zeros(max(nbins), numel(n));
+for i=1:numel(g_all)
     %edges = linspace(-0.06, edge_max(i), nbins(i));
     %Icenters{i} = (edges(1:end-1)+edges(2:end))/2;
     omegapI_all(1:nbins(i), idx_all{i}) = omegapI{i};
+    omegapI_log_all(1:nbins(i), idx_all{i}) = omegapI_log{i};
     %imagesc(n_all{i}/N, Icenters{i}, log(omegapI{i})); 
     % (1) plot both sides
+    %
     if mod(N,2)
-        plotdata = log([omegapI_all  fliplr(omegapI_all(:,1:end-1))] );
-        hplot = imagesc([n/N (N+1-n(1:end-1))/N], Icenters, plotdata);
-        %set(hplot, 'AlphaData', plotdata > 0); % doesn't work, tune range
+        plotdata = [omegapI_log_all fliplr(omegapI_log_all(:,1:end-1))];
+        %plotdata = log([omegapI_all  fliplr(omegapI_all(:,1:end-1))] );
+        p_data = [n/N fliplr(N+1-n(1:end-1))/N];
+        hplot = imagesc(p_data, Icenters, plotdata);
+        set(hplot, 'AlphaData', plotdata > 0); % doesn't work, tune range
     else
-        plotdata = log([omegapI_all  fliplr(omegapI_all(:,1:end))]);
-        hplot = imagesc([n/N (N+1-n)/N], Icenters, log([omegapI_all  fliplr(omegapI_all(:,1:end))]));
-        %set(hplot, 'AlphaData', plotdata > 0);
+        plotdata = [omegapI_log_all fliplr(omegapI_log_all(:,1:end))];
+        %plotdata = log([omegapI_all  fliplr(omegapI_all(:,1:end))]);
+        pdata = [n/N (N+1-n)/N];
+        hplot = imagesc(pdata, Icenters, plotdata);
+        set(hplot, 'AlphaData', plotdata > 0);
     end
+    %}
     % (2) Plot only one side
     %imagesc(n/N, Icenters, log(omegapI_all) ); 
+    %imagesc(n/N, Icenters, omegapI_log_all)
+    %xlim([n(1)/N n(end)/N]);
     % Plot other side
 end
 c=colorbar;
+caxis([0 80])
 c.Label.String = 'log(\Omega(p,I))';
 set(gca,'FontSize', 24);
 set(gca,'YDir','normal');
-xlim([n(1)/N n(end)/N]);
-ylim([-0.06 0.2]);
+xlim([p_data(1) p_data(end)]);
+ylim([-0.06 0.18]);
+%ylim([-0.14 0.3]);
 %xticks(0.1:0.1:0.9);
 %yticks(edges(1:3:end));
 xlabel('p');
 ylabel('I');
+
 %% Save data
 if qsave
     fname = strrep(sprintf('OmegapI_WL_norm_N%d_a0_%.2f_f0exp%d_ffin_e10e-%d_pflat%.1f_max_%d_bins',...
@@ -140,10 +162,12 @@ if qsave
     save(out_file);
 end
 %% Save heat map
+qsave = 1;
+%save_folder = fullfile(pwd, 'figures', 'dos', 'Wang-Landau probI_fixedp');
+save_folder = 'M:\tnw\bn\hy\Shared\Yiteng\Multicellularity\data\main\dos\OmegapI_probI_fixedp';
 if qsave
-    fname = strrep(sprintf('OmegapI_WL_norm_full_N%d_a0_%.2f_f0exp%d_ffin_e10e-%d_pflat%.1f_max_%d_bins',...
+    fname = strrep(sprintf('OmegapI_WL_norm_full_N%d_a0_%.2f_f0exp%d_ffin_e10e-%d_pflat%.1f_max_%d_bins_viridis_size_10_8',...
         N, a0, c1, c2, p_flat, max(nbins)), '.', 'p');
-    out_fig = fullfile(pwd, 'figures', 'dos', 'Wang-Landau probI_fixedp', ...
-        strcat(fname,'.pdf')); % filename figure
-    save_figure_pdf(h1, 10, 6, out_fig);
+    out_fig = fullfile(save_folder, strcat(fname,'.pdf')); % filename figure
+    save_figure_pdf(h1, 10, 8, out_fig);
 end

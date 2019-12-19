@@ -27,9 +27,13 @@ function update_figure_periodic_scatter(plot_handle, cells, t, disp_mol, showI, 
         % --update cells--
         clrs = 1-cells;
         c_all = zeros(size(cells, 1), 3); 
-        c_all(:, 3) = clrs(:, 1); % signal 1 present -> Turn on blue channel
-        c_all(:, 2) = clrs(:, 2); % signal 2 present -> Turn on green channel
-        c_all(:, 1) = clrs(:, 2); % signal 2 present -> Turn on red channel
+        %c_all(:, 3) = clrs(:, 1); % signal 1 present -> Turn on blue channel
+        %c_all(:, 2) = clrs(:, 2); % signal 2 present -> Turn on green channel
+        %c_all(:, 1) = clrs(:, 2); % signal 2 present -> Turn on red channel
+        
+        c_all(:, 1) = clrs(:, 2);               % signal 2 absent -> Turn on red channel
+        c_all(:, 2) = clrs(:, 1).*clrs(:, 2);   % greenness nonlinear function of redness and blueness
+        c_all(:, 3) = clrs(:, 1);               % signal 1 absent -> Turn on blue channel
         set(plot_handle, 'cdata', c_all);
     else
         cells = cells(:, disp_mol);

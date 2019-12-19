@@ -4,6 +4,7 @@
 close all
 clear variables
 %warning off
+set(0, 'defaulttextinterpreter', 'tex');
 
 % Parameters of the system
 gridsize = 11;
@@ -36,7 +37,7 @@ fname_str = strrep(sprintf('vs_ini_noise_N%d_Con_%d_K_%d_a0_%.2f_p0_%.2f_noise10
     N, Con, K, a0, p0, log10(noiselist(1)), log10(noiselist(end)) ), '.', 'p');
 
 %% calculate the map
-%{
+%
 dH_prob = zeros(nvar, N+1);
 dH_mean = zeros(nvar, 1);
 dH_std = zeros(nvar, 1);
@@ -73,25 +74,27 @@ path = fullfile(pwd, 'figures', 'sensitivity_initial_cond_continuum', 'data');
 load(fullfile(path,fname));
 %% Hamming distance between final configurations
 % between unflipped and flipped configurations
-set(0, 'defaulttextinterpreter', 'latex');
 
 % Plot average and std
 h1 = figure(1);
 p1=errorbar(noiselist, dH_mean/N, dH_std/N, 'o-', 'LineWidth', 2);
-set(gca,'FontSize', 24)
+set(gca,'FontSize', 32)
 set(get(p1,'Parent'), 'XScale', 'log');
-xlabel('pertubation strength');
-ylabel('$$d_H/N$$', 'Interpreter', 'latex');
+xlabel('\alpha');
+ylabel('d_H/N');
 set(gcf, 'Units', 'Inches', 'Position', [1 1 10 8]);
 %}
 
 % Save
-save_fig = 0; % save figure? 0:no, 1: yes
+save_fig = 1; % save figure? 0:no, 1: yes
 if save_fig > 0
-    fname = fullfile(pwd, 'figures', 'sensitivity_initial_cond_continuum', 'vs_noise',...
-    	strcat(fname_str,'-v', int2str(version), '_dH_mean_std_errorbar'));
+    %fname = fullfile(pwd, 'figures', 'sensitivity_initial_cond_continuum', 'vs_noise',...
+    %	strcat(fname_str,'-v', int2str(version), '_dH_mean_std_errorbar'));
+    folder = 'H:\My Documents\Thesis\Sensitivity to initial conditions\Fig2';
+    fname_str = 'vs_ini_noise_N121_Con_16_K_8_a0_5p40_p0_0p30_noise10exp-2p0_0p0-v3_dH_mean_std_errorbar';
+    fname = fullfile(folder, fname_str);
     save_figure_pdf(h1, 10, 8, fname);
-    save_figure_eps(h1, 10, 8, fname);
+    %save_figure_eps(h1, 10, 8, fname);
 end
 %% Plot std only
 h2 = figure(2);
@@ -135,30 +138,34 @@ if save_fig > 0
 end
 %% Plot heat map
 h4 = figure(4);
+box on
 hold on
-im_fig = imagesc(p, log10(noiselist), dH_prob);
-set(gca,'FontSize', 24)
+im_fig = imagesc(log10(noiselist), p, dH_prob');
+set(gca,'FontSize', 32)
 % set title and font
 %title(sprintf('$$N = %d, K = %.1f, S_{ON} = %.1f, a0 = %.1f, R = %.1f$$', ...
 %    N, K, Con, a0, Rcell),'FontSize', 18, 'Interpreter', 'latex')
-set(gca,'Ydir','normal','FontSize', 24)
+set(gca,'Ydir','normal','FontSize', 32)
 % set invisible parts where count is zero
-set(im_fig, 'AlphaData', dH_prob > 0);
+set(im_fig, 'AlphaData', dH_prob' > 0);
 % set colorbar and labels
 c = colorbar;
 c.Label.String = 'Probability';
-xlabel('$$d_H/N$$', 'FontSize', 24)
-ylabel('log(pertubation strength)', 'FontSize', 24)
-xlim([0 0.6]);
-ylim([log10(noiselist(1))-0.2 log10(noiselist(end))+0.2]);
+ylabel('d_H/N')
+xlabel('log(\alpha)')
+ylim([0 0.3]);
+xlim([log10(noiselist(1))-0.2 log10(noiselist(end))+0.2]);
 
 %save 
 save_fig = 0; % save figure? 0:no, 1: yes
 if save_fig > 0
-    fname = fullfile(pwd, 'figures', 'sensitivity_initial_cond_continuum', 'vs_noise',...
-    	strcat(fname_str,'-v', int2str(version), '_dH_heat_map'));
+    %fname = fullfile(pwd, 'figures', 'sensitivity_initial_cond_continuum', 'vs_noise',...
+    %	strcat(fname_str,'-v', int2str(version), '_dH_heat_map'));
+    folder = 'H:\My Documents\Thesis\Sensitivity to initial conditions\Fig2';
+    fname_str = 'vs_ini_noise_N121_Con_16_K_8_a0_5p40_p0_0p30_noise10exp-2p0_0p0-v3_dH_heat_map';
+    fname = fullfile(folder, fname_str);
     save_figure_pdf(h4, 10, 8, fname);
-    save_figure_eps(h4, 10, 8, fname);
+    %save_figure_eps(h4, 10, 8, fname);
 end
 %% Return probability (dH=0)
 h6 = figure(6);

@@ -4,7 +4,7 @@
 % that allow for propagation of any kind of travelling wave
 clear all
 close all
-set(0,'defaulttextinterpreter', 'latex')
+set(0,'defaulttextinterpreter', 'tex')
 
 %% Parameters
 % Number of parameter sets to do
@@ -18,6 +18,7 @@ rcell = 0.2;
 Rcell = rcell*a0;
 lambda = [1 1.2];
 Coff = [1 1];
+logic = 0;
 %M_int = [0 1; -1 1]; % network 15 reversed
 %{
 M_int = [0 1; -1 1]; % network 15 reversed
@@ -54,6 +55,13 @@ lambda = save_consts_struct.lambda;
 M_int = save_consts_struct.M_int;
 %}
 
+% logic str
+if logic
+    logic_str = 'AND_logic';
+else
+    logic_str = 'OR_logic';
+end
+
 % specify wave type and characteristics
 wave_types_str = {'straight', 'inward bend', 'outward bend'};
 wave_type = 1;
@@ -73,19 +81,23 @@ default_states = [0 0; 0 1; 1 0; 1 1];
 %}
 
 % Data folder
-folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
+%folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
 %folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
 %folder = 'L:\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
+folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals_batch_sim_2\TW_propagation_conditions_analytical';
 %subfolder = 'run1_no_Con_K_info';
-subfolder = 'run2';
+%subfolder = 'run2';
 %subfolder = 'run3_vary_a0_lambda12';
 %subfolder = 'run2b_n_pset_10e6';
+subfolder = 'run_stability';
+load_folder = fullfile(folder, subfolder);
 
 % save figure folder
 %save_folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_stability';
-save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\temp';
+%save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\temp';
+save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals_batch_sim_2\TW_propagation_conditions_analytical';
 %% Find networks capable of supporting travelling waves 
-%{
+%
 types_waves = 24;
 num_networks = 44;
 wave_possible = zeros(types_waves, num_networks); % stores whether a wave of a certain type is possible in a given network
@@ -96,9 +108,11 @@ for i=1:types_waves
     states_perm = P(i, :);
     
     % Load data
-    fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
-            num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
-    load( fullfile(folder, subfolder, fname_str) );
+    %fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
+    % 	num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
+    fname_str = sprintf('TW_conds_%s_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
+        logic_str, num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
+    load( fullfile(load_folder, fname_str) );
     
     % Find networks that can support the wave
     % (1) For old set (old network numbering 1-81)
@@ -122,7 +136,7 @@ for i=1:types_waves
 end
 %}
 %% Save analyzed data
-%{
+%
 fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_analysed_%s',...
     num_waves, wave_type, subfolder);
 save( fullfile(folder, fname_str) );
@@ -168,7 +182,7 @@ save_figure(h, 10, 8, fname, '.pdf', qsave);
 % (3) Plot correlations between Con, K for waves
 
 Qvals = zeros(numel(x_found), 1); % Q-values of circuits
-for idx_loop=1 %1:numel(x_found)
+for idx_loop=1:numel(x_found)
     %wave_idx = 2;
     %network = 19;
     wave_idx = x_found(idx_loop);
@@ -177,12 +191,14 @@ for idx_loop=1 %1:numel(x_found)
     
     states_perm = P(wave_idx, :);
     %
-    % load data
-    load_folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
+    % load data - same data files but now only the parameter sets that give waves
+    %load_folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
     %subfolder = 'run3_vary_a0_lambda12';
-    fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
-            num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
-    load( fullfile(load_folder, subfolder, fname_str) );
+    %fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
+    % 	num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
+    fname_str = sprintf('TW_conds_%s_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
+        logic_str, num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
+    load( fullfile(load_folder, fname_str) );
     %} 
     %% Number / fraction of parameter sets giving waves
     %
@@ -222,8 +238,8 @@ for idx_loop=1 %1:numel(x_found)
     %
     % save figures
     qsave = 0;
-    fname_str = sprintf('Trav_wave_conditions_wave_num_%d_type_%d_networks_%d_states_F%d_M%d_B%d_E%d',...
-        num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
+    fname_str = sprintf('TW_conds_%s_wave_num_%d_type_%d_networks_%d_states_F%d_M%d_B%d_E%d',...
+        logic_str, num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
     fname = fullfile(save_folder, 'all_networks_analytical_Con_K_conditions', strcat(fname_str, '_Con_hist'));
     save_figure(h, 10, 8, fname, '.pdf', qsave);
     fname = fullfile(save_folder, 'all_networks_analytical_Con_K_conditions', strcat(fname_str, '_K_hist'));
@@ -264,8 +280,8 @@ for idx_loop=1 %1:numel(x_found)
     
     % Save correlation heatmap
     qsave = 0;
-    fname_str = sprintf('Trav_wave_conditions_wave_num_%d_type_%d_networks_%d_states_F%d_M%d_B%d_E%d',...
-        num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
+    fname_str = sprintf('TW_conds_%s_wave_num_%d_type_%d_networks_%d_states_F%d_M%d_B%d_E%d',...
+        logic_str, num_waves, wave_type, network, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
     fname = fullfile(save_folder, 'all_networks_analytical_Con_K_conditions', strcat(fname_str, '_Con_K_corr'));
     save_figure(h3, 10, 8, fname, '.pdf', qsave);
 end
@@ -287,14 +303,14 @@ bar(c, (Qvals/n_pset).^(1./num_params')); % unnormalized
 ylabel('Normalized robustness');
 %}
 xlabel('Network, wave form')
-set(gca, 'FontSize', 20);
+set(gca, 'FontSize', 32);
 
 % save figures
-qsave = 0;
+qsave = 1;
 %folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general';
-fname_str = sprintf('Trav_wave_conditions_wave_num_%d_type_%d_%s',...
-    num_waves, wave_type, subfolder);
-fname = fullfile(save_folder, 'all_networks_analytical_Con_K_conditions',...
+fname_str = sprintf('TW_conds_%s_wave_num_%d_type_%d_%s',...
+    logic_str, num_waves, wave_type, subfolder);
+fname = fullfile(save_folder,...
     strcat(fname_str, '_Q_vals_by_wave_v2_both'));
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 %}
@@ -496,6 +512,7 @@ for idx_loop=1 %1:numel(x_found)
 end
 %%
 % calculate fN
+%{
 Rcell = a0*rcell;
 idx = gz + round(gz/2); % pick cell not at corner of grid
 dist_vec = a0*dist(idx,:);
@@ -514,8 +531,9 @@ fnnn = zeros(2,2);
 rnnn = [sqrt(3) 2].*a0;
 fnnn(1,:) = sinh(Rcell)*exp((Rcell-rnnn)./lambda(1)).*(lambda(1)./rnnn);
 fnnn(2,:) = sinh(Rcell)*exp((Rcell-rnnn)./lambda(2)).*(lambda(2)./rnnn);
-
+%}
 %% Calculate Y_all
+%{
 default_states = [0 0; 0 1; 1 0; 1 1];
 
 % calculate Y(alpha)
@@ -567,7 +585,7 @@ Y_mf(2) = (fN(2) - z*fnn(2))*( Con(2)*p(2) + (1-p(2)) );
 %disp(Y_mf)
 
 Y_all = Y_self + Y_nei + Y_mf;
-
+%}
 %% Plot specific conditions
 
 %-------------Calculate p values ----------
@@ -657,12 +675,6 @@ for idx_i=1:2
 end
 
 cond(1) = 1 + 2*Con(2)*fnn(2) + 4*fnn(2) + (Con(2) - 1)*pw(2) + (1-pw(2)); % < K12
-
-
-%% Plot all conditions
-i = 1;
-Y = Y_all(i, :); % 2x1
-
 
 %% Check conditions for specific parameter set
 conditions_met = zeros(6,1);

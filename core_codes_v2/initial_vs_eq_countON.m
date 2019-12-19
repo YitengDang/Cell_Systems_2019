@@ -4,18 +4,20 @@ clear all
 %warning off
 
 % Parameters of the system
-gridsize = 15;
+gridsize = 11;
 N = gridsize^2;
-a0 = 0.5;
+a0 = 1.5;
 Rcell = 0.2*a0;
-K = 14;
-Con = 5;
+K = 3;
+Con = 24;
+% K, Con = [6, 21]; [3, 24]
 
 % use hexagonal lattice
 [dist, pos] = init_dist_hex(gridsize, gridsize);
 
 % filename of the saved data
-fname = sprintf('pin_pout_N%d_Con_%d_K_%d_a0_%d', ...
+save_folder = 'H:\My Documents\Thesis\Miscellaneous\3_number_of_pI_states\figures';
+fname_str = sprintf('pin_pout_N%d_Con_%d_K_%d_a0_%d', ...
     N, Con, round(K), 10*a0);
 
 % Calculate the signaling strength
@@ -31,17 +33,17 @@ p = (0:N)./N;
 prob = transpose(count./repmat(sum(count,2),1,N+1));
 
 % save mat file
-%save(fullfile(pwd,'figures','pin_pout',strcat(fname,'.mat')))
-save(fullfile(pwd, 'rebuttal', 'Langevin_pin_pout', strcat('exact_sim_', fname,'.mat')))
+save(fullfile(save_folder, strcat(fname_str, '_exact_sim','.mat')))
 %%
 % plot the map
-h1 = figure(1);
+h1 = figure;
+box on
 hold on
 im_fig = imagesc(p,p,prob);
 % set title and font
-title(sprintf('N = %d, K = %.1f, S_{ON} = %.1f, a0 = %.1f, R = %.1f', ...
-    N, K, Con, a0, Rcell),'FontSize', 18)
-set(gca,'Ydir','normal','FontSize', 20)
+%title(sprintf('N = %d, K = %.1f, S_{ON} = %.1f, a0 = %.1f, R = %.1f', ...
+%    N, K, Con, a0, Rcell),'FontSize', 18)
+set(gca,'Ydir','normal', 'FontSize', 20)
 % set invisible parts where count is zero
 set(im_fig, 'AlphaData', count' > 0);
 % set colorbar and labels
@@ -49,24 +51,29 @@ c = colorbar;
 c.Label.String = 'Probability';
 xlabel('p_{in}', 'FontSize', 24)
 ylabel('p_{out}', 'FontSize', 24)
-
+colormap('viridis');
 % Plot line p = 1/2 - 4B/fN
+%{
 B = (Con+1)/2*(1+fN) - K;
 line = 1/2 - B/(4*fN);
 plot([line line], [0 1], 'r--');
+%}
 xlim([0 1]);
 ylim([0 1]);
 
 % Organize and save
-save_fig = 0; % save figure? 0:no, 1: yes
+save_fig = 1; % save figure? 0:no, 1: yes
 if save_fig > 0
+    %{
     set(h1,'Units','Inches');
     set(h1, 'Position', [0 0 10 6 ])
     pos = get(h1,'Position');
     set(h1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
-    %out_file = fullfile(pwd, 'figures', 'pin_pout', strcat(fname,'_map'));
     out_file = fullfile(pwd, 'rebuttal', strcat(fname,'_map'));
     print(h1, out_file,'-dpdf','-r0')
+    %}
+    path_out = fullfile(save_folder, fname_str);
+    save_figure_pdf(h1, 10, 8, path_out)
 end
 %%
 % Plot the average number of steps it takes to reach equilibrium
@@ -78,6 +85,7 @@ title(sprintf('N = %d, K = %.1f, S_{ON} = %.1f, a0 = %.1f, R = %.1f', ...
 xlabel('k_{in}', 'FontSize', 24)
 ylabel('Average # steps for eq.', 'FontSize', 24)
 
+%{
 h3 = figure(3);
 % calculate the analytical formula and plot
 [~,omegak] = entropy_eq_sphere(dist_vec, Con, K, a0, Rcell);
@@ -85,3 +93,4 @@ plot((0:N)/N , log(omegak), 'LineWidth', 1.5)
 set(gca,'FontSize', 20)
 xlabel('p');
 ylabel('$$\Omega_k$$', 'Interpreter', 'latex');
+%}

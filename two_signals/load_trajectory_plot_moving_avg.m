@@ -35,15 +35,16 @@ end
 pt = Non/N;
 fig_pos = [1 1 10 8];
 t0 = 0;
-h = plot_p_vs_t(cells_hist, t0, fig_pos);
+h = plot_p_vs_t(cells_hist(1:21), t0, fig_pos);
 box on
 
 % Save p(t) plot
 [~, fname_str_2, ~] = fileparts(fname_str);
-fname_str_save = sprintf('%s_p_vs_t', fname_str_2);
+fname_str_save = sprintf('%s_p_vs_t_0to20', fname_str_2);
 fname_out = fullfile(save_folder, fname_str_save);
-qsave = 1;
-save_figure(h, 10, 8, fname_out, '.pdf', qsave)
+qsave = 0;
+save_figure(h, 9, 4, fname_out, '.pdf', qsave)
+% insets: 9 x 4
 
 %% calculate moving qts p(t)
 k = 100; %window length
@@ -60,16 +61,17 @@ plot_clrs = [1 0 0;
 %plot(0:tmax, p_mov_var);
 for i=1:s
     clr = plot_clrs(i, :);
-    p1=plot(0:tmax, p_mov_cv(:, i), 'Color', clr, 'LineWidth', 2);
+    %p1=plot(0:tmax, p_mov_cv(:, i), 'Color', clr, 'LineWidth', 2);
+    p1=plot(0:200, p_mov_cv(1:201, i), 'Color', clr, 'LineWidth', 2);
 end
 p1.Color(4) = 0.75; %transparency
 xlabel('t', 'Interpreter', 'tex');
 ylabel('CV(p) = \sigma_p/\mu_p', 'Interpreter', 'tex');
 %legend(num2cell(string(1:s)));
 set(gca, 'FontSize', 24);
-xlim([0 tmax])
-%ylim([0 0.2]);
-%ylim([0 1]);
+%xlim([0 tmax])
+xlim([0 150])
+ylim([0 0.02]);
 
 %{
 % plot together with pt
@@ -81,10 +83,10 @@ end
 %}
         
 [~, fname_str_2, ~] = fileparts(fname_str);
-fname_str_save = sprintf('%s_moving_avg_pt_window_%d', fname_str_2, k);
+fname_str_save = sprintf('%s_moving_avg_pt_window_%d_t0to150', fname_str_2, k);
 fname_out = fullfile(save_folder, fname_str_save);
 qsave = 1;
-save_figure(h, 10, 8, fname_out, '.pdf', qsave)
+save_figure(h, 9, 4, fname_out, '.pdf', qsave)
 %save_figure(h_fig, width, height, path_out, ext, qsave, colored_background)
 
 %% I(t)
@@ -131,16 +133,18 @@ I_mov_cv = I_mov_var./I_mov_mean;
 t0 = 0;
 pos_hist = [];
 option = 1; % 1: I, 2: Theta
-fig_pos = [1 1 12 6];
+fig_pos = [1 1 9 4];
 h = plot_I_vs_t(cells_hist(1:21), t0, a0, distances, option, fig_pos);
+%h = plot_I_vs_t(cells_hist(1:51), t0, a0, distances, option, fig_pos);
+ylim([0 0.6]);
 box on
 % plot_I_vs_t(cells_hist, t0, a0, dist, option, fig_pos)
 
 % Save I(t) plot
 [~, fname_str_2, ~] = fileparts(fname_str);
-fname_str_save = sprintf('%s_I_vs_t_initial_t_0_30', fname_str_2);
+fname_str_save = sprintf('%s_I_vs_t_initial_t_0_20', fname_str_2);
 fname_out = fullfile(save_folder, fname_str_save);
-qsave = 1;
+qsave = 0;
 save_figure(h, fig_pos(3), fig_pos(4), fname_out, '.pdf', qsave)
 %%
 % Plot CV vs t
@@ -153,20 +157,21 @@ plot_clrs = [1 0 0;
 %plot(0:tmax, p_mov_var);
 for i=1:s
     clr = plot_clrs(i, :);
-    p1 = plot(0:tmax, I_mov_cv(:, i), 'Color', clr, 'LineWidth', 3);
+    %p1 = plot(0:tmax, I_mov_cv(:, i), 'Color', clr, 'LineWidth', 3);
+    p1 = plot(0:200, I_mov_cv(1:201, i), 'Color', clr, 'LineWidth', 1.2);
 end
 p1.Color(4) = 0.75; %transparency
 xlabel('t', 'Interpreter', 'tex');
 ylabel('CV(I) = \sigma_I/\mu_I', 'Interpreter', 'tex');
 %legend(num2cell(string(1:s)));
 set(gca, 'FontSize', 24);
-xlim([0 tmax])
-%ylim([0 0.15]);
-%ylim([0 1]);
+%xlim([0 tmax])
+xlim([0 150])
+ylim([0 0.03]);
 
 [~, fname_str_2, ~] = fileparts(fname_str);
-fname_str_save = sprintf('%s_moving_avg_It_window_%d', fname_str_2, k);
+fname_str_save = sprintf('%s_moving_avg_It_window_%d_t0to150', fname_str_2, k);
 fname_out = fullfile(save_folder, fname_str_save);
 qsave = 1;
-save_figure(h, 10, 8, fname_out, '.pdf', qsave)
+save_figure(h, 9, 4, fname_out, '.pdf', qsave)
 %save_figure(h_fig, width, height, path_out, ext, qsave, colored_background)

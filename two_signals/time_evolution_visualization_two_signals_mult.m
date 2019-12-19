@@ -19,6 +19,8 @@ lambda = [1 1.2]; % diffusion length (normalize first to 1)
 lambda12 = lambda(2)/lambda(1);
 hill = Inf;
 noise = 0;
+logic = 0; % 0=AND, 1=OR
+periodic_bc = [0 0]; % boundary conditions -> (0,0) = fixed, (1,1) = periodic, (1,0) = periodic in x-axis only, (0, 1) = periodic in y-axis only
 
 % initial conditions
 p0 = [0.5 0.5];
@@ -125,7 +127,7 @@ showI = 0;
 % generate initial lattice
 %[dist, pos] = init_dist_hex(gz, gz);
 nodisplay = 1;
-[pos, dist] = initial_cells_random_markov_periodic(gz, mcsteps, rcell, nodisplay);
+[pos, dist] = initial_cells_random_markov(gz, mcsteps, rcell, nodisplay, periodic_bc);
 
 % generate initial state
 %iniON = round(p0*N);
@@ -143,6 +145,7 @@ end
 
 % store initial config
 cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
+
 %%
 %-------------dynamics-----------------------------------------
 hin=figure;
@@ -150,22 +153,32 @@ plot_handle = reset_cell_figure(hin, pos, rcell);
 t = 0;
 period = Inf; %default values
 t_onset = Inf; 
-[cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+if logic
+    [cellsOut, changed] = update_cells_two_signals_OR_logic_finite_Hill(cells, dist, M_int, a0,...
         Rcell, Con, Coff, K, lambda, hill, noise);
+else
+    [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+    Rcell, Con, Coff, K, lambda, hill, noise);
+end
 update_figure_periodic_scatter(plot_handle, cells, t, disp_mol, showI, a0, dist);
 
 % always check within first t_ac time steps
 t_ac = 10^2; 
 while changed && period==Inf && t<t_ac
     %disp(t);
-    pause(1);
+    pause(0.2);
     t = t+1;
     cells = cellsOut;
     cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
     [period, t_onset] = periodicity_test_short(cells_hist); 
     update_figure_periodic_scatter(plot_handle, cells, t, disp_mol, showI, a0, dist);
-    [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+    if logic
+        [cellsOut, changed] = update_cells_two_signals_OR_logic_finite_Hill(cells, dist, M_int, a0,...
         Rcell, Con, Coff, K, lambda, hill, noise);
+    else
+        [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+            Rcell, Con, Coff, K, lambda, hill, noise);    
+    end
 end
 % check periodically after t_ac time steps, with period t_check
 t_check = 10^3; 
@@ -178,9 +191,15 @@ while changed && period==Inf && t<tmax
     if mod(t, t_check)==0
         [period, t_onset] = periodicity_test_short(cells_hist); 
     end
+    
     %update_cell_figure_continuum(app, pos, dist, a0, cells, app.Time, cell_type, disp_mol, 0);
-    [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
-        Rcell, Con, Coff, K, lambda, hill, noise);
+    if logic
+        [cellsOut, changed] = update_cells_two_signals_OR_logic_finite_Hill(cells, dist, M_int, a0,...
+            Rcell, Con, Coff, K, lambda, hill, noise);
+    else
+        [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+            Rcell, Con, Coff, K, lambda, hill, noise);
+    end
 end
 %pause(1);
 

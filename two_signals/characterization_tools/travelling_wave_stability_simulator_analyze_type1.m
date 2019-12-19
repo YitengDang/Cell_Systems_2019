@@ -94,7 +94,7 @@ disp('Cell states F, M, B, E');
 disp(t);
 disp(t2);
 
-%% Load detailed data
+%% Load detailed data (theory)
 % Classify data into true pos, true neg, false pos, false neg
 
 %frac_correct = zeros(num_files, 1);
@@ -148,11 +148,12 @@ for idx_loop=1:num_psets
     %num_predicted_all(idx_loop) = numel(trav_wave_all);
 end
 %% Plot overall density of travelling waves (from simulations)
-Qvals_all = out_all_count(:, 4)/size(results_all{1}, 1);
+Qvals_theory_all = (out_all_count(:, 3) + out_all_count(:, 4))/size(results_all{1}, 1); 
+Qvals_sims_all = (out_all_count(:, 2) + out_all_count(:, 4))/size(results_all{1}, 1);
 
 h = figure;
 hold on
-bar(Qvals_all);
+bar([Qvals_theory_all Qvals_sims_all]);
 
 % labels below
 %labels = {'15, [3 4 2 1]', '19, [4 3 1 2]', '33, [4 2 1 3]', '33, [3 4 2 1]',...
@@ -163,30 +164,32 @@ set(gca, 'XTick', 1:num_psets, 'XTickLabels', labels, 'XTickLabelRotation', 45);
 
 % other settings
 xlabel('Network');
-%ylabel('Q-value');
-ylabel('Frequency');
+ylabel('Q-value');
+%ylabel('Frequency');
 set(gca, 'FontSize', 32);
 set(h, 'Units', 'inches', 'position', [1 1 10 8]);
-ylim([0 0.02]);
+ylim([0 0.03]);
 %title('Plane waves');
 box on
-set(gca, 'YTick', 0:0.004:0.02);
+legend({'Theory', 'Simulations'});
+%set(gca, 'YTick', 0:0.004:0.02);
 %}
 
 qsave = 0;    
 pred_label = 'run2';
 save_folder = 'H:\My Documents\Multicellular automaton\figures\trav_wave_stability\all_networks_test_analytical_in_sims';
-fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_Q_vals_v2', num_waves, wave_type, pred_label);
+fname_str_save = sprintf('wave_num_%d_wave_type_%d_%s_Q_vals_v3_theory_sims', num_waves, wave_type, pred_label);
 fname = fullfile(save_folder, fname_str_save);
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 
 %% normalize by the number of parameters for each circuit
 num_params = [5 5 6 6 6 6];
-Qvals_all_norm = (Qvals_all').^(1./num_params);
+Qvals_theory_all_norm = (Qvals_theory_all).^(1./num_params');
+Qvals_sims_all_norm = (Qvals_sims_all).^(1./num_params');
 
 h = figure;
 hold on
-bar(Qvals_all_norm);
+bar([Qvals_theory_all_norm Qvals_sims_all_norm]);
 
 % labels below
 %labels = {'15, [3 4 2 1]', '19, [4 3 1 2]', '33, [4 2 1 3]', '33, [3 4 2 1]',...
@@ -204,6 +207,7 @@ set(h, 'Units', 'inches', 'position', [1 1 10 8]);
 ylim([0 1]);
 box on
 set(gca, 'YTick', 0:0.2:1);
+legend({'Theory', 'Simulations'});
 %}
 
 qsave = 0;

@@ -1,7 +1,8 @@
 clear all 
 close all
 %%
-sim_folder = 'M:\tnw\bn\hy\Shared\Douwe\Recent Results\Initial_I\Network_19\all_data';
+sim_folder = 'W:\staff-groups\tnw\bn\hy\Shared\Douwe\Recent Results\Initial_I\Network_19\all_data';
+%sim_folder = 'M:\tnw\bn\hy\Shared\Douwe\Recent Results\Initial_I\Network_19\all_data';
 all_names = dir(sim_folder);
 all_names = {all_names.name};
 %%
@@ -35,7 +36,7 @@ for sim_nr = 1:100
         
         for I2 = 1:numel(I_all)
             %t_onset = NaN;
-            
+            fprintf('Simulation %d, I1 = %.1f, I2 = %.1f \n', sim_nr, I1, I2)
             % Load simulation
             I_ini_str = sprintf('_I_ini_%.2f_%.2f', I_all(I1), I_all(I2));
             file_name = strrep(sprintf('network_19_param_639_sim_%g_%s_',sim_nr,I_ini_str),'.','p');
@@ -154,7 +155,8 @@ for ii1 = 1:numel(I_sel)
 end
 
 %% Save analyzed results
-save_folder = 'H:\My Documents\Multicellular automaton\paper_2_draft\figures\originals_fig5';
+%save_folder = 'H:\My Documents\Multicellular automaton\paper_2_draft\figures\originals_fig5';
+save_folder = 'W:\staff-groups\tnw\bn\hy\Shared\Douwe\Recent Results\Initial_I\Network_19';
 fname_str = 'analyzed_trajectories_vs_I_network33_100runs';
 save(fullfile(save_folder, fname_str), 'I_all', 'I_dist_count',...
     'wave_all', 'wave_all2', 'I_sel_vals', 'frac_wave', 'frac_wave2');
@@ -175,7 +177,7 @@ set(h, 'Units', 'Inches', 'Position', [0.1 0.1 10 8]);
 
 % save figure
 save_folder = 'H:\My Documents\Multicellular automaton\paper_2_draft\figures\originals_fig5';
-qsave = 1;
+qsave = 0;
 fname_str = 'trajectories_vs_I_ini_frac_TW_strict_network19_100runs';
 save_figure(h, 10, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 

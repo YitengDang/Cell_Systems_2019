@@ -6,31 +6,31 @@ warning off
 % Lattice parameters
 gridsize = 11;
 N = gridsize^2;
-a0 = 5;
-Rcell = 0.2*a0;
-%a0list = [5 5.4 6];
-initialID = 'uniform';
+%a0 = 5;
+%Rcell = 0.2*a0;
+a0list = [4.5:0.1:4.9];
+initialID = 'binaryrand'; % 'uniform';
 
 % circuit parameters
 K = 8;
 Con = 16;
 hill = 2; % Hill coefficient
 prec = 8;
-%noise = 0;
-noiselist = 10.^[-1];
+noise = 0;
+%noiselist = 10.^[-1];
 
 % simulation parameters
-n_run = 20;
+n_run = 100;
 qsave = 1;
 
 % use hexagonal lattice
 [dist, pos] = init_dist_hex(gridsize, gridsize);
 
 %%
-for i=1:numel(noiselist)
-    noise = noiselist(i);
-	%a0 = a0list(i);
-    %Rcell = 0.2*a0;
+for i=1:numel(a0list) %numel(noiselist)
+    %noise = noiselist(i);
+	a0 = a0list(i);
+    Rcell = 0.2*a0;
     dist_vec = a0*dist(1,:);
     r = dist_vec(dist_vec>0); % exclude self influence
     fN = sum(sinh(Rcell)*sum(exp(Rcell-r)./r)); % calculate signaling strength
@@ -90,15 +90,20 @@ for i=1:numel(noiselist)
         if qsave
             %fname_str = strrep(sprintf('N%d_a0_%.2f_K%d_Con%d_hill%.2f_t%d_xmeanf_%.2f_prec_%d_',...
             %    N, a0, K, Con, hill, t, xmean(end), prec), '.', 'p');
-            fname_str = strrep(sprintf('N%d_a0_%.2f_K%d_Con%d_hill%.2f_noise%.2f_prec_%d_tmax%d_%s',...
-                N, a0, K, Con, hill, noise, prec, tmax, initialID), '.', 'p');
+            %fname_str = strrep(sprintf('N%d_a0_%.2f_K%d_Con%d_hill%.2f_noise%.2f_prec_%d_tmax%d_%s',...
+            %    N, a0, K, Con, hill, noise, prec, tmax, initialID), '.', 'p');
+            fname_str = strrep(sprintf('N%d_a0_%.2f_Con%.2f_K%.2f_hill%.2f_%s',...
+                N, a0, Con, K, hill, initialID), '.', 'p');
             i = 1;
-            dir = 'H:\My Documents\Multicellular automaton\temp';
-            fname = fullfile(dir,...
+            
+            parent_folder = 'N:\tnw\BN\HY\Shared\Yiteng\one_signal_finite_Hill\dynamics';
+            subfolder =  '2017-10-25_vs_a0_5p00_to_6p00_K8_Con16_hill2p00_binaryrand';
+            save_dir = fullfile(parent_folder, subfolder); %'H:\My Documents\Multicellular automaton\temp';
+            fname = fullfile(save_dir,...
                 strcat(fname_str,'-v',int2str(i),'.mat'));
             while exist(fname, 'file') == 2
                 i=i+1;
-                fname = fullfile(dir,...
+                fname = fullfile(save_dir,...
                     strcat(fname_str,'-v',int2str(i),'.mat'));
             end
             save(fname);

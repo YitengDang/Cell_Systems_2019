@@ -4,7 +4,7 @@ close all
 clear all
 warning off
 set(0, 'defaulttextinterpreter', 'latex');
-
+%%
 % Lattice parameters
 gridsize = 11;
 N = gridsize^2;
@@ -16,7 +16,7 @@ Con = 20;
 hill = 2; % Hill coefficient
 
 % Initial configuration
-initialID = 'montecarlo';  %see below
+initialID = 'in_out_binary'; % 'montecarlo';  %see below
 p = 0.5;
 sigma = 0.27;
 prec = 12; % precision
@@ -43,7 +43,7 @@ cell_type = zeros(N,1); % all the same here
 syms x
 S = @(x) (Con-1)*x + 1;
 f = @(x) (S(x)*(1+fN))^hill/(K^hill + (S(x)*(1+fN))^hill) - x;
-xMF = [fzero(f, [0 0.1]) fzero(f, [0.1 0.2]) fzero(f, [0.2 1])]; % manually set bounds
+fp = [fzero(f, [0 0.1]) fzero(f, [0.1 0.3]) fzero(f, [0.3 1])]; % manually set bounds
 
 %% Plot phase diagram
 % Bistability example: K=8, Con=16, a0=1.5, hill=2
@@ -60,7 +60,7 @@ set(gca,'FontSize', 24);
 %legend({'f(Y_i)', 'Y_i'}, 'FontSize', 20, 'Location', 'nw');
 
 %Save fig
-qsave = 1;
+qsave = 0;
 if qsave
     basedir = 'H:\My Documents\Multicellular automaton';
     fname = strrep(sprintf('single_cell_dynamics_Con%d_K%d_hill%.2f', Con, K, hill), '.','p');
@@ -135,7 +135,7 @@ xstd = [];
 I = [];
 %cells_hist = {};
 
-%update_cell_figure_continuum(hin, pos, a0, cells, cell_type, t);
+update_cell_figure_continuum(hin, pos, a0, cells, cell_type, t);
 frames(1) = getframe(gcf);
 xmean(end+1) = mean(cells);
 xstd(end+1) = std(cells);
@@ -146,8 +146,8 @@ while changed && t<tmax
     disp(t);
     t = t+1;
     %k = waitforbuttonpress;
-    %pause(0.1);
-    %update_cell_figure_continuum(hin, pos, a0, cells_out, cell_type, t);
+    pause(0.1);
+    update_cell_figure_continuum(hin, pos, a0, cells_out, cell_type, t);
     frames(end+1) = getframe(gcf);
     cells_hist{end+1} = cells_out;
     xmean(end+1) = mean(cells_out);
@@ -176,9 +176,9 @@ plot(0:t, curve1, 'b-', 'Linewidth', 1.5);
 plot(0:t, curve2, 'b-', 'Linewidth', 1.5);
 
 % Plot together with mean field steady state
-plot([0 t], [xMF(1) xMF(1)], 'r--', 'Linewidth', 2)
-plot([0 t], [xMF(2) xMF(2)], 'r--', 'Linewidth', 2)
-plot([0 t], [xMF(3) xMF(3)], 'r--', 'Linewidth', 2)
+plot([0 t], [fp(1) fp(1)], 'r--', 'Linewidth', 2)
+plot([0 t], [fp(2) fp(2)], 'r--', 'Linewidth', 2)
+plot([0 t], [fp(3) fp(3)], 'r--', 'Linewidth', 2)
 
 set(gca, 'FontSize', 20);
 xlabel('time');
@@ -189,7 +189,7 @@ ylim([-0.2 1]);
 %legend({'\mu_X (Standard)', '\sigma_X (Standard)', '\mu_X (Mean field)', '\sigma_X (Mean field)'});
 
 %Save fig
-qsave = 1;
+qsave = 0;
 if qsave
     %fname_str = strrep(sprintf('trajectory_N%d_a0%.1f_Con%.2f_K%.2f_hill%.2f_%s_pini%.2f_sigma%.2f_ebar_MF_sol_style2',...
     %    N, a0, Con, K, hill, initialID, p, sigma), '.','p');
@@ -208,7 +208,7 @@ end
 fracON = zeros(t+1, 1);
 for i=1:t+1
     cells = cells_hist{i};
-    fracON(i) = sum(cells>xMF(2))/N;
+    fracON(i) = sum(cells>fp(2))/N;
 end
 
 h=figure(2);
@@ -219,7 +219,7 @@ xlabel('time');
 ylabel('fraction ON cells');
 set(gca, 'FontSize', 20);
 
-qsave = 1;
+qsave = 0;
 if qsave
     %fname_str = strrep(sprintf('trajectory_N%d_a0%.1f_Con%.2f_K%.2f_hill%.2f_%s_pini%.2f_sigma%.2f_ebar_MF_sol_style2',...
     %    N, a0, Con, K, hill, initialID, p, sigma), '.','p');

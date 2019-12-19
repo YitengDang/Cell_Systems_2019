@@ -19,15 +19,51 @@ gz = sqrt(N);
 cell_type = zeros(N, 1);
 rcell = save_consts_struct.rcell;
 
+%% continue simulation if necessary
+% Code contains unknown bug
+%{
+tmax = 1100;
+t = numel(cells_hist)-1;
+cells = cells_hist{end};
+
+M_int = save_consts_struct.M_int;
+Rcell = save_consts_struct.rcell*a0;
+Con = save_consts_struct.Con;
+Coff = save_consts_struct.Coff;
+K = save_consts_struct.K;
+lambda = [1 save_consts_struct.lambda12];
+hill = save_consts_struct.hill;
+noise = save_consts_struct.noise;
+disp_mol = 12;
+
+h = figure;
+[h_cells, h_borders] = reset_cell_figure(h, positions, rcell);
+update_cell_figure_external(h_cells, h_borders, cells, t, disp_mol, positions);
+[cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+        Rcell, Con, Coff, K, lambda, hill, noise);
+while t<tmax
+    %disp(t);
+    pause(0.2);
+    update_cell_figure_external(h_cells, h_borders, cells, t, disp_mol, positions);
+
+    t = t+1;
+    cells = cellsOut;
+    cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
+    [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, dist, M_int, a0,...
+        Rcell, Con, Coff, K, lambda, hill, noise);
+end
+%}
 %% replay trajectory, save "normal" movie
 %
-savemovie = 1;
+savemovie = 0;
+framerate = 10;
 if savemovie
     [~, fname_str] = fileparts(file);
-    fname_out = fullfile(save_folder, strcat(fname_str, '_simulation')); 
-    format = 'Motion JPEG AVI'; %'MPEG-4'; % <- .mp4
+    fname_out = fullfile(save_folder, sprintf('%s_simulation_%dfps',...
+        fname_str, framerate)); 
+    format = 'MPEG-4'; %'Motion JPEG AVI' <- .avi; 'MPEG-4'; % <- .mp4
     myVideo = VideoWriter(fname_out, format); %, 'Uncompressed AVI');
-    myVideo.FrameRate = 10;  % Default 30
+    myVideo.FrameRate = framerate;  % Default 30
     myVideo.Quality = 50; % Default 75
     open(myVideo);
 end
@@ -66,7 +102,7 @@ end
 % Data
 t1 = 0;
 %t2 = 300;
-t2 = numel(cells_hist)-1;
+t2 = 1700; %numel(cells_hist)-1;
 Non = zeros(t2-t1+1, 2);
 for i=t1+1:t2+1
     cells = cells_hist{i};
@@ -76,14 +112,14 @@ for i=t1+1:t2+1
 end
 
 % filename 
-folder = 'H:\My Documents\Multicellular automaton\paper_2\figures\data\Fig_5_trajectories\all_5B';
+folder = 'M:\tnw\bn\hy\Shared\Yiteng\Multicellularity paper 2\movies';
 [~, fname_str_pre, ~] = fileparts(file);
 fname_str = sprintf('%s_p1_p2_dynamics', fname_str_pre); 
 fname_out = fullfile(folder, fname_str);
 
 % Video settings
-frame_rate = 8; % frames/second
-format = 'MPEG-4'; %'Motion JPEG AVI'; %movie format 
+frame_rate = 10; % frames/second
+format = 'Motion JPEG AVI'; %'Motion JPEG AVI'; %movie format 
 % 'Motion JPEG AVI' <- default, works best
 % 'Uncompressed AVI' <- high quality(?), large file
 % 'MPEG-4' <- .mp4

@@ -4,18 +4,18 @@
 close all
 clear all
 warning off
-set(0, 'defaulttextinterpreter', 'latex');
+set(0, 'defaulttextinterpreter', 'tex');
 
 %%
 % Lattice parameters
 gridsize = 11;
 N = gridsize^2;
-a0 = 1.5;
+a0 = 7;
 Rcell = 0.2*a0;
 
 % circuit parameters
-K = 6;
-Con_all = 1:0.1:25; %1:0.1:30;
+K = 12;
+Con_all = 1:0.1:25; %1:0.1:25; %1:0.1:30;
 hill = 2; % Hill coefficient
 
 % use hexagonal lattice
@@ -56,7 +56,11 @@ end
 colors = ['r' 'b'];
 
 h = figure(1);
+box on
 hold on
+scatter(repmat(Con_all, 1, numel(x0)), fp(:), [], stable(:), 'o');
+colormap( [1 0 0; 0 0 1] );
+%{
 for i=1:numel(Con_all)
     %disp(Con_all(i));
     for j=1:numel(x0)
@@ -65,22 +69,47 @@ for i=1:numel(Con_all)
         plot(Con_all(i), fp(i,j), 'o', 'Color', color);
     end
 end
+%}
 ylim([-0.02 1.02]);
 xlim([Con_all(1) Con_all(end)]);
-xlabel('$$C_{ON}$$');
-ylabel('$$X$$');
-set(gca, 'FontSize', 24);
+xlabel('C_{ON}');
+ylabel('X');
+set(gca, 'FontSize', 32);
 
 %Save fig
-qsave = 1;
+qsave = 0;
 if qsave
     folder = 'H:\My Documents\Multicellular automaton\temp';
-    fname = strrep(sprintf('bifurcation_diagram_vsCon_K%d_hill%.2f_a0_%.2f_spacing_%.2f',...
+    fname = strrep(sprintf('bifurcation_diagram_vs_Con_K%d_hill%.2f_a0_%.2f_spacing_%.2f',...
         K, hill, a0, Con_all(2)-Con_all(1)), '.','p');
     out_file = fullfile(folder, fname);
     save_figure_pdf(h, 10, 8, out_file)
 end
+%% Plot largest eigenvalues
+lambda_max = max(evals, [], 3);
 
+h=figure;
+box on
+hold on
+plot([Con_all(1)-1 Con_all(end)+1], [1 1], 'k--');
+scatter(repmat(Con_all, 1, numel(x0)), lambda_max(:), [], stable(:), 'x');
+colormap( [1 0 0; 0 0 1] );
+xlim([Con_all(1) Con_all(end)]);
+ylim([0 1.4]);
+xlabel('C_{ON}')
+ylabel('\lambda_{max}')
+%plot(Con_all, lambda_max, 'x');
+%ylim([0 1]);
+set(gca, 'FontSize', 32);
+
+qsave = 0;
+if qsave
+    folder = 'H:\My Documents\Multicellular automaton\temp';
+    fname = strrep(sprintf('max_eigenval_vs_Con_K%d_hill%.2f_a0_%.2f_spacing_%.2f',...
+        K, hill, a0, Con_all(2)-Con_all(1)), '.','p');
+    out_file = fullfile(folder, fname);
+    save_figure_pdf(h, 10, 8, out_file)
+end
 %% Plot phase diagram 
 %{
 % For single cell in uniform lattice

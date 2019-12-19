@@ -6,6 +6,7 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
     % implements an efficient periodicity test by checking only every
     % t_check time steps whether trajectory has become periodic (after a
     % transient phase of t_ac steps when it checks every step).
+    %%
     cells_hist = {};
     gz = sqrt(N);
     rcell = Rcell/a0;
@@ -66,17 +67,18 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
     t = 0;
     period = Inf; %default values
     t_onset = Inf; 
-    [cellsOut, changed] = update_cells_two_signals_multiply_finite_Hill(cells, distances, M_int, a0,...
-            Rcell, Con, Coff, K, lambda, hill, noise);
-
-    t_ac = 10^2; 
+    [cellsOut, changed, ~] = update_cells_two_signals_multiply_finite_Hill(cells, distances, M_int, a0,...
+        Rcell, Con, Coff, K, lambda, hill, noise);
+    
+    %%
+    t_ac = 10^2;
     while changed && period==Inf && t<t_ac
         t = t+1;
         cells = cellsOut;
         cells_hist{end+1} = cells; %{cells(:, 1), cells(:, 2)};
         [period, t_onset] = periodicity_test_short(cells_hist); 
         if display_fig
-            pause(0.01);
+            pause(0.1);
             update_figure_periodic_scatter(h_cells, cells, t, disp_mol, showI, a0, distances);
             %update_cell_figure_continuum(hin, pos, cells_in, cell_type, t, disp_mol);
         end
@@ -95,7 +97,7 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
             [period, t_onset] = periodicity_test_short(cells_hist); 
         end
         if display_fig
-            pause(0.01);
+            pause(0.1);
             update_figure_periodic_scatter(h_cells, cells, t, disp_mol, showI, a0, distances);
             %update_cell_figure_continuum(hin, pos, cells_in, cell_type, t, disp_mol);
         end
@@ -112,72 +114,76 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
     fprintf('Final: t_out = %d, period %d \n', t_out, period);
     %----------------------------------------------------------------------
     % Save result
-    
-    I_ini_str = '';
-    if InitiateI
-        I_ini_str = sprintf('_I_ini_%.2f_%.2f', I0(1), I0(2));
-    end
-    
-    % Format of output filename
-    %fname_str = sprintf('two_signal_mult_N%d_t_out_%d_period_%d',...
-    %        N, t_out, period);
-    %fname_str = sprintf('two_signal_mult_N%d_K12_%d_t_out_%d_period_%d',...
-    %        N, K(1,2), t_out, period);
-    %fname_str = strrep(sprintf('%s_N%d_initiateI0_randpos_mcsteps0_K12_%d_t_out_%d_period_%d',...
-    %    sim_ID, N, K(1,2), t_out, period), '.', 'p');
-    %fname_str = strrep(sprintf('%s_N%d_t_out_%d_period_%s',...
-    %            sim_ID, N, t_out, num2str(period)), '.', 'p');
-    %fname_str = strrep(sprintf('%s_N%d_noise_%.2f_K12_%d_t_out_%d_period_%s',...
-    %            sim_ID, N, noise, K(1,2), t_out, num2str(period)), '.', 'p');
-    %fname_str = strrep(sprintf(...
-    %    'N%d_initiateI%d%s_K12_%.2f_K21_%.2f_Con1_%.2f_Con2_%.2f_t_out_%d_period_%s',...
-    %    N, InitiateI, I_ini_str, K(1,2), K(2,1), Con(1), Con(2),...
-    %    t_out, num2str(period)), '.', 'p');
-    %fname_str = 'all_topologies_simulate';
-    %fname_str = strrep(sprintf('%s_N%d_ini_state_TW_mcsteps_%d_t_out_%d_period_%d',...
-    %    	sim_ID, N, mcsteps, t_out, period ), '.', 'p');
-    fname_str = strrep(sprintf('%s_t_out_%d_period_%d', fname_str_template,...
-        t_out, period), '.', 'p');
-    
-    labels = {'_tmax_reached', ''};
-    if t_out==tmax
-        label_choice = 1;
-    else
-        label_choice = 2;
-    end
-    ext = '.mat';
-    
-    % check if filename already exists
-    i=1;
-    fname_all = cell(2,1); % all possible names
-    fname_all{1} = fullfile(save_folder, strcat(fname_str, '-v', num2str(i), labels{1}, ext));
-    fname_all{2} = fullfile(save_folder, strcat(fname_str, '-v', num2str(i), labels{2}, ext)); % check both labels 
-    while exist(fname_all{1}, 'file') == 2 || exist(fname_all{2}, 'file') == 2
-        i=i+1;
-        fname_all{1} = fullfile(save_folder, strcat(fname_str, '-v', num2str(i), labels{1}, ext));
-        fname_all{2} = fullfile(save_folder, strcat(fname_str, '-v', num2str(i), labels{2}, ext));
-    end
-    fname = fname_all{label_choice};
-    
-    % variables to save
-    rcell = Rcell/a0;      
-    lambda12 = lambda(2);
-    save_vars = {N, a0, K, Con, Coff, M_int, hill,...
-        noise, p0, I0, rcell, Rcell, lambda12, lambda,...
-        sim_ID, I_ini_str, tmax, mcsteps};
-    save_vars_lbl = {'N', 'a0', 'K', 'Con', 'Coff', 'M_int', 'hill',...
-        'noise', 'p0', 'I0', 'rcell', 'Rcell',  'lambda12', 'lambda', ...
-        'sim_ID', 'I_ini_str', 'tmax', 'mcsteps'};
-    
-    if InitiateI
-        save_vars{end+1} = I0;
-        save_vars_lbl{end+1} = 'I_ini';
-    end
+    if save_folder % Check whether to save the result
+        I_ini_str = '';
+        if InitiateI
+            I_ini_str = sprintf('_I_ini_%.2f_%.2f', I0(1), I0(2));
+        end
 
-    save_consts_struct = cell2struct(save_vars, save_vars_lbl, 2);
-    
-    % save
-    save(fname, 'save_consts_struct', 'cells_hist', 't_out',...
-        'changed', 'period', 't_onset', 'positions', 'distances');
-    fprintf('Saved simulation: %s ; \n', fname);
+        % Format of output filename
+        %fname_str = sprintf('two_signal_mult_N%d_t_out_%d_period_%d',...
+        %        N, t_out, period);
+        %fname_str = sprintf('two_signal_mult_N%d_K12_%d_t_out_%d_period_%d',...
+        %        N, K(1,2), t_out, period);
+        %fname_str = strrep(sprintf('%s_N%d_initiateI0_randpos_mcsteps0_K12_%d_t_out_%d_period_%d',...
+        %    sim_ID, N, K(1,2), t_out, period), '.', 'p');
+        %fname_str = strrep(sprintf('%s_N%d_t_out_%d_period_%s',...
+        %            sim_ID, N, t_out, num2str(period)), '.', 'p');
+        %fname_str = strrep(sprintf('%s_N%d_noise_%.2f_K12_%d_t_out_%d_period_%s',...
+        %            sim_ID, N, noise, K(1,2), t_out, num2str(period)), '.', 'p');
+        %fname_str = strrep(sprintf(...
+        %    'N%d_initiateI%d%s_K12_%.2f_K21_%.2f_Con1_%.2f_Con2_%.2f_t_out_%d_period_%s',...
+        %    N, InitiateI, I_ini_str, K(1,2), K(2,1), Con(1), Con(2),...
+        %    t_out, num2str(period)), '.', 'p');
+        %fname_str = 'all_topologies_simulate';
+        %fname_str = strrep(sprintf('%s_N%d_ini_state_TW_mcsteps_%d_t_out_%d_period_%d',...
+        %    	sim_ID, N, mcsteps, t_out, period ), '.', 'p');
+        fname_str = strrep(sprintf('%s_t_out_%d_period_%d', fname_str_template,...
+            t_out, period), '.', 'p');
+
+        %labels = {'_tmax_reached', ''};
+        labels = {'', ''};
+        if t_out==tmax
+            label_choice = 1;
+        else
+            label_choice = 2;
+        end
+        ext = '.mat';
+
+        % check if filename already exists
+        i=1;
+        fname_all = cell(2,1); % all possible names
+        fname_all{1} = fullfile(save_folder, strcat(fname_str, '-v', num2str(i), labels{1}, ext));
+        fname_all{2} = fullfile(save_folder, strcat(fname_str, '-v', num2str(i), labels{2}, ext)); % check both labels 
+        while exist(fname_all{1}, 'file') == 2 || exist(fname_all{2}, 'file') == 2
+            i=i+1;
+            fname_all{1} = fullfile(save_folder, strcat(fname_str, '-v', num2str(i), labels{1}, ext));
+            fname_all{2} = fullfile(save_folder, strcat(fname_str, '-v', num2str(i), labels{2}, ext));
+        end
+        fname = fname_all{label_choice};
+
+        % variables to save
+        rcell = Rcell/a0;      
+        lambda12 = lambda(2);
+        save_vars = {N, a0, K, Con, Coff, M_int, hill,...
+            noise, p0, I0, rcell, Rcell, lambda12, lambda,...
+            sim_ID, I_ini_str, tmax, mcsteps};
+        save_vars_lbl = {'N', 'a0', 'K', 'Con', 'Coff', 'M_int', 'hill',...
+            'noise', 'p0', 'I0', 'rcell', 'Rcell',  'lambda12', 'lambda', ...
+            'sim_ID', 'I_ini_str', 'tmax', 'mcsteps'};
+
+        if InitiateI
+            save_vars{end+1} = I0;
+            save_vars_lbl{end+1} = 'I_ini';
+        end
+
+        save_consts_struct = cell2struct(save_vars, save_vars_lbl, 2);
+
+        % save
+        %
+        save(fname, 'save_consts_struct', 'cells_hist', 't_out',...
+            'changed', 'period', 't_onset', 'positions', 'distances');
+        fprintf('Saved simulation: %s ; \n', fname);
+        %}
+    end
 end

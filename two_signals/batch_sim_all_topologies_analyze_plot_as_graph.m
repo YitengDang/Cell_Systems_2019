@@ -399,7 +399,7 @@ xlabel('Number of interactions');
 title('Oscillation prevalence')
 
 % Save figure
-qsave = 1;
+qsave = 0;
 fname_str = 'graph_plot_osc_prevalence_rearranged_marked_v4_viridis';
 save_figure(h3, 12, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 
@@ -445,7 +445,7 @@ set(gca, 'FontSize', 24, 'XTick', 1:4, 'YTick', []);
 xlabel('Number of interactions');
 title('Fraction spatially ordered')
 
-qsave = 1;
+qsave = 0;
 fname_str = strrep(sprintf('graph_plot_frac_I_final_geq_%.1f_mean_rearranged_marked_v4_viridis', I_min), '.', 'p');
 save_figure(h2, 12, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 %% Correlation between final spatial order and oscillation prevalence

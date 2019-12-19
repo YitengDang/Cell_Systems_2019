@@ -3,15 +3,15 @@
 clear all
 close all
 clc
-
+set(0, 'defaulttextinterpreter', 'tex');
 %% Parameters
-gridsize = 15;
-N=gridsize^2;
-Con = 16;
-K = 8;
-a0 = 5.6;
-hill = 2;
-noise = 10^(-0.75);
+gz = 15;
+N=gz^2;
+Con = 8;
+K = 15;
+a0 = 0.5; %5.6;
+hill = Inf;
+noise = 3.0; % 10^(-0.75);
 
 %% Load pin-pout data
 %data_path = 'H:\My Documents\Multicellular automaton\data\pin_pout\noise';
@@ -19,13 +19,42 @@ noise = 10^(-0.75);
 %[fname, path, ~] = uigetfile(data_path);
 %load(fullfile(path,fname));
 
+%{
 %fname_str = strrep(sprintf('pin_pout_N%d_Con%d_K%d_a0_%d_hill%.2f', N, Con, K, a0*10, hill),...
 %    '.','p');
 fname_str = strrep(sprintf('pin_pout_noise_%.4f_N%d_Con%d_K%d_a0_%.2f_hill%.2f_montecarlo',...
      noise, N, Con, K, a0, hill), '.','p');
 fname = fullfile(pwd, 'figures', 'pin_pout', 'data', fname_str);
 load(fname, 'prob');
+%}
 
+%--- infinite hill, vs K, Con, from M drive --- 
+%{
+folder = 'M:\tnw\bn\hy\Shared\Yiteng\Multicellularity\data_archived\pin_pout\pin-pout_analytical_N225_a0_1p5_K1to30_Con1to30';
+fname_str = sprintf('pin_pout_N%d_Con_%d_K_%d_a0_%d',N, Con, K, a0*10);
+load(fullfile(folder, fname_str));
+%}
+folder = 'H:\My Documents\Multicellular automaton\data\main\pin_pout\noise';
+fname_str = sprintf('pin_pout_N%d_Con_%d_K_%d_gz_%d_a0_%d_noise_%d',...
+    N, Con, K, gz, a0*10, noise*10);
+load(fullfile(folder, fname_str));
+nsmpl = 1000;
+prob = count'/nsmpl;
+
+%--- finite Hill, vs a0 and noise -------------
+%{
+nsmpl = 100;
+folder = 'H:\My Documents\Multicellular automaton\figures\finite_Hill\pin_pout\data_binary\vs_noise';
+%{
+fname_str = strrep(sprintf(...
+    'pin_pout_N%d_Con%d_K%d_a0_%.2f_hill%.2f_prec8_in_out_binary_nsmpl%d',...
+    N, Con, K, a0, hill, nsmpl), '.', 'p');
+%}
+fname_str = strrep(sprintf(...
+    'pin_pout_N%d_Con%d_K%d_a0_%.2f_hill%.2f_noise%.2f_prec8_in_out_binary_nsmpl%d_run1',...
+    N, Con, K, a0, hill, noise, nsmpl), '.', 'p');
+load(fullfile(folder, fname_str));
+%}
 %% Compute mutual information
 % Extreme cases
 %prob = diag(ones(N+1,1)); % autonomy
@@ -52,25 +81,35 @@ I_scaled = I/log2(N+1); % I rescaled to lie between 0 and 1
 %plot(prob_pout);
 
 %% Plot pin-pout map with I
-set(0, 'defaulttextinterpreter', 'latex');
 p = (0:N)/N;
 h1=figure(1);
 im_fig = imagesc(p, p, prob);
 c = colorbar;
-set(gca, 'YDir', 'Normal','FontSize', 24)
-xlabel('$$p_{in}$$');
-ylabel('$$p_{out}$$');
-title(sprintf('$$I=%.3f = %.3f I_{max}$$', I, I_scaled));
-ylabel(c, '$$P(p_{out}|p_{in})$$', 'Interpreter', 'latex');
+colormap('winter');
+caxis([0 1]);
+ylim([-0.01 1.01]);
+set(gca, 'YDir', 'Normal','FontSize', 32)
+xlabel('p_{in}');
+ylabel('p_{out}');
+%xlabel('f_{in}');
+%ylabel('f_{out}');
+%title(sprintf('I=%.3f = %.3f I_{max}', I, I_scaled));
+title(sprintf('I = %.3f', I));
+ylabel(c, 'P(p_{out}|p_{in})', 'Interpreter', 'tex');
 % set invisible parts where count is zero
 set(im_fig, 'AlphaData', prob > 0);
 
 % save figure
-qsave = 0;
-if qsave
-    fname_str = strrep(sprintf('pin-pout_withI_N%d_a0_%.1f_K_%d_Con_%d',...
-        N, a0, K, Con), '.', 'p');
-    fname = fullfile(pwd, 'figures', 'information', fname_str); %filename
+qsave = 1;
+if qsave    
+    %fname_str = strrep(sprintf('pin-pout_withI_N%d_a0_%.1f_K_%d_Con_%d',...
+    %    N, a0, K, Con), '.', 'p');
+    fname_str = strrep(sprintf('pin-pout_withI_N%d_a0_%.1f_K_%d_Con_%d_hill_%.2f_noise_%.2f',...
+        N, a0, K, Con, hill, noise), '.', 'p');
+    folder = 'H:\My Documents\Thesis\Information theory\Fig2';
+    fname = fullfile(folder, fname_str);
+    %fname = fullfile(pwd, 'figures', 'information', fname_str); %filename
+    
     save_figure_pdf(h1, 10, 8, fname);
-    save_figure_eps(h1, 10, 8, fname);
+    %save_figure_eps(h1, 10, 8, fname);
 end

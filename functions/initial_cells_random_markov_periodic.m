@@ -1,4 +1,4 @@
-function [pos, dist, fN0, rejections] = initial_cells_random_markov_periodic(n, mcsteps, rcell, nodisplay)
+function [pos, dist, fN0, rejections] = initial_cells_random_markov_periodic(gz, mcsteps, rcell, nodisplay)
 % Note: even perfect arrangement might not be accepted because distances
 % are rounded off.
 % Places cells randomly in a continuous space
@@ -15,16 +15,17 @@ end
 if ~nodisplay
     disp('Initiating initial lattice...');
 end
+
 %---------main code below---------------
 Lx = 1;
-N = n^2;
-R = rcell*Lx/(n+1); 
+N = gz^2;
+R = rcell*Lx/(gz+1); 
 
 % hexagonal placement
-delx = Lx/n;
+delx = Lx/gz;
 dely = sqrt(3)/2*delx;
-Ly = dely*n;
-[xm, ym] = meshgrid(0:n-1, 0:n-1);
+Ly = dely*gz;
+[xm, ym] = meshgrid(0:gz-1, 0:gz-1);
 x = (xm+mod(ym,2)/2)*delx;
 y = ym*dely;
 
@@ -36,7 +37,7 @@ y = ym*dely;
 dist = calc_dist_periodic(x, y, Lx, Ly);
 dist = round(dist, 10);
 %pos = [x(:) y(:)];
-
+%%
 % Calculate default fN
 fN = zeros(N, 1);
 for i=1:N
@@ -87,7 +88,7 @@ pos = [x(:) y(:)];
 % adjust distances to scale so that nearest neighbour distances are
 % 1 (in case of a perfect lattice); without normalization this
 % would be Lx/n.
-dist = dist/(Lx/n); 
+dist = dist/(Lx/gz); 
 
 if ~nodisplay
     fprintf('final MC trials: %d \n', mcsteps);

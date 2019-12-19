@@ -1,13 +1,15 @@
 %% Loads and analyzes a trajectory for the 2 signals, multiplicative system
 clear all 
 close all
-
+%%
 %data_folder = 'H:\My Documents\Multicellular automaton\data\two_signals\time_evolution';
 %fig_folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\time_evolution';
 %data_folder = 'D:\Multicellularity\data\two_signals\time_evolution';
 %data_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\travelling_wave_analysis\vs_p0_K12_9';
-data_folder = 'H:\My Documents\Multicellular automaton\paper_2\figures\originals\Fig5-self-organisation\5A_sample_trajectories_all';
-save_folder = 'H:\My Documents\Multicellular automaton\paper_2\figures\originals\Fig5-self-organisation\5A_sample_trajectories_all';
+%data_folder = 'H:\My Documents\Multicellular automaton\paper_2\figures\originals\Fig5-self-organisation\5A_sample_trajectories_all';
+%data_folder = 'H:\My Documents\Multicellular automaton\app\data\time_evolution';
+data_folder = 'M:\tnw\bn\hy\Shared\Yiteng\Multicellularity paper 2\movies\other_for_presentations';
+save_folder = data_folder;
 
 [file, path] = uigetfile(fullfile(data_folder, '\*.mat'), 'Load saved simulation');
 load(fullfile(path, file));
@@ -18,7 +20,9 @@ gz = sqrt(N);
 [dist, pos] = init_dist_hex(gz,gz);
 cell_type = zeros(N, 1);
 rcell = save_consts_struct.rcell;
-
+if ~exist('pos_hist', 'var')
+    pos_hist = {};
+end
 %% Save trajectory
 [~, fname_raw, ~] = fileparts(file);%'trajectory_ini_p1_0p4_p2_0p4_v1_TW_formed';
 fname = fullfile(save_folder, fname_raw);
@@ -34,8 +38,38 @@ for i=0:numel(cells_hist)-1
     cells = cells_hist{i+1};
     %update_cell_figure_continuum(hin, pos, cells, cell_type, i, disp_mol);
     %update_figure_periodic_scatter(plot_handle, cells, time, disp_mol, showI, a0, distances)
-    update_cell_figure_external(h_cells, h_borders, cells, i-1, disp_mol, positions);    
+    update_cell_figure_external(h_cells, h_borders, cells, i, disp_mol, positions);    
+    
+    %{
+    frame = getframe(gcf);
+    img =  frame2im(frame);
+    [img,cmap] = rgb2ind(img,256);
+    if i == 0
+        imwrite(img,cmap,'animation.gif','gif','LoopCount',Inf,'DelayTime',1);
+    else
+        imwrite(img,cmap,'animation.gif','gif','WriteMode','append','DelayTime',1);
+    end
+    %}
 end
+
+%% Save movie (.gif)
+qsave = 1;
+disp_mol = 12;
+fname_out = fullfile(save_folder, file);
+%fname_out = 'H:\My Documents\Multicellular automaton\temp\temp_jpeg';
+frame_rate = 5;
+format = 'Motion JPEG AVI';
+t_ini = 20;
+t_out = 30;
+if qsave
+    save_movie(cells_hist, rcell, positions, pos_hist, disp_mol, fname_out,...
+        frame_rate, format, t_ini, t_out)
+    %save_movie_gif(cells_hist, rcell, positions, pos_hist, disp_mol, fname_out,...
+    %    frame_rate);
+    %save_movie_gif(cells_hist, rcell, positions, pos_hist, disp_mol, fname_out,...
+    %    frame_rate, t_ini, t_out)
+end
+
 %% Check periodicity (does not always work well)
 [period, t_onset] = periodicity_test_short(cells_hist); 
 t_check_init = 1;
@@ -71,7 +105,7 @@ box on
 disp(msg);
 
 % save
-qsave = 1;
+qsave = 0;
 if qsave
     h = figure(2);
     [~, fname_str] = fileparts(file);

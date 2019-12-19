@@ -14,12 +14,12 @@ a0 = 5.4;
 Rcell = 0.2*a0;
 K = 8;
 Con = 16;
-p0 = 0.1;
+p0 = 0.3;
 iniON = round(p0*N);
 hill = 2;
 prec = 8;
 pnoise = 0.1;
-nflips = 100;
+n_trials = 100;
 
 % Filename for saving
 fname_out = strrep(sprintf('N%d_a0_%.1f_K_%d_Con_%d_n%d_hill%.2f', ...
@@ -28,7 +28,8 @@ fname_out = strrep(sprintf('N%d_a0_%.1f_K_%d_Con_%d_n%d_hill%.2f', ...
 % Path to search for the saved data. It searchs by the name, defined by the
 % parameters chosen
 %path = 'H:\My Documents\Multicellular automaton\finite_Hill\data\spin_flip'; 
-path = 'H:\My Documents\Multicellular automaton\finite_Hill\data\perturb_ini'; 
+%path = 'H:\My Documents\Multicellular automaton\finite_Hill\data\perturb_ini'; 
+load_folder = 'H:\My Documents\Multicellular automaton\figures\finite_Hill\perturb_ini\data_binary_constraint_v2\vs_perturbation_strength';
 straux = '(\d+)';
 %fpattern = sprintf('N%d_n%d_neq_%s_a0%d_K_%d_Son_%d_t_%s_flip%s-v%s', ...
 %    N, iniON, straux, 10*a0, K, Con, straux, straux, straux);
@@ -38,7 +39,7 @@ fpattern = strrep(sprintf('perturb_ini_N%d_pini%.3f_a0_%.1f_K_%d_Con_%d_hill_%.2
             N, p0, a0, K, Con, hill, pnoise, straux), '.', 'p');
 
 % Get all file names in the directory
-listing = dir(path);
+listing = dir(load_folder);
 num_files = numel(listing)-2; %first two entries are not useful
 count = 0;
 for i = 1:num_files
@@ -55,17 +56,17 @@ for i = 1:numel(names)
     % first get the filename given by the student
     %fpattern0 = strrep(sprintf('spin_flip_N%d_n%d_flip%d_a0_%.1f_K_%d_Con_%d_hill_%.2f-v%s', ...
     %        N, iniON, 0, a0, K, Con, hill, straux), '.', 'p');
-    fpattern0 = strrep(sprintf('perturb_ini_N%d_pini%.3f_a0_%.1f_K_%d_Con_%d_hill_%.2f_pnoise_%.2f-v0', ...
+    fpattern0 = strrep(sprintf('perturb_ini_N%d_pini%.3f_a0_%.1f_K_%d_Con_%d_hill_%.2f_ini_noise_%.2f-v0', ...
             N, p0, a0, K, Con, hill, pnoise), '.', 'p');
     [tokens, ~] = regexp(names{i},fpattern0,'tokens','match');
     if numel(tokens)>0
         disp('yes');
-        load(fullfile(path,strcat(names{i},'.mat')), 'cells_hist', 'fN');
+        load(fullfile(load_folder,strcat(names{i},'.mat')), 'cells_hist', 'fN');
         cells_base = cells_hist;
     end
 end
 %% Load single other trajectory and check Hamming distance
-%{
+%
 for i = 1:numel(names)
     % first get the filename given by the student
     fpattern0 = sprintf('spin_flip_N%d_n%d_flip1_neq_%s_a0%d_K_%d_Son_%d_t_%s-v%s',...
@@ -266,8 +267,8 @@ if qsave
     save_figure_eps(h3, 10, 8, out_file);
 end
 %% Plot Hamming distance
-hamming = zeros(nflips,1);
-for i=1:nflips
+hamming = zeros(n_trials,1);
+for i=1:n_trials
     disp(i)
     cells_noflip = cells_base{end};
     hamming(i) = sum(abs(cells_final{i+1}-cells_noflip));

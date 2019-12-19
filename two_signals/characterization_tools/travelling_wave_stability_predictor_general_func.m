@@ -1,41 +1,12 @@
-% Predicts whether a travelling wave can propagate according to nearest
-% neighbour interactions
-%{
-clear all
-close all
-set(0,'defaulttextinterpreter', 'latex')
-
-%% Required input
-% Manual input
-gz = 15;
-N = gz^2;
-a0 = 1.5;
-rcell = 0.2;
-Rcell = rcell*a0;
-lambda = [1 1.2];
-M_int = [1 1; -1 0]; % network 19 
-%{
-M_int = [0 1; -1 1]; % network 15 reversed
-M_int = [1 -1; 1 0]; % network 15
-M_int = [1 1; -1 0]; % network 19
-M_int = [1 -1; 1 1]; % network 33
-M_int = [-1 -1; 1 1]; % network 34
-M_int = [-1 1; -1 1]; % network 36
-%}
-Con = [18 16];
-%K = zeros(2);
-K = [0 9; 11 4];
-
-% get pos, dist
-mcsteps = 0;
-[pos, dist] = initial_cells_random_markov_periodic(gz, mcsteps, rcell);
-%%
-trav_wave_conds_met = temp(gz, a0, dist, rcell, lambda, M_int, Con, K,...
-    wave_type, states_perm, num_waves, bandwidth);
-%}
 function trav_wave_conds_met = travelling_wave_stability_predictor_general_func(gz, a0, dist, rcell, lambda, M_int, Con, K,...
-    wave_type, states_perm, num_waves, bandwidth)
-    % calculate fN
+    wave_type, states_perm, num_waves, bandwidth, logic)
+    % Predicts whether a travelling wave can propagate according to nearest
+    % neighbour interactions
+    if nargin < 13
+        logic = 1; 
+    end
+    
+    %% calculate fN
     Rcell = a0*rcell;
     idx = gz + round(gz/2); % pick cell not at corner of grid
     dist_vec = a0*dist(idx,:);
@@ -106,7 +77,7 @@ function trav_wave_conds_met = travelling_wave_stability_predictor_general_func(
 
     Y_all = Y_self + Y_nei + Y_mf;
 
-    %% Check conditions for specific parameter set
+    %% Check TW conditions
     conditions_met = zeros(6,1);
     % (1) E_F->F
     % (2) F->M
@@ -119,7 +90,11 @@ function trav_wave_conds_met = travelling_wave_stability_predictor_general_func(
     for i=1:6
         %i = 1;
         Y = Y_all(i, :); % 2x1
-        output_state = prod(((Y - K).*M_int>0) + (1-abs(M_int)), 2)';
+        if logic % AND logic
+            output_state = prod(((Y - K).*M_int>0) + (1-abs(M_int)), 2)';
+        else % OR logic
+            output_state = sum(((Y - K).*M_int>0), 2)' - prod(((Y - K).*M_int>0), 2)';
+        end
         target_state = states(targets(i),:);
         conditions_met(i) = all(output_state==target_state);
         output_state_list(i,:) = output_state;
@@ -129,3 +104,37 @@ function trav_wave_conds_met = travelling_wave_stability_predictor_general_func(
 
     trav_wave_conds_met = all(conditions_met);
 end
+
+%{
+clear all
+close all
+set(0,'defaulttextinterpreter', 'latex')
+
+%% Required input
+% Manual input
+gz = 15;
+N = gz^2;
+a0 = 1.5;
+rcell = 0.2;
+Rcell = rcell*a0;
+lambda = [1 1.2];
+M_int = [1 1; -1 0]; % network 19 
+%{
+M_int = [0 1; -1 1]; % network 15 reversed
+M_int = [1 -1; 1 0]; % network 15
+M_int = [1 1; -1 0]; % network 19
+M_int = [1 -1; 1 1]; % network 33
+M_int = [-1 -1; 1 1]; % network 34
+M_int = [-1 1; -1 1]; % network 36
+%}
+Con = [18 16];
+%K = zeros(2);
+K = [0 9; 11 4];
+
+% get pos, dist
+mcsteps = 0;
+[pos, dist] = initial_cells_random_markov_periodic(gz, mcsteps, rcell);
+%%
+trav_wave_conds_met = temp(gz, a0, dist, rcell, lambda, M_int, Con, K,...
+    wave_type, states_perm, num_waves, bandwidth);
+%}

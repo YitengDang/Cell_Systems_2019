@@ -71,7 +71,7 @@ xlim([x_data(1)-1/2 x_data(end)+1/2])
 ylim([0 1]);
 
 % Save figure
-qsave = 1;
+qsave = 0;
 folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_vs_Hill';
 fname_str = sprintf('%s_fraction_dynamic_patterns_simulations_YD_flipped_size_10_8', label); %_fontsize32_fig_size10_8';
 fname = fullfile(folder, fname_str);
@@ -87,27 +87,38 @@ end
 %x_data = [hill_all(1:end-1) hill_all(end-1)+2];
 %y_data = true_wave_vec'; 
 % TW propagation
-x_data = hill_all;
+x_data = 1:numel(hill_all);
 y_data = true_wave_vec';
+%x_data = [-1 1:numel(hill_all)];
+%y_data = [true_wave_vec' 1];
 %xticklabels = sprintfc('%d', x_data); %{'1','2','3','4','5','6','7','8','9','10','11','12','\infty'}
 
 % reverse data
-xticklabels = sprintfc('%d', flip(x_data)); 
+%xticklabels = cell(numel(hill_all)+1, 1);
+%xticklabels{1} = '\infty';
+%xticklabels(2:end) = sprintfc('%d', flip(hill_all)); 
+xticklabels = sprintfc('%d', flip(hill_all)); 
+
 y_data = flip(y_data);
 
 h=figure;
-plot(x_data, y_data, 'bo-', 'LineWidth', 1.5);
+hold on
+plot(x_data, y_data, 'b--', 'LineWidth', 1.5);
+scatter(x_data, y_data, 100, 'b', 'filled');
+
 xlabel('Hill coefficient')
 set(gca, 'XTick', x_data, 'XTickLabels', xticklabels);
 ylabel('Fraction of simulations')
 set(gca, 'FontSize', 32);
 box on
-ylim([0 0.3]);
+xlim([1 12]);
+%ylim([0 0.3]);
+ylim([0 1]);
 
 % Save figure
 qsave = 1;
 folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\trav_wave_vs_Hill';
-fname_str = sprintf('%s_fraction_TWs_simulations_YD_reversed_size_10_8', label); %_fontsize32_fig_size10_8';
+fname_str = sprintf('%s_fraction_TWs_simulations_YD_reversed_size_10_8_v3', label); %_fontsize32_fig_size10_8';
 fname = fullfile(folder, fname_str);
 save_figure(h, 10, 8, fname, '.pdf', qsave);
 

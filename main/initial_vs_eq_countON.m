@@ -2,10 +2,10 @@
 close all
 clear all
 %warning off
-set(0, 'defaulttextinterpreter', 'latex');
+set(0, 'defaulttextinterpreter', 'tex');
 
 % Parameters of the system
-gridsize = 12;
+gridsize = 11;
 N = gridsize^2;
 a0 = 0.5;
 Rcell = 0.2*a0;

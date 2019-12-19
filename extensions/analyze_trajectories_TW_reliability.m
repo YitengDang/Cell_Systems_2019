@@ -24,7 +24,7 @@ save_path_fig = 'H:\My Documents\Multicellular automaton\figures\two_signals\tra
 %num_params = num_params_all(network_idx);
 %nruns = nruns_all(network_idx);
 %% Load data files
-%
+%{
 %%% PART I %%%
 % folders for loading data
 load_path = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_reliability';
@@ -111,7 +111,7 @@ end
 disp(filecount);
 %}
 %% Save the loaded data
-%
+%{
 subfolder = sprintf('TW_formation_network_%d', network);
 fname_str = sprintf('analyzed_data_%s_nruns_%d_digits_5', subfolder, nruns);
 
@@ -123,6 +123,7 @@ save( fullfile(save_data_path, strcat(fname_str, '.mat')),...
     'hom_end_state_all');
 %}
 %end
+
 %% Plot averaged values: reliability, TW formation time
 % (1) Load data
 TW_frac_all = cell(5, 1);
@@ -195,7 +196,7 @@ xlabel('Network');
 ylabel('TW formation time');
 set(gca, 'FontSize', 32);
 
-qsave = 1;
+qsave = 0;
 fname = fullfile(save_path_fig, 'TW_formation_time', strcat('TW_formation_time_histogram',...
     sprintf('_nruns_%d_digits_%d', nruns, digits), '_all_networks_boxplot') );
 save_figure(h, 10, 8, fname, '.pdf', qsave);
@@ -246,13 +247,11 @@ for i=1:5
     p = plot(x, pdf_calc, 'r-', 'LineWidth', 2);
     legend(p, sprintf('\\tau = %.0f \\pm %.0f', fitted_dist.mu, sqrt(fitted_dist.ParameterCovariance)));
     
-    qsave = 1;
+    qsave = 0;
     fname = fullfile(save_path_fig, 'TW_formation_time', strcat('TW_formation_time_histogram',...
         sprintf('_nruns_%d_digits_%d_network_%d', nruns, digits, network), '_exp_fit'));
     save_figure(h, 10, 8, fname, '.pdf', qsave);
 end
-
-%% 
 
 
 %% 
@@ -367,7 +366,7 @@ for network_idx=1 %[1 2 4 5]
     %legend({'Static homogeneous', 'Homogeneous oscillations', 'Pure wave', 'Infinite dynamics'});
     %legend({'Pure travelling wave', 'Infinite dynamics', 'Homogeneous, oscillatory', 'Homogeneous, static'});
 
-    qsave = 1;
+    qsave = 0;
     fname = fullfile(save_path_fig, strcat('analyzed_data_', subfolder,...
         sprintf('_nruns_%d_digits_%d', nruns, digits), '_classification_bar_unsorted'));
     save_figure(h, 12, 8, fname, '.pdf', qsave);
@@ -411,9 +410,7 @@ for network_idx=1 %[1 2 4 5]
     
     h = figure;
     errorbar(1:num_params, TW_formation_time_mean_all,...
-        TW_formation_time_std_all./TW_formation_time_count_all )
-    
-    
+        TW_formation_time_std_all./TW_formation_time_count_all)
 end
 %% fraction with period 15
 %{

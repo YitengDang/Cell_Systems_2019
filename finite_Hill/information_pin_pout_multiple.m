@@ -3,6 +3,7 @@
 clear variables
 close all
 clc
+set(0, 'defaulttextinterpreter', 'tex');
 %% Parameters
 gridsize = 15;
 N=gridsize^2;
@@ -10,27 +11,31 @@ Con = 16;
 K = 8;
 a0 = 6;
 hill = 2;
-fileID = 'in_out_binary';
-%noise = 0; %10^(-0.2); % all noise levels 10.^([-1 -0.8 -0.5 -0.2 0])
+fileID = 'in_out_binary_v2';
+noise = 0; %10^(-0.2); % all noise levels 10.^([-1 -0.8 -0.5 -0.2 0])
 %tmax = 1000;
 nsmpl = 100;
 prec = 8;
 
-outerVarlist = [0]; %10.^([-1 -0.8 -0.5 0]); % noise levels
+outerVarlist = [0];
+%outerVarlist = 10.^([-1:0.1:0.5]); % noise levels
 %outerVarlist = [4 5 5.5 6.0 7 8]; %a0
-%varlist = [4 5:0.1:6.0 7:10 15 20]; %a0
+%varlist = [5.2];
+varlist = [4 5:0.1:6 7:10 15 20]; %a0
 %varlist = [0.5 3 4 5 5.2 5.4 5.6 5.8 6 6.5 7 10]; %a0
-varlist = 10.^[-1:0.1:0.5]; %10.^(-2:0.25:0.5); %noise
+%varlist = 10.^[-1:0.1:0.5]; %10.^(-2:0.25:0.5); %noise
 %varlist = 10.^(sort([-0.5:0.5:0.5 -0.25 0.25 -2 -1]));
 Ivals = zeros(numel(outerVarlist), numel(varlist));
 I_scaled = zeros(numel(outerVarlist), numel(varlist));
 %%
 for i=1:numel(outerVarlist)
-   %noise = outerVarlist(i);   
+   noise = outerVarlist(i);   
    for irun=1:numel(varlist)
-        %a0=varlist(irun);
-        noise = varlist(irun);
+        a0=varlist(irun);
+        %noise = varlist(irun);
+        
         % correct file naming
+        %{
         if (a0 >= 5 && a0 <= 6)
             appendix = sprintf('nsmpl100_run%d', i);
         elseif (a0 > 10)
@@ -38,6 +43,7 @@ for i=1:numel(outerVarlist)
         else
             appendix = 'nsmpl1000';
         end
+        %}
         %noise = varlist(irun);
 
         % Load pin-pout data
@@ -52,18 +58,21 @@ for i=1:numel(outerVarlist)
         % with noise
         %path = 'H:\My Documents\Multicellular automaton\finite_Hill\figures\pin_pout\data';
         %path = 'H:\My Documents\Multicellular automaton\finite_Hill\data\pin_pout\noise';
-        path = 'H:\My Documents\Multicellular automaton\finite_Hill\figures\pin_pout\data_binary';
+        %load_folder = 'H:\My Documents\Multicellular automaton\finite_Hill\figures\pin_pout\data_binary';
+        load_folder = 'H:\My Documents\Multicellular automaton\figures\finite_Hill\pin_pout\data_binary_v2\vs_a0';
+        %load_folder = 'H:\My Documents\Multicellular automaton\figures\finite_Hill\pin_pout\data_binary_v2\vs_noise';
+        
         %fname_str = strrep(sprintf('pin_pout_noise_%.3f_N%d_Con%d_K%d_a0_%.2f_hill%.2f_tmax%d_nsmpl%d_%s',...
         %    noise, N, Con, K, a0, hill, tmax, nsmpl, fileID), '.', 'p'); % var = a0
         %fname_str = strrep(sprintf('pin_pout_noise_%.4f_N%d_Con%d_K%d_a0_%.2f_hill%.2f_%s', ...
         %    noise, N, Con, K, a0, hill, fileID), '.', 'p'); % var = a0
         %fname_str = strrep(sprintf('pin_pout_noise_%.3f_N%d_Con%d_K%d_a0_%.2f_hill%.2f_%s', ...
         %    noise, N, Con, K, a0, hill, fileID), '.', 'p'); % var = noise
-        fname_str = strrep(sprintf('pin_pout_N%d_Con%d_K%d_a0_%.2f_hill%.2f_noise%.2f_prec%d_%s_nsmpl%d_run1', ...
+        fname_str = strrep(sprintf('pin_pout_N%d_Con%d_K%d_a0_%.2f_hill%.2f_noise%.2f_prec%d_%s_nsmpl%d', ...
             N, Con, K, a0, hill, noise, prec, fileID, nsmpl), '.', 'p'); % var = noise
         %[fname, path, ~] = uigetfile(path);
         %load(fullfile(path, strcat(fname, '.mat')));
-        load(fullfile(path, fname_str));
+        load(fullfile(load_folder, fname_str));
         %close all;
 
         % Compute mutual information
@@ -93,16 +102,53 @@ for i=1:numel(outerVarlist)
 end
 
 %% Plot I against a0
-set(0, 'defaulttextinterpreter', 'latex');
 h1=figure(1);
+box on
+hold on
 %plot(varlist, Ivals, '-o', 'LineWidth', 2);
 semilogx(repmat(varlist, numel(outerVarlist), 1)', Ivals', 'o--', 'LineWidth', 2);
+scatter( varlist, Ivals, 'filled', 'b');
+plot([0 20], [log2(N+1) log2(N+1)], 'r--');
 hold on
-xlabel('noise strength $$\alpha$$');
-%xlabel('$$a_0$$');
-ylabel('$$I(f_{in}, f_{out})$$');
-set(gca, 'FontSize', 24);
+%xlabel('noise strength \alpha');
+xlabel('a_0');
+ylabel('I(f_{in}, f_{out})');
+set(gca, 'FontSize', 32);
 %ylim([0 4]);
+
+qsave = 1;
+save_fig_folder = 'D:\yitengdang\Desktop\Temp';
+fname_str = strrep(sprintf('Information_pin-pout_N%d_K_%d_Con_%d_hill%.2f_noise%.2f_vs_a0_%.1fto%.1f_all',...
+    N, K, Con, hill, noise, varlist(1), varlist(end)), '.', 'p');
+%fname_str = strrep(sprintf('Information_pin-pout_N%d_a0_%.2f_K_%d_Con_%d_hill%.2f_vs_noise_%s',...
+%	N, a0, K, Con, hill, fileID), '.', 'p');
+fname = fullfile(save_fig_folder, fname_str);
+save_figure(h1, 10, 8, fname, '.pdf', qsave);
+
+
+%% Plot I against noise
+h2=figure;
+box on
+hold on
+plot(outerVarlist, Ivals, 'o--', 'LineWidth', 2)
+set(gca, 'XScale', 'log')
+set(gca, 'XTick', 10.^[-1 -0.5 0 0.5], 'XTickLabel', ["10^{-1}", "10^{0.5}", "10^{0}", "10^{0.5}"]);
+%semilogx(outerVarlist, Ivals, 'o--', 'LineWidth', 2);
+%plot([0 20], [log2(N+1) log2(N+1)], 'r--');
+hold on
+xlabel('\alpha');
+ylabel('I(f_{in}, f_{out})');
+set(gca, 'FontSize', 32);
+%ylim([0 4]);
+
+qsave = 0;
+save_fig_folder = 'D:\yitengdang\Desktop\Temp';
+fname_str = strrep(sprintf('Information_pin-pout_N%d_K_%d_Con_%d_hill%.2f_noise%.2f_vs_a0_%.1fto%.1f_all',...
+    N, K, Con, hill, noise, varlist(1), varlist(end)), '.', 'p');
+%fname_str = strrep(sprintf('Information_pin-pout_N%d_a0_%.2f_K_%d_Con_%d_hill%.2f_vs_noise_%s',...
+%	N, a0, K, Con, hill, fileID), '.', 'p');
+fname = fullfile(save_fig_folder, fname_str);
+save_figure(h2, 10, 8, fname, '.pdf', qsave);
 
 %{
 h2=figure(2);
@@ -249,9 +295,9 @@ set(gca, 'FontSize', 24);
 %ylim([0 4]);
 %}   
 %% save figures
-%
+%{
 outdir = fullfile('H:\My Documents\Multicellular automaton\temp');
-qsave = 1;
+qsave = 0;
 if qsave
     %fname_str = strrep(sprintf('Information_pin-pout_N%d_a0%d_K_%d_Con_%d_hill%.2f_nonoise',...
     %    N, 10*a0, K, Con, hill), '.', 'p');

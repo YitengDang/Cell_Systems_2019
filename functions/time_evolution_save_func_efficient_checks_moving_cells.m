@@ -160,7 +160,7 @@ function [cells_hist, period, t_onset] = time_evolution_save_func_efficient_chec
     ext = '.mat';
     
     % check if filename already exists
-    v=1; 
+    v=1;
     fname = fullfile(save_folder, strcat(fname_str, '-v', num2str(v), ext));
     while exist(fname, 'file') == 2
         v=v+1;

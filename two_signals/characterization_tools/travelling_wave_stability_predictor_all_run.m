@@ -4,7 +4,7 @@
 % that allow for propagation of any kind of travelling wave
 clear all
 close all
-set(0,'defaulttextinterpreter', 'latex')
+set(0,'defaulttextinterpreter', 'tex')
 %% Parameters
 % Number of parameter sets to do
 n_pset = 10^5;
@@ -16,6 +16,7 @@ a0 = 1.5;
 rcell = 0.2;
 Rcell = rcell*a0;
 lambda = [1 1.2];
+logic = 0; %0: OR, 1: AND
 %M_int = [0 1; -1 1]; % network 15 reversed
 %{
 M_int = [0 1; -1 1]; % network 15 reversed
@@ -53,6 +54,13 @@ M_int = save_consts_struct.M_int;
 
 %}
 
+% logic
+if logic
+    logic_str = 'AND_logic';
+else
+    logic_str = 'OR_logic';
+end
+
 % specify wave type and characteristics
 wave_types_str = {'straight', 'inward bend', 'outward bend'};
 wave_type = 1;
@@ -74,9 +82,10 @@ default_states = [0 0; 0 1; 1 0; 1 1];
 
 % save folder
 %save_folder = 'L:\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2';
-save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2';
+%save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2';
 %save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run3_vary_a0_lambda12';
 %save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_stability_general\run2b_n_pset_10e6';
+save_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals_batch_sim_2\TW_propagation_conditions_analytical\run_stability';
 
 %% do for a fixed network & wave
 %{
@@ -88,7 +97,7 @@ trav_wave_conds_met = travelling_wave_stability_predictor_general_func(gz, a0,..
 P = perms(1:4);
 n_networks = 44;
 
-for idx_P=1:12 %size(P, 1) % todo: [1:11 19:24] 
+for idx_P=4:size(P, 1) % todo: [1:11 19:24] 
     states_perm = P(idx_P, :);
 
     % loop over all phases
@@ -166,13 +175,17 @@ for idx_P=1:12 %size(P, 1) % todo: [1:11 19:24]
             
             trav_wave_conds_met(count, idx1) = travelling_wave_stability_predictor_general_func(...
                 gz, thisa0, dist, rcell, thislambda, M_int, thisCon, thisK,...
-                wave_type, states_perm, num_waves, bandwidth);
+                wave_type, states_perm, num_waves, bandwidth, logic);
             %}
         end
     end
+    
     % fname
-    fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
-        num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
+    fname_str = sprintf('TW_conds_%s_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
+        logic_str, num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
+    %fname_str = sprintf('trav_wave_conditions_check_wave_num_%d_type_%d_states_%d_%d_%d_%d',...
+    %    num_waves, wave_type, states_perm(1), states_perm(2), states_perm(3), states_perm(4));
+    
     fname = fullfile(save_folder, fname_str);
     save(fname, 'gz', 'a0', 'rcell', 'lambda', 'M_int_all',...
         'trav_wave_conds_met', 'Con_all', 'K_all', 'networks_idx');

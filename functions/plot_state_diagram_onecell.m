@@ -1,7 +1,8 @@
-function [A, phase] = plot_state_diagram_onecell(M_int, Con, Coff, K)
+function [A, phase] = plot_state_diagram_onecell(M_int, Con, Coff, K, geneLogic)
 % Plots the state diagram of a single cell with ONE or TWO types of
 % signalling molecules
-
+    
+if geneLogic == 1 % AND Logic
     if all(size(M_int)==[1 1]) % One type of signalling molecule
         % Calculate A
         A = zeros(2);
@@ -109,5 +110,12 @@ function [A, phase] = plot_state_diagram_onecell(M_int, Con, Coff, K)
         set(ax, 'Units', 'Inches', 'Position', [0 0 7 6]);
         set(h8, 'Units', 'Inches', 'Position', [0.3 0.3 7 6]);
     end
+elseif geneLogic == 2
+    disp('OR Gene Logic: not yet implemented');
+    A = [];
+    return
+else
+    error('Invalid Gene Logic (choose AND or OR logic)');    
+end
 
 end

@@ -10,7 +10,7 @@ close all
 clc
 d1 = digits(64);
 
-L = 15;
+L = 11;
 N = L^2;
 p = (0:N)/N;
 qsave = 0;
@@ -41,7 +41,7 @@ end
 omegap = binom;
 
 % Plot Omega(p)
-set(0,'defaulttextinterpreter','latex'); %works for all future plots
+set(0,'defaulttextinterpreter','tex'); %works for all future plots
 figure();
 plot(p, omegap, 'x-');
 xlabel('p');
@@ -54,11 +54,15 @@ ntrials = 10000;
 nbins = 100;
 epsilon = 0.01;
 
+%{
 fileid = strrep(sprintf('probIfixedp_rand_fixedp_N%d_runs%d_bins%d_margin%.2f',...
         L^2, ntrials, nbins, epsilon), '.','p');
 fname = fullfile('H:\My Documents\Multicellular automaton', 'data', 'dos', 'probI_fixedp', ...
         strcat(fileid,'.mat'));
+%}
+fname = 'H:\My Documents\Multicellular automaton\figures\dos\random_sampling\probIrandp_rand_N225_runs1000000_bins100';
 load(fname);    
+%Ibincounts = numel(Iedges)-1;
 
 % Plot Omega(I) histogram from loaded data
 %{

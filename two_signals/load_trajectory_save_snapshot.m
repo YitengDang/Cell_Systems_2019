@@ -8,18 +8,17 @@ clc
 %folder = 'L:\BN\HY\Shared\Yiteng\two_signals\batch_sim_all_topologies_run2\selected\patterns\Network 33';
 %folder = 'H:\My Documents\Multicellular automaton\app\data\time_evolution\travelling waves';
 %folder = 'H:\My Documents\Multicellular automaton\temp';
-%folder = 'H:\My Documents\Multicellular automaton\paper_2_draft\figures\originals\Fig5-sample complex trajectory';
 %folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\batch_sim_all_topologies_run2\selected\filmstrip_selection';
-%folder = 'H:\My Documents\Multicellular automaton\paper_2_draft\figures\data\Fig_S6_types_of_TW';
-%folder = 'H:\My Documents\Multicellular automaton\paper_2_draft\figures\originals\FigS3_class_III_oscillating';
 %folder = 'H:\My Documents\Multicellular automaton\app\data\time_evolution\patterns\Network 12';
 %folder = 'H:\My Documents\Multicellular automaton\paper_2\figures\originals\Fig6-extensions\wave_examples';
-folder = 'M:\tnw\bn\hy\Shared\Yiteng\Multicellularity paper 2\movies\Fig_6_model_extension_patterns';
+%folder = 'M:\tnw\bn\hy\Shared\Yiteng\Multicellularity paper 2\movies\Fig_6_model_extension_patterns';
+folder = 'H:\My Documents\Multicellular automaton\paper_2\figures\originals\Fig5-self-organisation\5A_samples trajectory chosen';
 %fname_str = 'travelling_pulse_horizontal_M_int1_1_-1_0_t_out_243_period_30-network_19';
 %fname_str = 'spiral_single_period_172_M_int_1_-1_1_0_network_15';
 %fname_str = 'sample_complex_trajectory';
 %fname_str = 'two_signal_mult_N225_ini_state_TW_params_5_mcsteps_400_t_out_15_period_15-v1';
-fname_str = 'Fig_6_C_TW_formation_hill_10_ini_state_rand';
+%fname_str = 'Fig_6_C_TW_formation_hill_10_ini_state_rand';
+fname_str = 'sample_complex_trajectory_network_34';
 
 load(fullfile(folder, fname_str), 'cells_hist', 'positions', 'distances', 'save_consts_struct');
 %load(fullfile(folder, fname_str), 'cells_hist', 'positions', 'distances', 'save_consts_struct', 'positions_all');
@@ -30,7 +29,7 @@ a0 = save_consts_struct.a0;
 h = figure;
 disp_mol = 12;
 [h_cells, h_borders]  = reset_cell_figure_minimal(h, positions, rcell);  
-for i=0:numel(cells_hist)-1
+for i=20 %0:numel(cells_hist)-1
     cells = cells_hist{i+1};
     %update_cell_figure_continuum(hin, pos, cells, cell_type, i, disp_mol);
     %update_figure_periodic_scatter(plot_handle, cells, time, disp_mol, showI, a0, distances)
@@ -40,7 +39,7 @@ for i=0:numel(cells_hist)-1
 end
 
 %% Plot snapshot(s)
-for time=[1000:1006] %numel(cells_hist)-1
+for time=20 %numel(cells_hist)-1
     % parameters
     %time = 27;
     disp_mol = 12;

@@ -9,25 +9,28 @@
 % simulations (+-1).
 
 % ----------- Updates ----------------
-% v3: use the randomization algorithm to place the cells on a
+% * use the randomization algorithm to place the cells on a
 % different lattice
-% v4: inner loop over K12 to keep the number of simulations with given
+% * inner loop over K12 to keep the number of simulations with given
 % parameters more or less constant
-% v5: decrease the number of periodicity checks to one every t_check time
+% * decrease the number of periodicity checks to one every t_check time
 % steps
-% v6: shortened loop over simulations by defining a function for each run
+% * shortened loop over simulations by defining a function for each run
 % input_ini_state: manually input an initial state (from excel file)
+% * run simulations with exact same initial state, only vary extension
+% parameters
 close all
 clear all
+rng('shuffle');
 %% Simulation parameters
 remote = 0;
 
 % variable to loop over
 % sigma_D_all = 10.^[-3 -2 -1];
 % mcsteps_all = [0 10 100 1000];
-%noise_all = [0.01 0.05 0.1 0.5];
+noise_all = [0.01 0.05 0.1 0.5];
 %noise_all = [0.01 0.03 0.05 0.1 0.3 0.5 1];
-noise_all = [0.002 0.02 0.2];
+%noise_all = [0.002 0.02 0.2]; %[0.002 0.02 0.2];
 
 % number of simulations to do 
 sim_count = 10;
@@ -39,15 +42,18 @@ tmax = 10^4; % max. number of time steps
 % InitiateI = 0; % generate lattice with input I?
 
 % folder to save simulations in
-parent_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\\trav_wave_with_noise';
+parent_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_with_noise';
 if remote
     parent_folder = strrep(parent_folder, 'N:\', 'W:\staff-bulk\');
 end
-subfolder = sprintf('TW_formation_network_%d_fixed_parameter_set', network);
+subfolder = sprintf('TW_formation_network_%d', network);
 save_folder = fullfile(parent_folder, subfolder);
-            
+
 % default file name
 sim_ID = 'two_signal_mult';
+
+% number of parameters
+num_params = 1; % min( size(Con_wave_sim, 1), 10 ); % number of parameter sets to simulate
 
 %% (2) Load parameters that spontaneously generate TWs from batch simulations 
 folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\batch_sim_all_topologies_run2';
@@ -96,44 +102,38 @@ sigma_D = 0;
 
 p0 = Inf;
 I0 = Inf;
-%% Load initial state
-%{
-signal_count = 2;
-%folder = 'D:\Multicellularity\app\data\system_states';
-folder = 'H:\My Documents\Multicellular automaton\app\data\system_states';
-fname = fullfile(folder, 'trav_wave_single_vertical_central_position');
-[status, cells_ini, ini_state_fname] = manual_input_state(signal_count, folder, N, fname);
-
-nodisplay = 1; 
-mcsteps = 0;
-[~, dist_ini] = initial_cells_random_markov_periodic(gz, mcsteps, rcell, nodisplay);
-p0 = mean(cells_ini, 1);
-I0 = zeros(2,1);
-I0(1) = moranI(cells_ini(:,1), a0*dist_ini);
-I0(2) = moranI(cells_ini(:,2), a0*dist_ini);
-%}
 %% Calculate # required simulations
 % Loop over Con, K values
-num_params = min( size(Con_wave_sim, 1), 30 ); % number of parameter sets to simulate
 sim_to_do = zeros(num_params, numel(noise_all));
 
 % folder
+%{
 folder = save_folder;
 if exist(folder, 'dir') ~= 7
     warning('Folder does not exist! ');
     mkdir(folder);
     fprintf('Made new folder %s \n', folder);
 end
+%}
 
 for idx_param_loop=1:num_params
     Con = Con_wave_sim(idx_param_loop,:);
     K = squeeze(K_wave_sim(idx_param_loop,:,:));
-    
+
+    % folder
+    folder = fullfile(save_folder, sprintf('Parameter_set_%d', idx_param_loop));
+    if exist(folder, 'dir') ~= 7
+        warning('Folder does not exist! ');
+        mkdir(folder);
+        fprintf('Made new folder %s \n', folder);
+    end
+        
     for idx_loop=1:numel(noise_all)
         %sigma_D = sigma_D_all(idx_loop);
         % mcsteps = mcsteps_all(idx_loop);
         noise = noise_all(idx_loop);
         
+
 %(!!!)  % Filename pattern (!!!)
         pattern = strrep(sprintf('%s_N%d_ini_state_rand_params_%d_noise_%.3f_t_out_%s_period_%s',...
             sim_ID, N, idx_param_loop, noise, '(\d+)', '(\d+|Inf)' ),...
@@ -156,10 +156,6 @@ for idx_param_loop=1:num_params
                 end
             end
         end
-
-        %fprintf('N=%d, sigma_D = %.2f sim to do: %d \n', N, sigma_D, sim_count-filecount);
-        %fprintf('N=%d, parameter set %d, mcsteps = %d sim to do: %d \n',...
-        %    N, idx_param_loop, mcsteps, sim_count-filecount);
         fprintf('N=%d, parameter set %d, noise = %.3f, sim to do: %d \n',...
             N, idx_param_loop, noise, sim_count-filecount);
         
@@ -173,42 +169,72 @@ fprintf('Total number of simulations to do: %d \n', sum(sim_to_do(:)) );
 for idx_param_loop=1:num_params
     Con = Con_wave_sim(idx_param_loop,:);
     K = squeeze(K_wave_sim(idx_param_loop,:,:));
-
-for idx_loop=1:numel(noise_all)
-    %sigma_D = sigma_D_all(idx_loop);
-    %mcsteps = mcsteps_all(idx_loop);
-    noise = noise_all(idx_loop);
-    for trial=1:sim_count
-        %fprintf('Param. set %d, mcsteps %d, trial %d \n', idx_param_loop, mcsteps, trial);
-        fprintf('Param. set %d, noise %.3f, trial %d \n', idx_param_loop, noise, trial);
-        
-        % skip simulation if enough simulations have been done
-        if trial > sim_to_do(idx_param_loop, idx_loop)
-            continue;
+    
+    % save folder
+    this_save_folder = fullfile(save_folder, sprintf('Parameter_set_%d', idx_param_loop));
+    
+    % ===================== get original simulations ======================
+    % folder for original simulations (without extension)
+    load_folder = 'N:\tnw\BN\HY\Shared\Yiteng\two_signals\trav_wave_reliability\TW_formation_network_15';
+    subfolder = sprintf('Parameter_set_%d', idx_param_loop);
+    folder_orig_sim = fullfile(load_folder, subfolder);
+    
+    % get all files in folder
+    listing = dir(folder);
+    num_files = numel(listing)-2;
+    names_orig_sim = {};
+    filecount = 0;
+    for i = 1:num_files
+        filename = listing(i+2).name;
+        % remove extension and do not include txt files
+        [~,name,ext] = fileparts(filename);
+        if strcmp(ext, '.mat')
+            match = regexp(name, pattern, 'match');
+            %disp(match);
+            if ~isempty(match)
+                filecount = filecount + 1;
+                names_orig_sim{end+1} = name;
+            end
         end
-        % ----------- simulation ------------------------------------
-        display_fig = 0;
-        positions = {};
-        distances = {};
-        fname_str_template = strrep(sprintf('%s_N%d_ini_state_rand_params_%d_noise_%.3f',...
-        	sim_ID, N, idx_param_loop, noise), '.', 'p');
-        cells_ini = [];
-        
-        [cells_hist, period, t_onset] = time_evolution_save_func_efficient_checks(...
-            N, a0, Rcell, lambda, hill, noise, M_int, K, Con, Coff,...
-            distances, positions, sim_ID, mcsteps, InitiateI, p0, I0, cells_ini,...
-            tmax, save_folder, fname_str_template, display_fig);
-        %}
-        %{
-        [cells_hist, period, t_onset] = time_evolution_save_func_efficient_checks_moving_cells(...
-            N, a0, Rcell, lambda, hill, noise, M_int, K, Con, Coff,...
-            distances, positions, mcsteps, sigma_D, cells_ini, ...
-            growth_rate, R_division, sim_ID, tmax, save_folder, display_fig);
-        %}
-        %--------------------------------------------------------------------------
-        %}
     end
-end
+    % =====================================================================
+    
+
+    for idx_loop=1:numel(noise_all)
+        %sigma_D = sigma_D_all(idx_loop);
+        %mcsteps = mcsteps_all(idx_loop);
+        noise = noise_all(idx_loop);
+        for trial=1:sim_count
+            %fprintf('Param. set %d, mcsteps %d, trial %d \n', idx_param_loop, mcsteps, trial);
+            fprintf('Param. set %d, noise %.3f, trial %d \n', idx_param_loop, noise, trial);
+
+            % skip simulation if enough simulations have been done
+            if trial > sim_to_do(idx_param_loop, idx_loop)
+                continue;
+            end
+            % ----------- simulation ------------------------------------
+            display_fig = 0;
+            positions = {};
+            distances = {};
+            fname_str_template = strrep(sprintf('%s_N%d_ini_state_rand_params_%d_noise_%.3f',...
+                sim_ID, N, idx_param_loop, noise), '.', 'p');
+            cells_ini = [];
+
+            [cells_hist, period, t_onset] = time_evolution_save_func_efficient_checks(...
+                N, a0, Rcell, lambda, hill, noise, M_int, K, Con, Coff,...
+                distances, positions, sim_ID, mcsteps, InitiateI, p0, I0, cells_ini,...
+                tmax, this_save_folder, fname_str_template, display_fig);
+            %}
+            %{
+            [cells_hist, period, t_onset] = time_evolution_save_func_efficient_checks_moving_cells(...
+                N, a0, Rcell, lambda, hill, noise, M_int, K, Con, Coff,...
+                distances, positions, mcsteps, sigma_D, cells_ini, ...
+                growth_rate, R_division, sim_ID, tmax, save_folder, display_fig);
+            %}
+            %--------------------------------------------------------------------------
+            %}
+        end
+    end
 
 end
 %% (1) Load parameters from saved trajectory

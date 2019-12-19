@@ -149,6 +149,8 @@ noise = 0;
 
 % -----------Calculate interaction strengths-------------------------------
 % calculate fN
+[fN, fnn, fnnn] = calc_fN(a0, rcell, gz, dist, lambda);
+%{
 Rcell = a0*rcell;
 idx = gz + round(gz/2); % pick cell not at corner of grid
 dist_vec = a0*dist(idx,:);
@@ -167,7 +169,7 @@ fnnn = zeros(2,2);
 rnnn = [sqrt(3) 2].*a0;
 fnnn(1,:) = sinh(Rcell)*exp((Rcell-rnnn)./lambda(1)).*(lambda(1)./rnnn);
 fnnn(2,:) = sinh(Rcell)*exp((Rcell-rnnn)./lambda(2)).*(lambda(2)./rnnn);
-
+%}
 %------------------------------------ Calculate Y_all----------------------
 default_states = [0 0; 0 1; 1 0; 1 1];
 
@@ -243,6 +245,73 @@ end
 
 pw = mean(cells_in, 1);
 %--------------------------------------------------------------------------
+%% case study: network 15 -> Plot derived bounds only
+
+gz = 50;
+mcsteps = 0;
+[~, dist] = initial_cells_random_markov_periodic(gz, mcsteps, rcell);
+
+a0 = 0.15;
+[fN, fnn, ~] = calc_fN(a0, rcell, gz, dist, lambda);
+
+pw = [1/8 1/8];
+
+Con1_all = linspace(1, 1000, 100);
+Con2_all = linspace(1, 1000, 100);
+YMF1_all = (fN(1) - 6*fnn(1))*(Con1_all*pw(1) + (1-pw(1)));
+YMF2_all = (fN(2) - 6*fnn(2))*(Con2_all*pw(2) + (1-pw(2)));
+
+label = 'bounds_only';
+
+% bounds
+K11_all_upb = 1 + 2*Con1_all*fnn(1) + 4*fnn(1) + YMF1_all;
+K11_all_lwb = 1 + 6*fnn(1) + YMF1_all;
+K12_all_upb = Con2_all + (4*Con2_all + 2)*fnn(2) + YMF2_all;
+K12_all_lwb = 1 + (2*Con2_all + 4)*fnn(2) + YMF2_all;
+K21_all_upb = Con1_all + 4*Con1_all*fnn(1) + 2*fnn(1) + 4*fnn(1) + YMF1_all;
+K21_all_lwb = 1 + 2*Con1_all*fnn(1) + 4*fnn(1) + YMF1_all;
+
+% intersection points 
+C1_self = (L - 1 - 4.*fnn - (fN' - 6*fnn).*(1-pw))./(2.*fnn+(fN'-6.*fnn).*pw);
+C2_self = (L - 1 - 6.*fnn - (fN' - 6*fnn).*(1-pw))./((fN'-6.*fnn).*pw);
+
+C1_mutual = (L - 0 - 2.*fnn - (fN' - 6*fnn).*(1-pw))./(1 + 4.*fnn+(fN'-6.*fnn).*pw);
+C2_mutual = (L - 1 - 6.*fnn - (fN' - 6*fnn).*(1-pw))./(2*fnn + (fN'-6.*fnn).*pw);
+
+figure;
+subplot(2,2,1);
+hold on
+plot(K11_all_upb, Con2_all, '-', 'Color', 'r', 'LineWidth', 2 )
+plot(K11_all_lwb, Con2_all, '--', 'Color', 'r', 'LineWidth', 2 )
+plot([1 L], [C1_self(1) C1_self(1)], '--', 'Color', 'b');
+plot([1 L], [C2_self(1) C2_self(1)], '--', 'Color', 'b');
+xlim([0 1000]);
+ylim([0 1000]);
+title('1\leftarrow 1');
+
+subplot(2,2,2);
+hold on
+plot(K12_all_upb, Con2_all, '-', 'Color', 'r', 'LineWidth', 2 )
+plot(K12_all_lwb, Con2_all, '--', 'Color', 'r', 'LineWidth', 2 )
+plot([1 L], [C1_mutual(2) C1_mutual(2)], '--', 'Color', 'b');
+plot([1 L], [C2_mutual(2) C2_mutual(2)], '--', 'Color', 'b');
+xlim([0 1000]);
+ylim([0 1000]);
+title('1 \leftarrow 2');
+
+subplot(2,2,3);
+hold on
+plot(K21_all_upb, Con2_all, '-', 'Color', 'r', 'LineWidth', 2 )
+plot(K21_all_lwb, Con2_all, '--', 'Color', 'r', 'LineWidth', 2 )
+plot([1 L], [C1_mutual(1) C1_mutual(1)], '--', 'Color', 'b');
+plot([1 L], [C2_mutual(1) C2_mutual(1)], '--', 'Color', 'b');
+xlim([0 1000]);
+ylim([0 1000]);
+title('2 \leftarrow 1');
+
+%% Find intersections with region boundaries
+
+
 %% case study: network 15 -> Plot data together with derived bounds
 Con1_all = linspace(1, 1000, 100);
 Con2_all = linspace(1, 1000, 100);
@@ -259,8 +328,8 @@ Con_wave_selected = Con_wave_both;
 % 1 + 2*Con1_all*fnn(1) + 4*fnn(1) + (fN(1) - 6*fnn(1))*((Con1_all - 1)*pw(1) + (1-pw(1))) < K21
 % Con1_all + 4*Con1_all*fnn(1) + 2*fnn(1) + 4*fnn(1) + (fN(1) - 6*fnn(1))*(Con1_all - 1)*pw(1) + (1-pw(1)) > K21
 % (for 15*, flip 1 and 2)
-K12_all_upb = 1 + 2*Con1_all*fnn(1) + 4*fnn(1) + YMF1_all;
-K12_all_lwb = Con1_all + 4*Con1_all*fnn(1) + 2*fnn(1) + 4*fnn(1) + YMF1_all;
+K21_all_upb = 1 + 2*Con1_all*fnn(1) + 4*fnn(1) + YMF1_all;
+K21_all_lwb = Con1_all + 4*Con1_all*fnn(1) + 2*fnn(1) + 4*fnn(1) + YMF1_all;
 
 idx_i = 2; idx_j = 1;
 %h = plot_phase_diagram_local(a0, rcell, lambda, dist, idx_i, idx_j);
@@ -275,8 +344,8 @@ p2.MarkerFaceAlpha = 0.5;
 p3 = scatter(K_wave_FN(:,idx_i,idx_j), Con_wave_FN(:,idx_j), 'o', 'filled', 'MarkerFaceColor', 'b');
 p3.MarkerFaceAlpha = 0.5;
 %}
-plot(K12_all_upb, Con2_all, '-', 'Color', 'r', 'LineWidth', 2 )
-plot(K12_all_lwb, Con2_all, '-', 'Color', 'r', 'LineWidth', 2 )
+plot(K21_all_upb, Con2_all, '-', 'Color', 'r', 'LineWidth', 2 )
+plot(K21_all_lwb, Con2_all, '-', 'Color', 'r', 'LineWidth', 2 )
 %plot([0 1000], [C1(1) C1(1)], '--', 'Color', 'k', 'LineWidth', 2 );
 legend([p1 p2 p3], 'True positives', 'False positives', 'False negatives', 'Location', 'se');
 
@@ -369,6 +438,7 @@ save_figure(h, 10, 8, fname, '.pdf', qsave);
 %% Plot phase space regions bounds (analytical)
 
 % calculate fN, fnn
+%{
 this_a0 = 1.5;
 gz_all = 5:5:50;
 fN_all = zeros(numel(gz_all), 2);
@@ -378,117 +448,11 @@ for i=1:numel(gz_all)
     [fN, fnn, ~] = calc_fN(this_a0, rcell, this_gz, this_dist, lambda);
     fN_all(i, :) = fN;
 end
-%%
+
 h=figure;
 plot(gz_all, fN_all);
-
-%% Calculate phase space region
-% Calculate in limit L -> infty
-% (1) rectangle with width Km = upper bound K at given Cm
-%{
-V12 = (1/2+fnn(2))/(1+4*fnn(2)+(fN(2) - 6*fnn(2))*pw(2));
-V21 = V12;
-V22 = fnn(2)/(2*fnn(2) + (fN(2) - 6*fnn(2))*pw(2));
-disp(V12*V21*V22)
 %}
-% (2) rectangle [1, L] x [1, L]
-alpha = 1./(1+4*fnn + (fN'-6*fnn).*pw);
 
-V_frac_mutual = (1/2+fnn).*alpha.^2 + (1-alpha) - (fnn+(fN'-6*fnn).*pw/2).*(1-alpha.^2);
-V_frac_self = fnn(1); %/(2*fnn(2) + (fN(2) - 6*fnn(2))*pw(2));
-frac_limit = prod(V_frac_mutual)*V_frac_self;
-%disp(V12)
-
-%% Calculate for given region
-L = 1000;
-
-% 1<-2 and 2<-1 interactions
-C1 = (L - 2*fnn - (fN'-6*fnn).*(1-2*pw))./(1+4*fnn + (fN'-6*fnn).*pw);
-I1 = (C1.^2/2 - C1 + 1/2).*(1+2*fnn); % integral 1
-I2 = L*(L-C1) - ( (2*fnn + (fN'-6*fnn).*pw)/2.*(L.^2-C1.^2) +...
-    ((1+4*fnn)+(fN'-6*fnn).*(1-2*pw)).*(L-C1) ) ; % integral 2 -> check calculation
-%I1./(L*C1) 
-%I2./(L*(L-C1))
-V_frac_mutual = (I1 + I2)/L^2;
-
-% 1<-1 interaction
-V_frac_self = (fnn(1).*(L^2 - 2*L) - fnn(1))./(L^2);
-
-V_frac = prod(V_frac_mutual)*V_frac_self;
-%% ----------Study effect of varying parameters----------------------------
-% Vary gz
-gz_all = 15; %5:5:50;
-% Vary a0
-a0_all = 0.1:0.1:5; %0.1:0.1:5;
-V_frac_all = zeros(numel(gz_all), numel(a0_all));
-temp_all = zeros(numel(gz_all), numel(a0_all), 2);
-for j=1:numel(gz_all)
-    this_gz = gz_all(j);
-    disp(this_gz);
-    this_pw = [2/this_gz 2/this_gz];
-    for i=1:numel(a0_all)
-        this_a0 = a0_all(i);
-        % -----------Calculate interaction strengths-------------------------------
-        [pos, this_dist] = initial_cells_random_markov_periodic(this_gz, mcsteps, rcell);
-        [fN, fnn, ~] = calc_fN(this_a0, rcell, this_gz, this_dist, lambda);
-        %--------------------------------------------------------------------------
-        Con1_all = linspace(1,1000,100);
-        Con2_all = linspace(1,1000,100);
-        YMF1_all = (fN(1) - 6*fnn(1))*((Con1_all - 1)*this_pw(1) + (1-this_pw(1)));
-        YMF2_all = (fN(2) - 6*fnn(2))*((Con2_all - 1)*this_pw(2) + (1-this_pw(2)));
-
-        % Plot conditions
-        % To do
-
-        % Calculate phase space region
-        L = 1000;
-
-        % 1<-2 and 2<-1 interactions
-        C1 = (L - 2*fnn - (fN'-6*fnn).*(1-2*this_pw))./(1+4*fnn + (fN'-6*fnn).*this_pw);
-        I1 = (C1.^2/2 - C1 + 1/2).*(1+2*fnn); % integral 1
-        I2 = L*(L-C1) - ( (2*fnn + (fN'-6*fnn).*this_pw)/2.*(L.^2-C1.^2) +...
-            ((1+4*fnn)+(fN'-6*fnn).*(1-2*this_pw)).*(L-C1) ) ; % integral 2 -> check calculation
-        V_frac_mutual = (I1 + I2)/L^2;
-
-        % 1<-1 interaction
-        V_frac_self = (fnn(1).*(L^2 - 2*L) - fnn(1))./(L^2);
-        V_frac = prod(V_frac_mutual)*V_frac_self;
-        %----------------------------------------------------------------------
-
-        % Store results
-        V_frac_all(j, i) = V_frac;
-        temp_all(j, i, :) = (fN'-6*fnn).*this_pw;
-    end
-end
-%% Plot V_frac vs gz
-h=figure;
-plot(gz_all, V_frac_all, 'o--', 'LineWidth', 1.5)
-xlabel('Grid size');
-ylabel('Q-value');
-set(gca, 'FontSize', 32);
-ylim([0 0.03]);
-
-% Save figure
-qsave = 0;
-fname_str = sprintf('V_frac_vs_N_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d',...
-	num_waves, wave_type, network, states_perm(1), states_perm(2),...
-	states_perm(3), states_perm(4));
-fname = fullfile(save_folder, fname_str);
-save_figure(h, 10, 8, fname, '.pdf', qsave);
-%% Plot V_frac vs a0
-h=figure;
-plot(a0_all, V_frac_all(3,:), 'o--', 'LineWidth', 1.5)
-xlabel('a_0');
-ylabel('Q-value');
-set(gca, 'FontSize', 32);
-
-% Save figure
-qsave = 0;
-fname_str = sprintf('V_frac_vs_a0_wave_num_%d_type_%d_network_%d_states_F%d_M%d_B%d_E%d',...
-	num_waves, wave_type, network, states_perm(1), states_perm(2),...
-	states_perm(3), states_perm(4));
-fname = fullfile(save_folder, fname_str);
-save_figure(h, 10, 8, fname, '.pdf', qsave);
 %% Check conditions for specific parameter set
 
 % to delete

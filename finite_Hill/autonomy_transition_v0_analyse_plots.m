@@ -47,7 +47,7 @@ ylabel('$$C_{ON}$$', 'FontSize', 24)
 ylabel(c, '$$a_0^c$$', 'Interpreter', 'latex', 'FontSize', 24)
 set(gca, 'ydir', 'normal', 'FontSize', 24)
 
-qsave = 1;
+qsave = 0;
 if qsave
     fname_str = strrep(sprintf('Transition_a0c_N%d_K%.2fto%.2f_Con%.2fto%.2f_hill%.2f_%s',...
         N, Krange(1), Krange(end), Conrange(1), Conrange(end), hill, initialID), '.', 'p');

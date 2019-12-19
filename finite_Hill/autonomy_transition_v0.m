@@ -18,17 +18,18 @@ Conlist = [16]; %[13 15 16 17 18 19 20 19 20 21 22 23 21 22 23 24 25 23 24 25 25
 %K = 7;
 %Con = 13;
 hill = 2; % Hill coefficient
-all_a0 = 5.2:0.05:5.7; % all a0 to compare
+a0_list = 5.2:0.05:5.7; % all a0 to compare
 nruns = 100; % number of runs for each a0
 
 % Variables to store
-tfinal = zeros(numel(all_a0), nruns); % equilibration times
-count_aut = zeros(numel(all_a0), 1); % number of nonunif final states
+tfinal = zeros(numel(a0_list), nruns); % equilibration times
+count_aut = zeros(numel(a0_list), 1); % number of nonunif final states
 cells_nonunif = {}; % final configurations which are non-uniform
-Noff = zeros(numel(all_a0), nruns); % number of `ON' cells
+Noff = zeros(numel(a0_list), nruns); % number of `ON' cells
 
 % Load data
-path = fullfile('H:\My Documents\Multicellular automaton', 'data', 'finiteHill', 'dynamics');
+%path = fullfile('H:\My Documents\Multicellular automaton', 'data', 'finiteHill', 'dynamics');
+path = fullfile('N:\tnw\BN\HY\Shared\Yiteng\one_signal_finite_Hill\dynamics', '2017-08-07_vs_a0_5p20_to_5p70_K8_Con16_hill2p00');
 straux = '(\d+)'; % patterns for later
 straux2 = '(\w+)';
 
@@ -52,15 +53,15 @@ for i=1:numel(Klist) % loop over selected K, Con
     Con=Conlist(i);
     
     % Variables to store
-    tfinal = zeros(numel(all_a0), nruns); % equilibration times
-    count_aut = zeros(numel(all_a0), 1); % number of nonunif final states
+    tfinal = zeros(numel(a0_list), nruns); % equilibration times
+    count_aut = zeros(numel(a0_list), 1); % number of nonunif final states
     cells_nonunif = {}; % final configurations which are non-uniform
-    Noff = zeros(numel(all_a0), nruns); % number of `ON' cells
+    Noff = zeros(numel(a0_list), nruns); % number of `ON' cells
 
 % Loop over all a0
-for j_loop=1:numel(all_a0)
+for j_loop=1:numel(a0_list)
     count2 = 0; % count number of loaded files
-    a0 = all_a0(j_loop);
+    a0 = a0_list(j_loop);
     fpattern = strrep(sprintf('N%d_a0_%.2f_K%d_Con%d_hill%.2f_t%s_xmeanf_%s_prec_%d_%s-v%s',...
             N, a0, K, Con, hill, straux, straux2, prec, initialID, straux), '.', 'p');
     for i_loop = 1:numel(names)
@@ -89,15 +90,16 @@ end
 % Fraction of autonomous lattices
 frac = count_aut/nruns;
 h1 = figure(1);
-plot(all_a0, frac, 'o-', 'LineWidth', 1.5);
+plot(a0_list, frac, 'o-', 'LineWidth', 1.5);
 set(gca,'FontSize', 24);
 xlabel('$$a_0$$', 'Interpreter', 'latex');
 ylabel('Fraction non-uniform lattices');
-xlim([a0list(1) a0list(end)]);
-qsave = 1;
+xlim([a0_list(1) a0_list(end)]);
+
+qsave = 0;
 if qsave
     fname_str = strrep(sprintf('Transition_f_aut_N%d_a0_%.2fto%.2f_K%d_Con%d_hill%.2f_%s',...
-        N, all_a0(1), all_a0(end), K, Con, hill, initialID), '.', 'p');
+        N, a0_list(1), a0_list(end), K, Con, hill, initialID), '.', 'p');
     out_file = fullfile(pwd, 'figures', 'finite_Hill_autonomy_transition', fname_str);
     save_figure_pdf(h1, 10, 8, out_file);
     save_figure_eps(h1, 10, 8, out_file);
@@ -132,23 +134,23 @@ this_i = 2; %plot for this index of a0
 %end
 %}
 %% Mean equilibration times
-qsave = 1;
+qsave = 0;
 
 h3=figure(3);
-plot(all_a0, mean(tfinal, 2), 'o-', 'LineWidth', 1.5);
+plot(a0_list, mean(tfinal, 2), 'o-', 'LineWidth', 1.5);
 set(gca,'FontSize', 24);
 xlabel('$$a_0$$', 'Interpreter', 'latex');
 ylabel('$$\langle t_{eq} \rangle$$', 'Interpreter', 'latex');
 
 if qsave
     fname_str = strrep(sprintf('Transition_eqtimes_N%d_a0_%.2fto%.2f_K%d_Con%d_hill%.2f_%s',...
-        N, all_a0(1), all_a0(end), K, Con, hill, initialID), '.', 'p');
+        N, a0_list(1), a0_list(end), K, Con, hill, initialID), '.', 'p');
     out_file = fullfile(pwd, 'figures', 'finite_Hill_autonomy_transition', fname_str);
     save_figure_pdf(h3, 10, 8, out_file);
     save_figure_eps(h3, 10, 8, out_file);
 end
 fprintf('K = %d, Con = %d \n', K, Con);
-fprintf('max eq. time = %.2f, at a0 = %.1f \n', max(mean(tfinal, 2)), all_a0(max(mean(tfinal, 2)) == mean(tfinal, 2)));
+fprintf('max eq. time = %.2f, at a0 = %.1f \n', max(mean(tfinal, 2)), a0_list(max(mean(tfinal, 2)) == mean(tfinal, 2)));
 end
 %{
 %% Number of ON/OFF cells

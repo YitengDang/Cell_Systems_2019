@@ -1,6 +1,5 @@
 function [cells_out, changed, H] = ...
-    update_cells_continuum_mf(cells, Con, K, hill, fN)
-
+    update_cells_continuum_mf(cells, Con, K, hill, fN, prec)
 % Update cells without noise in a positive feedback loop with finite hill
 % coefficient: continuum of cell states
 % mf: mean-field approach
@@ -20,5 +19,5 @@ cells_out = round(cells_out, 6);
 H = sum((cells_out-cells).^2);
 
 % Configuration changed? Continuous state: round Xi to compare cells
-prec = 5; %precision / #decimals
+%prec = 5; %precision / #decimals
 changed = ~isequal(round(cells_out, prec), round(cells, prec)); 

@@ -36,8 +36,6 @@ disp('Cell states F, M, B, E');
 disp(t);
 disp(t2);
 
-
-
 %% Plot parameters of simulations giving waves as spider plot
 for idx_loop=[2 6] %[1 3 4 5] %1:num_psets
     wave_idx = x_found(idx_loop);

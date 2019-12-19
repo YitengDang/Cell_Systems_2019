@@ -206,10 +206,6 @@ for idx_param_loop=1:num_params
 end
 fprintf('Total number of simulations to do: %d \n', sum(sim_to_do(:)) );
 
-%% Temporary
-%num_params = min( size(Con_wave_sim, 1), max_num_params );
-%sim_to_do = sim_count*ones(num_params, numel(noise_all) );
-
 %% Then, do the simulations
 trav_wave_all = zeros(num_params, numel(var_all), sim_count);
 trav_wave_all_2 = zeros(num_params, numel(var_all), sim_count);

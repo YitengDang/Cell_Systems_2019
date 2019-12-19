@@ -12,7 +12,7 @@ remote = 0;
 
 % Note: increasing nsim at n_pset is always possible. However, increasing
 % n_pset leads to data sets that do not form a perfect LHS sample
-n_pset = 10^5; % number of parameter sets to do
+n_pset = 10^4; % number of parameter sets to do
 nsim = 10; % number of simulations per parameter set
 tmax = 10000;
 
@@ -42,7 +42,7 @@ if remote
     save_folder = strrep(save_folder, 'H:\', 'W:\staff-homes\d\yitengdang\');
 end
 %% Load full data
-%
+%{
 networks_sel = [15 19 33 34 36]; %[15  16	19	20	32	33	34	36	43];
 TW_count_strict = zeros( numel(networks_sel), n_pset );
 TW_count_loose = zeros( numel(networks_sel), n_pset );
@@ -105,8 +105,9 @@ for network_idx=1:numel(networks_sel) %networks_sel
     K_all_by_network{network_idx} = K_all_temp;
     Con_all_by_network{network_idx} = Con_all_temp;
 end
+%}
 %% Save analyzed data
-%
+%{
 %save_folder = 'H:\My Documents\Multicellular automaton\figures\two_signals\batch_sim_all_topologies_run2\count_TW';
 fname_str = 'batch_sim_all_topologies_run2_count_TW_analyzed_v2_by_pset';
 save( fullfile(save_folder, fname_str), 'networks_sel', 'TW_count_strict',...
@@ -149,7 +150,7 @@ box on
 
 % Save figures
 set(h, 'Units', 'Inches', 'Position', [0.1 0.1 10 8]);
-qsave = 1;
+qsave = 0;
 fname_str = 'Robustness_frac_sim_TW_raw_v2';
 save_figure(h, 10, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 
@@ -157,7 +158,7 @@ save_figure(h, 10, 8, fullfile(save_folder, fname_str),'.pdf', qsave);
 % data
 x_data = 1:numel(networks_idx2);
 %y_data = (TW_count_loose(networks_idx2)'/(n_pset*nsim)).^(1./num_params);
-y_data_norm = y_data.^(1./num_params');
+y_data_norm = (y_data).^(1./num_params');
 
 % plot
 h = figure;
@@ -221,7 +222,7 @@ for idx_loop=1:numel(networks_sel)
     
     % save plot
     set(h, 'Units', 'Inches', 'Position', [0.1 0.1 10 8]);
-    qsave = 1;
+    qsave = 0;
     fname_str = sprintf('Parameters_TW_spider_plot_network_%d_n_%d_linear_filled_v2',...
         network, size(P_data,1));
     save_figure(h, 10, 8, fullfile(save_folder, fname_str),'.pdf', qsave);

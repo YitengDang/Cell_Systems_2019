@@ -71,10 +71,10 @@ for network=1:3^4 % network 1 = [0 0; 0 0]
     end
 end
 
-% Now, run over topologies
+%% Now, run over topologies
 done = zeros(3,3,3,3); % keeps track of which topologies have been found already (up to symmetry)
 %network_all = [];
-count = 38;
+count = 0;
 for network=network_all(count+1:end) % network 1 = [0 0; 0 0]
     subfolder1 = sprintf('Network_%d', network);
     count = count+1;
@@ -139,9 +139,9 @@ for network=network_all(count+1:end) % network 1 = [0 0; 0 0]
             
             % store variables
             %
-            %t_out_all(network, idx1, idx2) = t_out;
+            t_out_all(network, idx1, idx2) = t_out;
             period_all(network, idx1, idx2) = period;
-            %non_uniform_all(network, idx1, idx2) = size(unique(cells_hist{end}, 'rows'), 1);
+            non_uniform_all(network, idx1, idx2) = size(unique(cells_hist{end}, 'rows'), 1);
             %}
             if period<Inf
                 %disp('found');
